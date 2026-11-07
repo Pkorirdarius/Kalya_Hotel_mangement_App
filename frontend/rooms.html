@@ -3,10 +3,10 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Rooms &amp; Suites — Kalya Hotel, Nairobi</title>
+    <title>Rooms &amp; Suites — Westside Hotel, Nairobi</title>
     <meta
       name="description"
-      content="Three room types at Kalya Hotel in Westlands, Nairobi: Standard Executive, Deluxe Garden Suite and the Mara Residence. Fibre Wi-Fi, work desks and free cancellation."
+      content="Three room types at Westside Hotel in Westlands, Nairobi: Standard Executive, Deluxe Garden Suite and the Mara Residence. Fibre Wi-Fi, work desks and free cancellation."
     />
     <meta name="theme-color" content="#0B3B2E" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -59,7 +59,7 @@
             <div class="overflow-hidden rounded-[28px] shadow-lift">
               <img
                 src="https://images.unsplash.com/photo-1445019980597-93fa8acb246c?auto=format&fit=crop&w=1600&q=85"
-                alt="Warm hotel lounge at Kalya Hotel with natural textures and soft seating"
+                alt="Warm hotel lounge at Westside Hotel with natural textures and soft seating"
                 class="aspect-[5/4] w-full object-cover"
                 fetchpriority="high"
               />
@@ -80,8 +80,8 @@
       <section id="room-list" class="section">
         <div class="container-page">
           <div class="mx-auto max-w-2xl text-center">
-            <p class="eyebrow">Three ways to stay</p>
-            <h2 class="heading mt-4">Rest, work, repeat.</h2>
+            <p class="eyebrow" data-i18n="rooms.list.eyebrow">Three ways to stay</p>
+            <h2 class="heading mt-4" data-i18n="rooms.list.title">Rest, work, repeat.</h2>
             <p class="lede mt-4" data-i18n="rooms.note">
               All rates include VAT and service charge. Breakfast is available from KES 1,200 per person.
             </p>
@@ -177,7 +177,7 @@
                       </div>
                       <div class="flex flex-wrap gap-2">
                         <a href="booking.html?room=standard-executive" class="btn-primary btn-sm" data-i18n="common.checkAvailability">Check availability</a>
-                        <a href="contact.html" class="btn-outline btn-sm" data-i18n="rooms.help.cta">Ask a question</a>
+                        <a href="contact.html" class="btn-outline btn-sm" data-i18n="rooms.ask.cta">Ask a question</a>
                       </div>
                     </div>
                   </div>
@@ -204,7 +204,7 @@
                         <span data-i18n="common.freeCancellation">Free cancellation</span>
                       </span>
                     </div>
-                    <div class="mt-3 grid grid-cols-4 gap-2" role="group" aria-label="Room photo gallery">
+                    <div class="mt-3 grid grid-cols-4 gap-2" role="group" data-i18n-aria="rooms.galleryLabel" aria-label="Room photo gallery">
                       <button type="button" class="overflow-hidden rounded-xl ring-2 ring-gold ring-offset-2 ring-offset-white" data-gallery-thumb aria-pressed="true" data-src="https://images.unsplash.com/photo-1582719508461-905c673771fd?auto=format&fit=crop&w=1400&q=85" data-alt="Deluxe Garden Suite with king bed and garden-facing windows">
                         <img src="https://images.unsplash.com/photo-1582719508461-905c673771fd?auto=format&fit=crop&w=300&q=70" alt="" class="aspect-[4/3] w-full object-cover" loading="lazy" />
                       </button>
@@ -265,7 +265,7 @@
                       </div>
                       <div class="flex flex-wrap gap-2">
                         <a href="booking.html?room=deluxe-garden-suite" class="btn-primary btn-sm" data-i18n="common.checkAvailability">Check availability</a>
-                        <a href="contact.html" class="btn-outline btn-sm" data-i18n="rooms.help.cta">Ask a question</a>
+                        <a href="contact.html" class="btn-outline btn-sm" data-i18n="rooms.ask.cta">Ask a question</a>
                       </div>
                     </div>
                   </div>
@@ -292,7 +292,7 @@
                         <span data-i18n="common.freeCancellation">Free cancellation</span>
                       </span>
                     </div>
-                    <div class="mt-3 grid grid-cols-4 gap-2" role="group" aria-label="Room photo gallery">
+                    <div class="mt-3 grid grid-cols-4 gap-2" role="group" data-i18n-aria="rooms.galleryLabel" aria-label="Room photo gallery">
                       <button type="button" class="overflow-hidden rounded-xl ring-2 ring-gold ring-offset-2 ring-offset-white" data-gallery-thumb aria-pressed="true" data-src="https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=1400&q=85" data-alt="Mara Residence living area with sofa and kitchenette">
                         <img src="https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=300&q=70" alt="" class="aspect-[4/3] w-full object-cover" loading="lazy" />
                       </button>
@@ -353,7 +353,7 @@
                       </div>
                       <div class="flex flex-wrap gap-2">
                         <a href="booking.html?room=mara-residence" class="btn-primary btn-sm" data-i18n="common.checkAvailability">Check availability</a>
-                        <a href="contact.html" class="btn-outline btn-sm" data-i18n="rooms.help.cta">Ask a question</a>
+                        <a href="contact.html" class="btn-outline btn-sm" data-i18n="rooms.ask.cta">Ask a question</a>
                       </div>
                     </div>
                   </div>
@@ -370,7 +370,7 @@
             <span class="icon-tile"><span class="material-symbols-outlined" aria-hidden="true">wifi</span></span>
             <div>
               <h2 class="text-sm font-bold text-forest" data-i18n="amenities.wifi">Fibre Wi-Fi</h2>
-              <p class="mt-1 text-[12px] text-muted">100 Mbps in every room and public space.</p>
+              <p class="mt-1 text-[12px] text-muted" data-i18n="rooms.wifi.text">100 Mbps in every room and public space.</p>
             </div>
           </div>
           <div class="flex items-start gap-3">
@@ -383,8 +383,8 @@
           <div class="flex items-start gap-3">
             <span class="icon-tile"><span class="material-symbols-outlined" aria-hidden="true">support_agent</span></span>
             <div>
-              <h2 class="text-sm font-bold text-forest">24/7 front desk</h2>
-              <p class="mt-1 text-[12px] text-muted">A real person answers the phone, day or night.</p>
+              <h2 class="text-sm font-bold text-forest" data-i18n="rooms.support.title">24/7 front desk</h2>
+              <p class="mt-1 text-[12px] text-muted" data-i18n="rooms.support.text">A real person answers the phone, day or night.</p>
             </div>
           </div>
         </div>
@@ -394,7 +394,7 @@
         <div class="container-page">
           <div class="mx-auto max-w-2xl text-center">
             <p class="eyebrow" data-i18n="rooms.help.title">Not sure which room fits?</p>
-            <h2 class="heading mt-4">Tell us how you travel.</h2>
+            <h2 class="heading mt-4" data-i18n="rooms.help.heading">Tell us how you travel.</h2>
             <p class="lede mt-4" data-i18n="rooms.help.text">
               Tell us how long you are staying and what you need to get done. We will recommend the right room.
             </p>

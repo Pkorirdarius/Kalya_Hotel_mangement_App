@@ -3,10 +3,10 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Kalya Hotel — A warm welcome in Westlands, Nairobi</title>
+    <title>Westside Hotel — A warm welcome in Westlands, Nairobi</title>
     <meta
       name="description"
-      content="Kalya Hotel is a warm, independent hotel in Westlands, Nairobi for NGO teams, business travellers and local residents. Book direct for the best rate, free cancellation and M-Pesa payment."
+      content="Westside Hotel is a warm, independent hotel in Westlands, Nairobi for NGO teams, business travellers and local residents. Book direct for the best rate, free cancellation and M-Pesa payment."
     />
     <meta name="theme-color" content="#0B3B2E" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -31,7 +31,7 @@
       <section class="relative isolate overflow-hidden bg-forest-dark pb-32 pt-16 text-white md:pb-40 md:pt-24">
         <img
           src="https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?auto=format&fit=crop&w=2000&q=85"
-          alt="Warm evening light over the pool terrace at Kalya Hotel in Nairobi"
+          alt="Warm evening light over the pool terrace at Westside Hotel in Nairobi"
           data-i18n-aria="home.hero.imageAlt"
           class="absolute inset-0 -z-20 h-full w-full object-cover"
           fetchpriority="high"
@@ -50,7 +50,7 @@
           </h1>
 
           <p class="mt-6 max-w-xl text-base leading-relaxed text-white/80 sm:text-lg" data-i18n="home.hero.text">
-            Quiet rooms, honest food and a team that knows your name. Kalya is a calm base for NGO teams, business
+            Quiet rooms, honest food and a team that knows your name. Westside is a calm base for NGO teams, business
             travellers and neighbours from across Nairobi.
           </p>
 
@@ -90,7 +90,7 @@
         </div>
       </section>
 
-      <section class="relative z-20 -mt-20 px-0 md:-mt-24" aria-label="Check availability">
+      <section class="relative z-20 -mt-20 px-0 md:-mt-24" data-i18n-aria="common.checkAvailability" aria-label="Check availability">
         <div class="container-page">
           <form
             data-booking-search
@@ -225,7 +225,7 @@
                     <span data-i18n="room.popular">Most popular</span>
                   </span>
                   <span class="absolute bottom-4 right-4 rounded-full bg-forest/95 px-3.5 py-2 text-[12px] font-bold text-white backdrop-blur">
-                    From KES 8,500 <span class="font-medium text-white/70">/ night</span>
+                    <span data-i18n="common.from">From</span> KES 8,500 <span class="font-medium text-white/70" data-i18n="common.perNight">per night</span>
                   </span>
                 </div>
                 <div class="p-6">
@@ -276,7 +276,7 @@
                     <span data-i18n="room.garden">Garden access</span>
                   </span>
                   <span class="absolute bottom-4 right-4 rounded-full bg-forest/95 px-3.5 py-2 text-[12px] font-bold text-white backdrop-blur">
-                    From KES 12,800 <span class="font-medium text-white/70">/ night</span>
+                    <span data-i18n="common.from">From</span> KES 12,800 <span class="font-medium text-white/70" data-i18n="common.perNight">per night</span>
                   </span>
                 </div>
                 <div class="p-6">
@@ -327,7 +327,7 @@
                     <span data-i18n="room.longStay">Long-stay favourite</span>
                   </span>
                   <span class="absolute bottom-4 right-4 rounded-full bg-forest/95 px-3.5 py-2 text-[12px] font-bold text-white backdrop-blur">
-                    From KES 18,500 <span class="font-medium text-white/70">/ night</span>
+                    <span data-i18n="common.from">From</span> KES 18,500 <span class="font-medium text-white/70" data-i18n="common.perNight">per night</span>
                   </span>
                 </div>
                 <div class="p-6">
@@ -450,14 +450,14 @@
             <a href="gym.html" class="group relative overflow-hidden rounded-3xl bg-forest-dark shadow-soft">
               <img
                 src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=900&q=80"
-                alt="Kalya Fitness gym with cardio machines and free weights"
+                alt="Westside Fitness gym with cardio machines and free weights"
                 class="aspect-[4/5] w-full object-cover opacity-85 transition duration-700 group-hover:scale-105 group-hover:opacity-100"
                 loading="lazy"
               />
               <div class="absolute inset-0 bg-gradient-to-t from-forest-dark via-forest-dark/20 to-transparent"></div>
               <div class="absolute inset-x-0 bottom-0 p-5 text-white">
                 <span class="material-symbols-outlined text-[22px] text-gold" aria-hidden="true">fitness_center</span>
-                <h3 class="mt-2 font-serif text-2xl" data-i18n="facility.gym.name">Kalya Fitness</h3>
+                <h3 class="mt-2 font-serif text-2xl" data-i18n="facility.gym.name">Westside Fitness</h3>
                 <p class="mt-1 text-[12px] leading-relaxed text-white/70" data-i18n="facility.gym.description">
                   Cardio, weights and a trainer who knows your name.
                 </p>
@@ -511,6 +511,7 @@
             class="no-scrollbar mt-10 flex snap-x snap-mandatory gap-5 overflow-x-auto scroll-smooth pb-2"
             data-offers-carousel
             tabindex="0"
+            data-i18n-aria="offers.current"
             aria-label="Current offers"
           >
             <article class="w-[86%] min-w-[86%] overflow-hidden rounded-3xl bg-white/5 ring-1 ring-white/10 backdrop-blur sm:w-[400px] sm:min-w-[400px]">
@@ -628,8 +629,8 @@
                   </div>
                 </div>
                 <p class="text-[13px] font-semibold text-muted" data-i18n="home.reviews.count">386 Google reviews</p>
-                <a href="https://www.google.com/search?q=Kalya+Hotel+Westlands+Nairobi+reviews" target="_blank" rel="noopener noreferrer" class="link-arrow text-[13px]">
-                  <span>Read on Google</span>
+                <a href="https://www.google.com/search?q=Westside+Hotel+Westlands+Nairobi+reviews" target="_blank" rel="noopener noreferrer" class="link-arrow text-[13px]">
+                  <span data-i18n="home.reviews.link">Read on Google</span>
                   <span class="material-symbols-outlined text-[16px]" aria-hidden="true">open_in_new</span>
                 </a>
               </div>

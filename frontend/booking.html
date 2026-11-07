@@ -3,10 +3,10 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Book Direct — Kalya Hotel, Nairobi</title>
+    <title>Book Direct — Westside Hotel, Nairobi</title>
     <meta
       name="description"
-      content="Book your stay at Kalya Hotel in Westlands, Nairobi. Five simple steps, free cancellation up to 48 hours before arrival, and payment by M-Pesa, card or bank transfer."
+      content="Book your stay at Westside Hotel in Westlands, Nairobi. Five simple steps, free cancellation up to 48 hours before arrival, and payment by M-Pesa, card or bank transfer."
     />
     <meta name="theme-color" content="#0B3B2E" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -127,12 +127,12 @@
                     </select>
                   </div>
                   <div data-field>
-                    <label class="field-label" for="booking-purpose">Purpose of stay</label>
+                    <label class="field-label" for="booking-purpose" data-i18n="booking.purpose.label">Purpose of stay</label>
                     <select id="booking-purpose" name="purpose" class="field field-select">
-                      <option value="business">Business travel</option>
-                      <option value="ngo" selected>NGO / mission</option>
-                      <option value="leisure">Leisure</option>
-                      <option value="local">Local resident</option>
+                      <option value="business" data-i18n="booking.purpose.business">Business travel</option>
+                      <option value="ngo" selected data-i18n="booking.purpose.ngo">NGO / mission</option>
+                      <option value="leisure" data-i18n="booking.purpose.leisure">Leisure</option>
+                      <option value="local" data-i18n="booking.purpose.local">Local resident</option>
                     </select>
                   </div>
                 </div>
@@ -175,7 +175,7 @@
                           <p class="text-[14px] font-bold text-forest" data-i18n="room.standard.name">Standard Executive</p>
                           <p class="text-[13px] font-bold text-forest">KES 8,500</p>
                         </div>
-                        <p class="mt-1 text-[11px] text-muted">Sleeps 2 · 28 m² · <span data-i18n="room.standard.bed">Queen bed</span></p>
+                        <p class="mt-1 text-[11px] text-muted"><span data-i18n="room.sleeps2">Sleeps 2</span> · 28 m² · <span data-i18n="room.standard.bed">Queen bed</span></p>
                         <p class="mt-1.5 text-[11px] font-semibold text-gold-deep" data-i18n="common.freeCancellation">Free cancellation</p>
                       </div>
                     </div>
@@ -190,7 +190,7 @@
                           <p class="text-[14px] font-bold text-forest" data-i18n="room.deluxe.name">Deluxe Garden Suite</p>
                           <p class="text-[13px] font-bold text-forest">KES 12,800</p>
                         </div>
-                        <p class="mt-1 text-[11px] text-muted">Sleeps 2 · 42 m² · <span data-i18n="room.deluxe.bed">King bed</span></p>
+                        <p class="mt-1 text-[11px] text-muted"><span data-i18n="room.sleeps2">Sleeps 2</span> · 42 m² · <span data-i18n="room.deluxe.bed">King bed</span></p>
                         <p class="mt-1.5 text-[11px] font-semibold text-gold-deep" data-i18n="common.freeCancellation">Free cancellation</p>
                       </div>
                     </div>
@@ -205,7 +205,7 @@
                           <p class="text-[14px] font-bold text-forest" data-i18n="room.mara.name">Mara Residence</p>
                           <p class="text-[13px] font-bold text-forest">KES 18,500</p>
                         </div>
-                        <p class="mt-1 text-[11px] text-muted">Sleeps 3 · 58 m² · <span data-i18n="room.mara.bed">King bed + sofa bed</span></p>
+                        <p class="mt-1 text-[11px] text-muted"><span data-i18n="room.sleeps3">Sleeps 3</span> · 58 m² · <span data-i18n="room.mara.bed">King bed + sofa bed</span></p>
                         <p class="mt-1.5 text-[11px] font-semibold text-gold-deep" data-i18n="common.freeCancellation">Free cancellation</p>
                       </div>
                     </div>
@@ -343,7 +343,7 @@
                   <p data-error class="mt-2 hidden text-[12px] font-medium text-red-600"></p>
                   <label class="mt-3 flex cursor-pointer items-start gap-3">
                     <input type="checkbox" name="marketing" class="mt-0.5 h-5 w-5 rounded border-line text-forest focus:ring-forest" />
-                    <span class="text-[12px] leading-relaxed text-muted" data-i18n="field.marketing">Send me occasional offers from Kalya (optional).</span>
+                    <span class="text-[12px] leading-relaxed text-muted" data-i18n="field.marketing">Send me occasional offers from Westside (optional).</span>
                   </label>
                 </div>
 
@@ -390,7 +390,7 @@
                       <div class="rounded-2xl border border-line p-4 transition peer-checked:border-forest peer-checked:bg-forest-50 peer-checked:ring-1 peer-checked:ring-forest/25">
                         <span class="material-symbols-outlined text-[24px] text-forest" aria-hidden="true">account_balance</span>
                         <p class="mt-2 text-[13px] font-bold text-forest" data-i18n="payment.bank">Bank transfer</p>
-                        <p class="mt-0.5 text-[10px] text-muted">LPO accepted</p>
+                        <p class="mt-0.5 text-[10px] text-muted" data-i18n="payment.lpo">LPO accepted</p>
                       </div>
                     </label>
                   </div>
@@ -409,7 +409,7 @@
                     </div>
                     <p class="mt-3 inline-flex items-start gap-2 rounded-xl bg-gold-pale px-3 py-2 text-[11px] leading-relaxed text-gold-deep">
                       <span class="material-symbols-outlined text-[15px]" aria-hidden="true">info</span>
-                      <span data-i18n="payment.mpesaHint">You will receive an STK push from Kalya Hotel. Approve it with your PIN.</span>
+                      <span data-i18n="payment.mpesaHint">You will receive an STK push from Westside Hotel. Approve it with your PIN.</span>
                     </p>
                   </div>
                 </div>
@@ -452,9 +452,9 @@
                       We will email our bank details and hold your room for 24 hours.
                     </p>
                     <dl class="mt-4 grid gap-2 rounded-xl bg-sand/60 p-4 text-[12px]">
-                      <div class="flex justify-between gap-3"><dt class="text-muted">Bank</dt><dd class="font-semibold text-forest">Equity Bank Kenya</dd></div>
-                      <div class="flex justify-between gap-3"><dt class="text-muted">Account name</dt><dd class="font-semibold text-forest">Kalya Hotel Ltd</dd></div>
-                      <div class="flex justify-between gap-3"><dt class="text-muted">Account number</dt><dd class="font-semibold text-forest">1234 5678 9012</dd></div>
+                      <div class="flex justify-between gap-3"><dt class="text-muted" data-i18n="payment.bankLabel">Bank</dt><dd class="font-semibold text-forest">Equity Bank Kenya</dd></div>
+                      <div class="flex justify-between gap-3"><dt class="text-muted" data-i18n="payment.accountName">Account name</dt><dd class="font-semibold text-forest">Westside Hotel Ltd</dd></div>
+                      <div class="flex justify-between gap-3"><dt class="text-muted" data-i18n="payment.accountNumber">Account number</dt><dd class="font-semibold text-forest">1234 5678 9012</dd></div>
                       <div class="flex justify-between gap-3"><dt class="text-muted">SWIFT</dt><dd class="font-semibold text-forest">EQBLKENA</dd></div>
                     </dl>
                     <p class="mt-3 text-[11px] leading-relaxed text-muted" data-i18n="payment.bankNote">

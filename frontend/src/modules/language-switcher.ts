@@ -1,9 +1,9 @@
 import type { Language, LanguageChangeDetail } from '../types';
 
 const SWITCH_SELECTOR = '[aria-label="Language switch"]';
-const STORAGE_KEY = 'kalya.language';
+const STORAGE_KEY = 'westside.language';
 
-export const LANGUAGE_CHANGE_EVENT = 'kalya:languagechange';
+export const LANGUAGE_CHANGE_EVENT = 'westside:languagechange';
 
 const EN_LABEL = 'EN';
 const SW_LABEL = 'SW';
@@ -72,7 +72,7 @@ function applyLanguage(button: HTMLButtonElement, language: Language, notify: bo
 /**
  * Makes the EN | SW control functional. The Django backend will supply the
  * translated content; this module owns the toggle state and emits a
- * `kalya:languagechange` event so server-rendered pages can react.
+ * `westside:languagechange` event so server-rendered pages can react.
  */
 export function initLanguageSwitcher(): void {
   const button = document.querySelector<HTMLButtonElement>(SWITCH_SELECTOR);

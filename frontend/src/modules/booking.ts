@@ -509,13 +509,13 @@ export function initBookingFlow(): void {
     const ics = [
       'BEGIN:VCALENDAR',
       'VERSION:2.0',
-      'PRODID:-//Kalya Hotel//Booking//EN',
+      'PRODID:-//Westside Hotel//Booking//EN',
       'BEGIN:VEVENT',
-      `UID:${state.reference}@kalyahotel.co.ke`,
+      `UID:${state.reference}@westsidehotel.co.ke`,
       `DTSTAMP:${new Date().toISOString().replace(/[-:]/g, '').split('.')[0]}Z`,
       `DTSTART;VALUE=DATE:${start}`,
       `DTEND;VALUE=DATE:${end}`,
-      'SUMMARY:Kalya Hotel stay',
+      'SUMMARY:Westside Hotel stay',
       'LOCATION:12 Jacaranda Lane\\, Westlands\\, Nairobi',
       `DESCRIPTION:Booking reference ${state.reference}. Front desk +254 20 765 4321.`,
       'END:VEVENT',
@@ -526,7 +526,7 @@ export function initBookingFlow(): void {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `kalya-${state.reference.toLowerCase()}.ics`;
+    link.download = `westside-${state.reference.toLowerCase()}.ics`;
     document.body.appendChild(link);
     link.click();
     link.remove();

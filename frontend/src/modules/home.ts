@@ -1,3 +1,4 @@
+import { t } from '../i18n';
 import { addDaysISO, nightsBetween, todayISO } from '../utils';
 import { setFieldError } from './ui';
 
@@ -41,7 +42,7 @@ function initBookingSearch(): void {
 
   checkout.addEventListener('change', () => {
     if (checkin.value && checkout.value <= checkin.value) {
-      setFieldError(checkout, 'Check-out must be after check-in.');
+      setFieldError(checkout, t('validation.dates'));
     } else {
       setFieldError(checkout, null);
     }
@@ -51,7 +52,7 @@ function initBookingSearch(): void {
     const nights = nightsBetween(checkin.value, checkout.value);
     if (nights < 1) {
       event.preventDefault();
-      setFieldError(checkout, 'Check-out must be after check-in.');
+      setFieldError(checkout, t('validation.dates'));
       checkout.focus();
       return;
     }
