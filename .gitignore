@@ -1,5 +1,49 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+
+# Django
+db.sqlite3
+db.sqlite3-journal
+media/
+staticfiles/
+*.log
+logs/
+
+# Environment / secrets
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# Node
 node_modules/
 dist/
-.env
-.env.*
-!.env.example
+.vite/
+npm-debug.log*
+pnpm-debug.log*
+
+# Playwright
+playwright-report/
+test-results/
+blob-report/
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Local scratch
+/tmp/
+.sixth/
