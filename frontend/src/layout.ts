@@ -33,7 +33,7 @@ function logo(dark = false): string {
       </span>
       <span class="flex flex-col leading-none">
         <span class="font-serif text-[26px] font-medium tracking-tight ${wordmark}">Westside</span>
-        <span class="mt-1 text-[9px] font-bold uppercase tracking-[0.32em] ${sub}">Hotel · Nairobi</span>
+        <span class="mt-1 text-[9px] font-bold uppercase tracking-[0.32em] ${sub}">Hotel · Kapenguria</span>
       </span>
     </a>
   `;
@@ -68,7 +68,7 @@ function headerHtml(current: PageId): string {
         <div class="flex items-center gap-5">
           <span class="inline-flex items-center gap-1.5">
             <span class="material-symbols-outlined text-[14px] text-gold">location_on</span>
-            <span data-i18n="header.location">Westlands, Nairobi</span>
+            <span data-i18n="header.location">Westlands, Kapenguria</span>
           </span>
           <a class="inline-flex items-center gap-1.5 transition hover:text-white" href="${PHONE_HREF}">
             <span class="material-symbols-outlined text-[14px] text-gold">call</span>
@@ -180,7 +180,7 @@ function footerHtml(): string {
         <div>
           ${logo(true)}
           <p class="mt-6 max-w-xs text-sm leading-relaxed" data-i18n="footer.about">
-            A warm, independent hotel in Westlands, Nairobi — built for people who travel with purpose.
+            A warm, independent hotel in Westlands, Kapenguria — built for people who travel with purpose.
           </p>
           <div class="mt-6">
             <p class="text-[10px] font-bold uppercase tracking-[0.24em] text-white/40" data-i18n="footer.social">Follow Westside</p>
@@ -230,7 +230,7 @@ function footerHtml(): string {
           <ul class="mt-4 space-y-3 text-sm">
             <li class="flex gap-2.5">
               <span class="material-symbols-outlined text-[18px] text-gold">location_on</span>
-              <span data-i18n="footer.address">12 Jacaranda Lane, Westlands, Nairobi</span>
+              <span data-i18n="footer.address">12 Jacaranda Lane, Westlands, Kapenguria</span>
             </li>
             <li class="flex gap-2.5">
               <span class="material-symbols-outlined text-[18px] text-gold">call</span>
@@ -245,7 +245,7 @@ function footerHtml(): string {
               <span data-i18n="footer.hoursValue">Front desk open 24 hours</span>
             </li>
           </ul>
-          <a href="https://maps.google.com/?q=Westlands,Nairobi,Kenya" target="_blank" rel="noopener noreferrer" class="link-arrow mt-3 text-gold hover:text-gold-soft" data-i18n="footer.map">View on map</a>
+          <a href="https://maps.google.com/?q=Westlands,Kapenguria,Kenya" target="_blank" rel="noopener noreferrer" class="link-arrow mt-3 text-gold hover:text-gold-soft" data-i18n="footer.map">View on map</a>
         </div>
       </div>
 

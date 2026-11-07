@@ -516,7 +516,7 @@ export function initBookingFlow(): void {
       `DTSTART;VALUE=DATE:${start}`,
       `DTEND;VALUE=DATE:${end}`,
       'SUMMARY:Westside Hotel stay',
-      'LOCATION:12 Jacaranda Lane\\, Westlands\\, Nairobi',
+      'LOCATION:12 Jacaranda Lane\\, Westlands\\, Kapenguria',
       `DESCRIPTION:Booking reference ${state.reference}. Front desk +254 20 765 4321.`,
       'END:VEVENT',
       'END:VCALENDAR',

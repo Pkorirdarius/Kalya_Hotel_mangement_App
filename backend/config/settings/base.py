@@ -119,9 +119,9 @@ else:
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql",
-            "NAME": env("POSTGRES_DB", default="kalya"),
-            "USER": env("POSTGRES_USER", default="kalya"),
-            "PASSWORD": env("POSTGRES_PASSWORD", default="kalya"),
+            "NAME": env("POSTGRES_DB", default="westside"),
+            "USER": env("POSTGRES_USER", default="westside"),
+            "PASSWORD": env("POSTGRES_PASSWORD", default="westside"),
             "HOST": env("POSTGRES_HOST", default="localhost"),
             "PORT": env("POSTGRES_PORT", default="5432"),
             "CONN_MAX_AGE": 60,
@@ -210,12 +210,12 @@ REST_FRAMEWORK = {
         "payment": "30/hour",
         "login": "10/min",
     },
-    "EXCEPTION_HANDLER": "apps.common.exceptions.kalya_exception_handler",
+    "EXCEPTION_HANDLER": "apps.common.exceptions.westside_exception_handler",
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
 
 SPECTACULAR_SETTINGS = {
-    "TITLE": "Kalya Hotel API",
+    "TITLE": "Westside Hotel API",
     "DESCRIPTION": "Bilingual hotel website, booking and front desk API.",
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
@@ -251,15 +251,15 @@ EMAIL_PORT = env.int("EMAIL_PORT", default=587)
 EMAIL_HOST_USER = env("EMAIL_HOST_USER", default="")
 EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default="")
 EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=True)
-DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default="reservations@kalyahotel.co.ke")
-FRONT_DESK_EMAIL = env("FRONT_DESK_EMAIL", default="frontdesk@kalyahotel.co.ke")
-MANAGER_EMAIL = env("MANAGER_EMAIL", default="manager@kalyahotel.co.ke")
+DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default="reservations@westsidehotel.co.ke")
+FRONT_DESK_EMAIL = env("FRONT_DESK_EMAIL", default="frontdesk@westsidehotel.co.ke")
+MANAGER_EMAIL = env("MANAGER_EMAIL", default="manager@westsidehotel.co.ke")
 
 # ---------------------------------------------------------------------------
 # django-q2 — database broker, no Redis
 # ---------------------------------------------------------------------------
 Q_CLUSTER = {
-    "name": env("Q_CLUSTER_NAME", default="kalya"),
+    "name": env("Q_CLUSTER_NAME", default="westside"),
     "workers": env.int("Q_CLUSTER_WORKERS", default=2),
     "timeout": env.int("Q_CLUSTER_TIMEOUT", default=120),
     "retry": env.int("Q_CLUSTER_RETRY", default=180),
@@ -267,30 +267,30 @@ Q_CLUSTER = {
     "orm": "default",
     "catch_up": False,
     "save_limit": 250,
-    "label": "Kalya jobs",
+    "label": "westside jobs",
 }
 
 # ---------------------------------------------------------------------------
 # Hotel business settings — safe defaults, all overridable in admin
 # ---------------------------------------------------------------------------
-KALYA = {
-    "NAME": "Kalya Hotel",
+westside = {
+    "NAME": "westside Hotel",
     "TOWN": "Kapenguria",
     "COUNTY": "West Pokot",
     "COUNTRY": "Kenya",
     "CURRENCY": "KES",
     "PHONE": "+254 20 765 4321",
     "PHONE_HREF": "tel:+254207654321",
-    "EMAIL": "stay@kalyahotel.co.ke",
+    "EMAIL": "stay@westsidehotel.co.ke",
     "ADDRESS": "Kapenguria, West Pokot, Kenya",
-    "CANCELLATION_CUTOFF_HOURS": env.int("KALYA_CANCELLATION_CUTOFF_HOURS", default=48),
-    "HOLD_TTL_MINUTES": env.int("KALYA_HOLD_TTL_MINUTES", default=15),
-    "FRONTDESK_TARGET_MINUTES": env.int("KALYA_FRONTDESK_TARGET_MINUTES", default=10),
+    "CANCELLATION_CUTOFF_HOURS": env.int("westside_CANCELLATION_CUTOFF_HOURS", default=48),
+    "HOLD_TTL_MINUTES": env.int("westside_HOLD_TTL_MINUTES", default=15),
+    "FRONTDESK_TARGET_MINUTES": env.int("westside_FRONTDESK_TARGET_MINUTES", default=10),
     "FRONTDESK_ESCALATE_MINUTES": env.int(
-        "KALYA_FRONTDESK_ESCALATE_MINUTES", default=8
+        "westside_FRONTDESK_ESCALATE_MINUTES", default=8
     ),
-    "CLAIMS_VERIFIED": env.bool("KALYA_CLAIMS_VERIFIED", default=False),
-    "GOOGLE_REVIEWS_ENABLED": env.bool("KALYA_GOOGLE_REVIEWS_ENABLED", default=False),
+    "CLAIMS_VERIFIED": env.bool("westside_CLAIMS_VERIFIED", default=False),
+    "GOOGLE_REVIEWS_ENABLED": env.bool("westside_GOOGLE_REVIEWS_ENABLED", default=False),
 }
 
 # ---------------------------------------------------------------------------
@@ -307,7 +307,7 @@ LOGGING = {
     },
     "root": {"handlers": ["console"], "level": "INFO"},
     "loggers": {
-        "kalya": {"handlers": ["console"], "level": "INFO", "propagate": False},
+        "westside": {"handlers": ["console"], "level": "INFO", "propagate": False},
         "django.request": {
             "handlers": ["console"],
             "level": "WARNING",
