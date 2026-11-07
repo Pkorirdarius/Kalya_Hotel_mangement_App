@@ -1,0 +1,639 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Book Direct — Kalya Hotel, Nairobi</title>
+    <meta
+      name="description"
+      content="Book your stay at Kalya Hotel in Westlands, Nairobi. Five simple steps, free cancellation up to 48 hours before arrival, and payment by M-Pesa, card or bank transfer."
+    />
+    <meta name="theme-color" content="#0B3B2E" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
+      rel="stylesheet"
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='32' fill='%230B3B2E'/%3E%3Ctext x='32' y='45' font-family='Georgia,serif' font-size='38' fill='%23C99A4B' text-anchor='middle'%3EK%3C/text%3E%3C/svg%3E"
+    />
+  </head>
+  <body data-page="booking" class="bg-cream">
+    <div id="site-header"></div>
+
+    <main id="main" class="pb-28 lg:pb-0">
+      <section class="border-b border-line bg-sand/60 py-10 md:py-14">
+        <div class="container-page">
+          <div class="flex flex-col justify-between gap-6 md:flex-row md:items-end">
+            <div>
+              <p class="eyebrow" data-i18n="booking.eyebrow">Book direct</p>
+              <h1 class="heading mt-3" data-i18n="booking.title">Your stay, step by step.</h1>
+              <p class="lede mt-3 max-w-2xl" data-i18n="booking.text">
+                Best rate guaranteed. Free cancellation up to 48 hours before arrival. Pay by M-Pesa, card or bank
+                transfer.
+              </p>
+            </div>
+            <div class="flex flex-wrap gap-2">
+              <span class="pill bg-white text-forest ring-1 ring-line">
+                <span class="material-symbols-outlined text-[14px] text-gold-deep" aria-hidden="true">verified</span>
+                <span data-i18n="booking.bestRate">Best rate guaranteed</span>
+              </span>
+              <span class="pill bg-white text-forest ring-1 ring-line">
+                <span class="material-symbols-outlined text-[14px] text-gold-deep" aria-hidden="true">event_available</span>
+                <span data-i18n="booking.freeCancelShort">Free cancellation up to 48 hours</span>
+              </span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="container-page py-8 lg:py-12">
+        <div class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_360px] xl:grid-cols-[minmax(0,1fr)_400px]">
+          <div class="rounded-[28px] border border-line bg-white p-5 shadow-soft sm:p-7 lg:p-8">
+            <div data-progress class="relative">
+              <div class="absolute left-5 right-5 top-5 h-px bg-line" aria-hidden="true"></div>
+              <div data-progress-fill class="absolute left-5 top-5 h-px bg-forest transition-all duration-300" style="width: 0%" aria-hidden="true"></div>
+              <ol class="relative flex items-start justify-between gap-1">
+                <li class="flex w-10 flex-col items-center gap-2 text-center sm:w-24" data-step-indicator="1">
+                  <span data-step-dot class="flex h-10 w-10 items-center justify-center rounded-full border border-forest bg-forest text-[13px] font-bold text-white transition">
+                    <span data-step-number>1</span>
+                    <span data-step-check class="material-symbols-outlined hidden text-[19px]" aria-hidden="true">check</span>
+                  </span>
+                  <span data-step-label class="hidden text-[11px] font-bold text-forest sm:block" data-i18n="step.dates">Dates</span>
+                </li>
+                <li class="flex w-10 flex-col items-center gap-2 text-center sm:w-24" data-step-indicator="2">
+                  <span data-step-dot class="flex h-10 w-10 items-center justify-center rounded-full border border-line bg-white text-[13px] font-bold text-muted transition">
+                    <span data-step-number>2</span>
+                    <span data-step-check class="material-symbols-outlined hidden text-[19px]" aria-hidden="true">check</span>
+                  </span>
+                  <span data-step-label class="hidden text-[11px] font-semibold text-muted sm:block" data-i18n="step.room">Room</span>
+                </li>
+                <li class="flex w-10 flex-col items-center gap-2 text-center sm:w-24" data-step-indicator="3">
+                  <span data-step-dot class="flex h-10 w-10 items-center justify-center rounded-full border border-line bg-white text-[13px] font-bold text-muted transition">
+                    <span data-step-number>3</span>
+                    <span data-step-check class="material-symbols-outlined hidden text-[19px]" aria-hidden="true">check</span>
+                  </span>
+                  <span data-step-label class="hidden text-[11px] font-semibold text-muted sm:block" data-i18n="step.details">Details</span>
+                </li>
+                <li class="flex w-10 flex-col items-center gap-2 text-center sm:w-24" data-step-indicator="4">
+                  <span data-step-dot class="flex h-10 w-10 items-center justify-center rounded-full border border-line bg-white text-[13px] font-bold text-muted transition">
+                    <span data-step-number>4</span>
+                    <span data-step-check class="material-symbols-outlined hidden text-[19px]" aria-hidden="true">check</span>
+                  </span>
+                  <span data-step-label class="hidden text-[11px] font-semibold text-muted sm:block" data-i18n="step.payment">Payment</span>
+                </li>
+                <li class="flex w-10 flex-col items-center gap-2 text-center sm:w-24" data-step-indicator="5">
+                  <span data-step-dot class="flex h-10 w-10 items-center justify-center rounded-full border border-line bg-white text-[13px] font-bold text-muted transition">
+                    <span data-step-number>5</span>
+                    <span data-step-check class="material-symbols-outlined hidden text-[19px]" aria-hidden="true">check</span>
+                  </span>
+                  <span data-step-label class="hidden text-[11px] font-semibold text-muted sm:block" data-i18n="step.confirm">Confirmation</span>
+                </li>
+              </ol>
+              <p class="mt-4 text-center text-[12px] font-semibold text-forest sm:hidden" data-current-step>Step 1 of 5 · Dates</p>
+            </div>
+
+            <form data-booking-form class="mt-8" novalidate>
+              <section data-step-panel="1" aria-labelledby="booking-step-1">
+                <h2 id="booking-step-1" class="heading-sm" data-i18n="booking.step1.title">When are you travelling?</h2>
+                <p class="mt-2 text-sm leading-relaxed text-muted" data-i18n="booking.step1.text">
+                  Choose your dates and how many people are coming. You can change them later, subject to availability.
+                </p>
+
+                <div class="mt-6 grid gap-4 sm:grid-cols-2">
+                  <div data-field>
+                    <label class="field-label" for="booking-checkin" data-i18n="booking.checkin">Check-in</label>
+                    <input id="booking-checkin" name="checkin" type="date" required class="field" />
+                    <p data-error class="mt-1.5 hidden text-[12px] font-medium text-red-600"></p>
+                  </div>
+                  <div data-field>
+                    <label class="field-label" for="booking-checkout" data-i18n="booking.checkout">Check-out</label>
+                    <input id="booking-checkout" name="checkout" type="date" required class="field" />
+                    <p data-error class="mt-1.5 hidden text-[12px] font-medium text-red-600"></p>
+                  </div>
+                  <div data-field>
+                    <label class="field-label" for="booking-guests" data-i18n="booking.guests">Guests</label>
+                    <select id="booking-guests" name="guests" class="field field-select">
+                      <option value="1" data-i18n="booking.guest1">1 guest</option>
+                      <option value="2" selected data-i18n="booking.guest2">2 guests</option>
+                      <option value="3" data-i18n="booking.guest3">3 guests</option>
+                      <option value="4" data-i18n="booking.guest4">4 guests</option>
+                    </select>
+                  </div>
+                  <div data-field>
+                    <label class="field-label" for="booking-purpose">Purpose of stay</label>
+                    <select id="booking-purpose" name="purpose" class="field field-select">
+                      <option value="business">Business travel</option>
+                      <option value="ngo" selected>NGO / mission</option>
+                      <option value="leisure">Leisure</option>
+                      <option value="local">Local resident</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="mt-5 flex items-start gap-3 rounded-2xl bg-forest-50 p-4">
+                  <span class="material-symbols-outlined text-[20px] text-forest" aria-hidden="true">event_available</span>
+                  <div>
+                    <p class="text-[13px] font-bold text-forest" data-i18n="common.freeCancellation">Free cancellation</p>
+                    <p class="mt-1 text-[12px] leading-relaxed text-muted" data-i18n="summary.freeCancel">
+                      Free cancellation until 48 hours before check-in.
+                    </p>
+                  </div>
+                </div>
+
+                <div class="mt-7 flex items-center justify-between gap-3">
+                  <p class="hidden text-[12px] text-muted sm:block">
+                    <span class="font-semibold text-forest" data-step-nights>2 nights</span>
+                  </p>
+                  <button type="button" class="btn-primary sm:ml-auto" data-next="2">
+                    <span data-i18n="booking.step1.continue">Choose a room</span>
+                    <span class="material-symbols-outlined text-[18px]" aria-hidden="true">arrow_forward</span>
+                  </button>
+                </div>
+              </section>
+
+              <section data-step-panel="2" class="hidden" aria-labelledby="booking-step-2">
+                <h2 id="booking-step-2" class="heading-sm" data-i18n="booking.step2.title">Pick your room and meal plan.</h2>
+                <p class="mt-2 text-sm leading-relaxed text-muted" data-i18n="booking.step2.text">
+                  All rooms include fibre Wi-Fi, a work desk and daily housekeeping. Meal supplements are per guest, per
+                  night.
+                </p>
+
+                <div class="mt-6 space-y-3">
+                  <label class="block cursor-pointer">
+                    <input type="radio" name="room" value="standard-executive" class="peer sr-only" data-room-option checked />
+                    <div class="flex gap-3 rounded-2xl border border-line p-3 transition peer-checked:border-forest peer-checked:bg-forest-50 peer-checked:ring-1 peer-checked:ring-forest/25">
+                      <img src="https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=400&q=70" alt="" class="h-20 w-24 shrink-0 rounded-xl object-cover" loading="lazy" />
+                      <div class="flex min-w-0 flex-1 flex-col justify-center">
+                        <div class="flex flex-wrap items-start justify-between gap-1">
+                          <p class="text-[14px] font-bold text-forest" data-i18n="room.standard.name">Standard Executive</p>
+                          <p class="text-[13px] font-bold text-forest">KES 8,500</p>
+                        </div>
+                        <p class="mt-1 text-[11px] text-muted">Sleeps 2 · 28 m² · <span data-i18n="room.standard.bed">Queen bed</span></p>
+                        <p class="mt-1.5 text-[11px] font-semibold text-gold-deep" data-i18n="common.freeCancellation">Free cancellation</p>
+                      </div>
+                    </div>
+                  </label>
+
+                  <label class="block cursor-pointer">
+                    <input type="radio" name="room" value="deluxe-garden-suite" class="peer sr-only" data-room-option />
+                    <div class="flex gap-3 rounded-2xl border border-line p-3 transition peer-checked:border-forest peer-checked:bg-forest-50 peer-checked:ring-1 peer-checked:ring-forest/25">
+                      <img src="https://images.unsplash.com/photo-1582719508461-905c673771fd?auto=format&fit=crop&w=400&q=70" alt="" class="h-20 w-24 shrink-0 rounded-xl object-cover" loading="lazy" />
+                      <div class="flex min-w-0 flex-1 flex-col justify-center">
+                        <div class="flex flex-wrap items-start justify-between gap-1">
+                          <p class="text-[14px] font-bold text-forest" data-i18n="room.deluxe.name">Deluxe Garden Suite</p>
+                          <p class="text-[13px] font-bold text-forest">KES 12,800</p>
+                        </div>
+                        <p class="mt-1 text-[11px] text-muted">Sleeps 2 · 42 m² · <span data-i18n="room.deluxe.bed">King bed</span></p>
+                        <p class="mt-1.5 text-[11px] font-semibold text-gold-deep" data-i18n="common.freeCancellation">Free cancellation</p>
+                      </div>
+                    </div>
+                  </label>
+
+                  <label class="block cursor-pointer">
+                    <input type="radio" name="room" value="mara-residence" class="peer sr-only" data-room-option />
+                    <div class="flex gap-3 rounded-2xl border border-line p-3 transition peer-checked:border-forest peer-checked:bg-forest-50 peer-checked:ring-1 peer-checked:ring-forest/25">
+                      <img src="https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=400&q=70" alt="" class="h-20 w-24 shrink-0 rounded-xl object-cover" loading="lazy" />
+                      <div class="flex min-w-0 flex-1 flex-col justify-center">
+                        <div class="flex flex-wrap items-start justify-between gap-1">
+                          <p class="text-[14px] font-bold text-forest" data-i18n="room.mara.name">Mara Residence</p>
+                          <p class="text-[13px] font-bold text-forest">KES 18,500</p>
+                        </div>
+                        <p class="mt-1 text-[11px] text-muted">Sleeps 3 · 58 m² · <span data-i18n="room.mara.bed">King bed + sofa bed</span></p>
+                        <p class="mt-1.5 text-[11px] font-semibold text-gold-deep" data-i18n="common.freeCancellation">Free cancellation</p>
+                      </div>
+                    </div>
+                  </label>
+                </div>
+
+                <fieldset class="mt-7">
+                  <legend class="text-[11px] font-bold uppercase tracking-[0.16em] text-muted" data-i18n="meal.title">Meal plan</legend>
+                  <div class="mt-3 space-y-2">
+                    <label class="block cursor-pointer">
+                      <input type="radio" name="meal" value="room-only" class="peer sr-only" data-meal-option />
+                      <div class="flex items-center justify-between gap-3 rounded-xl border border-line p-3.5 transition peer-checked:border-forest peer-checked:bg-forest-50 peer-checked:ring-1 peer-checked:ring-forest/25">
+                        <div>
+                          <p class="text-[13px] font-bold text-forest" data-i18n="meal.roomOnly">Room only</p>
+                          <p class="mt-0.5 text-[11px] text-muted" data-i18n="meal.roomOnlyNote">No meals included</p>
+                        </div>
+                        <p class="shrink-0 text-[12px] font-bold text-muted" data-i18n="meal.included">Included</p>
+                      </div>
+                    </label>
+                    <label class="block cursor-pointer">
+                      <input type="radio" name="meal" value="breakfast" class="peer sr-only" data-meal-option checked />
+                      <div class="flex items-center justify-between gap-3 rounded-xl border border-line p-3.5 transition peer-checked:border-forest peer-checked:bg-forest-50 peer-checked:ring-1 peer-checked:ring-forest/25">
+                        <div>
+                          <p class="text-[13px] font-bold text-forest" data-i18n="meal.breakfast">Breakfast included</p>
+                          <p class="mt-0.5 text-[11px] text-muted" data-i18n="meal.breakfastNote">Breakfast for each guest</p>
+                        </div>
+                        <p class="shrink-0 text-right text-[12px] font-bold text-forest">+ KES 1,200 <span class="block text-[9px] font-semibold text-muted" data-i18n="meal.perGuestNight">per guest / night</span></p>
+                      </div>
+                    </label>
+                    <label class="block cursor-pointer">
+                      <input type="radio" name="meal" value="half-board" class="peer sr-only" data-meal-option />
+                      <div class="flex items-center justify-between gap-3 rounded-xl border border-line p-3.5 transition peer-checked:border-forest peer-checked:bg-forest-50 peer-checked:ring-1 peer-checked:ring-forest/25">
+                        <div>
+                          <p class="text-[13px] font-bold text-forest" data-i18n="meal.halfBoard">Half board</p>
+                          <p class="mt-0.5 text-[11px] text-muted" data-i18n="meal.halfBoardNote">Breakfast and dinner</p>
+                        </div>
+                        <p class="shrink-0 text-right text-[12px] font-bold text-forest">+ KES 2,800 <span class="block text-[9px] font-semibold text-muted" data-i18n="meal.perGuestNight">per guest / night</span></p>
+                      </div>
+                    </label>
+                    <label class="block cursor-pointer">
+                      <input type="radio" name="meal" value="full-board" class="peer sr-only" data-meal-option />
+                      <div class="flex items-center justify-between gap-3 rounded-xl border border-line p-3.5 transition peer-checked:border-forest peer-checked:bg-forest-50 peer-checked:ring-1 peer-checked:ring-forest/25">
+                        <div>
+                          <p class="text-[13px] font-bold text-forest" data-i18n="meal.fullBoard">Full board</p>
+                          <p class="mt-0.5 text-[11px] text-muted" data-i18n="meal.fullBoardNote">Breakfast, lunch and dinner</p>
+                        </div>
+                        <p class="shrink-0 text-right text-[12px] font-bold text-forest">+ KES 4,200 <span class="block text-[9px] font-semibold text-muted" data-i18n="meal.perGuestNight">per guest / night</span></p>
+                      </div>
+                    </label>
+                  </div>
+                </fieldset>
+
+                <div class="mt-7 flex items-center justify-between gap-3">
+                  <button type="button" class="btn-ghost btn-sm" data-back="1">
+                    <span class="material-symbols-outlined text-[18px]" aria-hidden="true">arrow_back</span>
+                    <span data-i18n="common.back">Back</span>
+                  </button>
+                  <button type="button" class="btn-primary" data-next="3">
+                    <span data-i18n="booking.step2.continue">Add guest details</span>
+                    <span class="material-symbols-outlined text-[18px]" aria-hidden="true">arrow_forward</span>
+                  </button>
+                </div>
+              </section>
+
+              <section data-step-panel="3" class="hidden" aria-labelledby="booking-step-3">
+                <h2 id="booking-step-3" class="heading-sm" data-i18n="booking.step3.title">Who is staying with us?</h2>
+                <p class="mt-2 text-sm leading-relaxed text-muted" data-i18n="booking.step3.text">
+                  We will use these details for your confirmation and to prepare your room.
+                </p>
+
+                <div class="mt-6 grid gap-4 sm:grid-cols-2">
+                  <div data-field>
+                    <label class="field-label" for="guest-first" data-i18n="field.firstName">First name</label>
+                    <input id="guest-first" name="firstName" type="text" autocomplete="given-name" required class="field" />
+                    <p data-error class="mt-1.5 hidden text-[12px] font-medium text-red-600"></p>
+                  </div>
+                  <div data-field>
+                    <label class="field-label" for="guest-last" data-i18n="field.lastName">Last name</label>
+                    <input id="guest-last" name="lastName" type="text" autocomplete="family-name" required class="field" />
+                    <p data-error class="mt-1.5 hidden text-[12px] font-medium text-red-600"></p>
+                  </div>
+                  <div data-field>
+                    <label class="field-label" for="guest-email" data-i18n="field.email">Email address</label>
+                    <input id="guest-email" name="email" type="email" autocomplete="email" required class="field" />
+                    <p data-error class="mt-1.5 hidden text-[12px] font-medium text-red-600"></p>
+                  </div>
+                  <div data-field>
+                    <label class="field-label" for="guest-phone" data-i18n="field.phone">Phone number</label>
+                    <input id="guest-phone" name="phone" type="tel" autocomplete="tel" required class="field" placeholder="+254 712 345 678" />
+                    <p data-error class="mt-1.5 hidden text-[12px] font-medium text-red-600"></p>
+                  </div>
+                  <div data-field>
+                    <label class="field-label" for="guest-country" data-i18n="field.country">Country</label>
+                    <select id="guest-country" name="country" class="field field-select">
+                      <option value="Kenya" selected>Kenya</option>
+                      <option value="Uganda">Uganda</option>
+                      <option value="Tanzania">Tanzania</option>
+                      <option value="Rwanda">Rwanda</option>
+                      <option value="Ethiopia">Ethiopia</option>
+                      <option value="Somalia">Somalia</option>
+                      <option value="South Sudan">South Sudan</option>
+                      <option value="DR Congo">DR Congo</option>
+                      <option value="Zambia">Zambia</option>
+                      <option value="Malawi">Malawi</option>
+                      <option value="South Africa">South Africa</option>
+                      <option value="United Kingdom">United Kingdom</option>
+                      <option value="United States">United States</option>
+                      <option value="Germany">Germany</option>
+                      <option value="Netherlands">Netherlands</option>
+                      <option value="India">India</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
+                  <div data-field>
+                    <label class="field-label" for="guest-arrival" data-i18n="field.arrivalTime">Estimated arrival time</label>
+                    <select id="guest-arrival" name="arrival" class="field field-select">
+                      <option value="morning" data-i18n="arrival.early">Morning (before 12pm)</option>
+                      <option value="afternoon" selected data-i18n="arrival.afternoon">Afternoon (12pm – 4pm)</option>
+                      <option value="evening" data-i18n="arrival.evening">Evening (4pm – 8pm)</option>
+                      <option value="late" data-i18n="arrival.late">Late (after 8pm)</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="mt-4" data-field>
+                  <label class="field-label" for="guest-requests" data-i18n="field.requests">Special requests</label>
+                  <textarea id="guest-requests" name="requests" rows="3" class="w-full rounded-xl border border-line bg-white px-4 py-3 text-[15px] text-ink shadow-sm transition placeholder:text-muted/60 focus:border-forest focus:outline-none focus:ring-2 focus:ring-forest/15" data-i18n-placeholder="field.requestsPlaceholder" placeholder="Airport pickup, quiet room, extra pillow…"></textarea>
+                </div>
+
+                <div class="mt-4 rounded-2xl bg-sand/60 p-4" data-field>
+                  <label class="flex cursor-pointer items-start gap-3">
+                    <input type="checkbox" name="terms" class="mt-0.5 h-5 w-5 rounded border-line text-forest focus:ring-forest" />
+                    <span class="text-[13px] leading-relaxed text-ink/80" data-i18n="field.terms">I agree to the booking terms and cancellation policy.</span>
+                  </label>
+                  <p data-error class="mt-2 hidden text-[12px] font-medium text-red-600"></p>
+                  <label class="mt-3 flex cursor-pointer items-start gap-3">
+                    <input type="checkbox" name="marketing" class="mt-0.5 h-5 w-5 rounded border-line text-forest focus:ring-forest" />
+                    <span class="text-[12px] leading-relaxed text-muted" data-i18n="field.marketing">Send me occasional offers from Kalya (optional).</span>
+                  </label>
+                </div>
+
+                <div class="mt-7 flex items-center justify-between gap-3">
+                  <button type="button" class="btn-ghost btn-sm" data-back="2">
+                    <span class="material-symbols-outlined text-[18px]" aria-hidden="true">arrow_back</span>
+                    <span data-i18n="common.back">Back</span>
+                  </button>
+                  <button type="button" class="btn-primary" data-next="4">
+                    <span data-i18n="booking.step3.continue">Continue to payment</span>
+                    <span class="material-symbols-outlined text-[18px]" aria-hidden="true">arrow_forward</span>
+                  </button>
+                </div>
+              </section>
+
+              <section data-step-panel="4" class="hidden" aria-labelledby="booking-step-4">
+                <h2 id="booking-step-4" class="heading-sm" data-i18n="booking.step4.title">How would you like to pay?</h2>
+                <p class="mt-2 text-sm leading-relaxed text-muted" data-i18n="booking.step4.text">
+                  Choose M-Pesa, card or bank transfer. Your payment details are encrypted and never stored on our
+                  servers.
+                </p>
+
+                <fieldset class="mt-6">
+                  <legend class="sr-only" data-i18n="payment.method">Payment method</legend>
+                  <div class="grid gap-3 sm:grid-cols-3">
+                    <label class="cursor-pointer">
+                      <input type="radio" name="payment" value="mpesa" class="peer sr-only" data-payment-option checked />
+                      <div class="rounded-2xl border border-line p-4 transition peer-checked:border-forest peer-checked:bg-forest-50 peer-checked:ring-1 peer-checked:ring-forest/25">
+                        <span class="material-symbols-outlined text-[24px] text-[#1FA855]" aria-hidden="true">smartphone</span>
+                        <p class="mt-2 text-[13px] font-bold text-forest" data-i18n="payment.mpesa">M-Pesa</p>
+                        <p class="mt-0.5 text-[10px] text-muted">Safaricom</p>
+                      </div>
+                    </label>
+                    <label class="cursor-pointer">
+                      <input type="radio" name="payment" value="card" class="peer sr-only" data-payment-option />
+                      <div class="rounded-2xl border border-line p-4 transition peer-checked:border-forest peer-checked:bg-forest-50 peer-checked:ring-1 peer-checked:ring-forest/25">
+                        <span class="material-symbols-outlined text-[24px] text-forest" aria-hidden="true">credit_card</span>
+                        <p class="mt-2 text-[13px] font-bold text-forest" data-i18n="payment.card">Card</p>
+                        <p class="mt-0.5 text-[10px] text-muted">Visa · Mastercard</p>
+                      </div>
+                    </label>
+                    <label class="cursor-pointer">
+                      <input type="radio" name="payment" value="bank" class="peer sr-only" data-payment-option />
+                      <div class="rounded-2xl border border-line p-4 transition peer-checked:border-forest peer-checked:bg-forest-50 peer-checked:ring-1 peer-checked:ring-forest/25">
+                        <span class="material-symbols-outlined text-[24px] text-forest" aria-hidden="true">account_balance</span>
+                        <p class="mt-2 text-[13px] font-bold text-forest" data-i18n="payment.bank">Bank transfer</p>
+                        <p class="mt-0.5 text-[10px] text-muted">LPO accepted</p>
+                      </div>
+                    </label>
+                  </div>
+                </fieldset>
+
+                <div class="mt-5" data-payment-panel="mpesa">
+                  <div class="rounded-2xl border border-line p-4 sm:p-5">
+                    <p class="text-[13px] font-bold text-forest" data-i18n="payment.mpesa">M-Pesa</p>
+                    <p class="mt-1 text-[12px] leading-relaxed text-muted" data-i18n="payment.mpesaText">
+                      Enter the phone number registered to M-Pesa. We will send a payment prompt.
+                    </p>
+                    <div class="mt-4" data-field>
+                      <label class="field-label" for="mpesa-phone" data-i18n="payment.mpesaPhone">M-Pesa phone number</label>
+                      <input id="mpesa-phone" name="mpesaPhone" type="tel" class="field" placeholder="+254 712 345 678" />
+                      <p data-error class="mt-1.5 hidden text-[12px] font-medium text-red-600"></p>
+                    </div>
+                    <p class="mt-3 inline-flex items-start gap-2 rounded-xl bg-gold-pale px-3 py-2 text-[11px] leading-relaxed text-gold-deep">
+                      <span class="material-symbols-outlined text-[15px]" aria-hidden="true">info</span>
+                      <span data-i18n="payment.mpesaHint">You will receive an STK push from Kalya Hotel. Approve it with your PIN.</span>
+                    </p>
+                  </div>
+                </div>
+
+                <div class="mt-5 hidden" data-payment-panel="card">
+                  <div class="rounded-2xl border border-line p-4 sm:p-5">
+                    <p class="text-[13px] font-bold text-forest" data-i18n="payment.card">Card</p>
+                    <p class="mt-1 text-[12px] leading-relaxed text-muted" data-i18n="payment.cardText">
+                      Visa, Mastercard and American Express are accepted.
+                    </p>
+                    <div class="mt-4 grid gap-4 sm:grid-cols-2">
+                      <div class="sm:col-span-2" data-field>
+                        <label class="field-label" for="card-number" data-i18n="payment.cardNumber">Card number</label>
+                        <input id="card-number" name="cardNumber" type="text" inputmode="numeric" autocomplete="cc-number" class="field" placeholder="4242 4242 4242 4242" />
+                        <p data-error class="mt-1.5 hidden text-[12px] font-medium text-red-600"></p>
+                      </div>
+                      <div class="sm:col-span-2" data-field>
+                        <label class="field-label" for="card-name" data-i18n="payment.cardName">Name on card</label>
+                        <input id="card-name" name="cardName" type="text" autocomplete="cc-name" class="field" />
+                        <p data-error class="mt-1.5 hidden text-[12px] font-medium text-red-600"></p>
+                      </div>
+                      <div data-field>
+                        <label class="field-label" for="card-expiry" data-i18n="payment.cardExpiry">Expiry date</label>
+                        <input id="card-expiry" name="cardExpiry" type="text" inputmode="numeric" autocomplete="cc-exp" class="field" placeholder="MM/YY" />
+                        <p data-error class="mt-1.5 hidden text-[12px] font-medium text-red-600"></p>
+                      </div>
+                      <div data-field>
+                        <label class="field-label" for="card-cvv" data-i18n="payment.cardCvv">CVV</label>
+                        <input id="card-cvv" name="cardCvv" type="text" inputmode="numeric" autocomplete="cc-csc" class="field" placeholder="123" />
+                        <p data-error class="mt-1.5 hidden text-[12px] font-medium text-red-600"></p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="mt-5 hidden" data-payment-panel="bank">
+                  <div class="rounded-2xl border border-line p-4 sm:p-5">
+                    <p class="text-[13px] font-bold text-forest" data-i18n="payment.bank">Bank transfer</p>
+                    <p class="mt-1 text-[12px] leading-relaxed text-muted" data-i18n="payment.bankText">
+                      We will email our bank details and hold your room for 24 hours.
+                    </p>
+                    <dl class="mt-4 grid gap-2 rounded-xl bg-sand/60 p-4 text-[12px]">
+                      <div class="flex justify-between gap-3"><dt class="text-muted">Bank</dt><dd class="font-semibold text-forest">Equity Bank Kenya</dd></div>
+                      <div class="flex justify-between gap-3"><dt class="text-muted">Account name</dt><dd class="font-semibold text-forest">Kalya Hotel Ltd</dd></div>
+                      <div class="flex justify-between gap-3"><dt class="text-muted">Account number</dt><dd class="font-semibold text-forest">1234 5678 9012</dd></div>
+                      <div class="flex justify-between gap-3"><dt class="text-muted">SWIFT</dt><dd class="font-semibold text-forest">EQBLKENA</dd></div>
+                    </dl>
+                    <p class="mt-3 text-[11px] leading-relaxed text-muted" data-i18n="payment.bankNote">
+                      Use your booking reference as the transfer reference. Your reservation is confirmed once funds
+                      arrive.
+                    </p>
+                  </div>
+                </div>
+
+                <div class="mt-6" data-field>
+                  <p data-payment-error class="mb-2 hidden text-[12px] font-medium text-red-600"></p>
+                  <button type="submit" class="btn-gold w-full sm:w-auto" data-submit-booking>
+                    <span data-submit-label data-i18n="payment.payNow">Pay &amp; confirm booking</span>
+                    <span class="material-symbols-outlined text-[18px]" aria-hidden="true">lock</span>
+                  </button>
+                  <p class="mt-3 inline-flex items-center gap-1.5 text-[11px] font-semibold text-muted">
+                    <span class="material-symbols-outlined text-[15px] text-forest" aria-hidden="true">verified_user</span>
+                    <span data-i18n="payment.secure">Secure booking · No hidden fees</span>
+                  </p>
+                </div>
+
+                <div class="mt-5 flex items-center justify-between gap-3 border-t border-line pt-5">
+                  <button type="button" class="btn-ghost btn-sm" data-back="3">
+                    <span class="material-symbols-outlined text-[18px]" aria-hidden="true">arrow_back</span>
+                    <span data-i18n="common.back">Back</span>
+                  </button>
+                  <a href="contact.html" class="text-[12px] font-semibold text-muted transition hover:text-forest" data-i18n="summary.help">
+                    Need help? Call the front desk on +254 20 765 4321.
+                  </a>
+                </div>
+              </section>
+
+              <section data-step-panel="5" class="hidden" aria-labelledby="booking-step-5">
+                <div class="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
+                  <span class="flex h-14 w-14 items-center justify-center rounded-full bg-forest-50 text-forest">
+                    <span class="material-symbols-outlined text-[30px]" aria-hidden="true">check_circle</span>
+                  </span>
+                  <div>
+                    <h2 id="booking-step-5" class="heading-sm" data-i18n="booking.step5.title">You are booked.</h2>
+                    <p class="mt-1 text-sm leading-relaxed text-muted" data-i18n="booking.step5.text">
+                      A confirmation email is on its way. We will see you in Nairobi.
+                    </p>
+                  </div>
+                </div>
+
+                <div class="mt-6 rounded-2xl bg-forest-50 p-5">
+                  <div class="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                      <p class="text-[10px] font-bold uppercase tracking-[0.18em] text-muted" data-i18n="confirmation.reference">Booking reference</p>
+                      <p class="mt-1 font-serif text-2xl text-forest-dark" data-confirm-reference>KY-00000</p>
+                    </div>
+                    <span class="pill bg-white text-forest ring-1 ring-line" data-confirm-payment>Payment received</span>
+                  </div>
+                  <p class="mt-3 text-[12px] text-muted">
+                    <span data-i18n="confirmation.emailSent">Confirmation sent to</span>
+                    <span class="font-semibold text-forest" data-confirm-email>guest@example.com</span>
+                  </p>
+                </div>
+
+                <dl class="mt-5 grid gap-x-6 gap-y-4 text-sm sm:grid-cols-2">
+                  <div>
+                    <dt class="text-[10px] font-bold uppercase tracking-[0.16em] text-muted" data-i18n="summary.room">Room</dt>
+                    <dd class="mt-1 font-semibold text-forest" data-confirm-room>—</dd>
+                  </div>
+                  <div>
+                    <dt class="text-[10px] font-bold uppercase tracking-[0.16em] text-muted" data-i18n="summary.meal">Meal plan</dt>
+                    <dd class="mt-1 font-semibold text-forest" data-confirm-meal>—</dd>
+                  </div>
+                  <div>
+                    <dt class="text-[10px] font-bold uppercase tracking-[0.16em] text-muted" data-i18n="confirmation.arrival">Arrival</dt>
+                    <dd class="mt-1 font-semibold text-forest" data-confirm-checkin>—</dd>
+                  </div>
+                  <div>
+                    <dt class="text-[10px] font-bold uppercase tracking-[0.16em] text-muted" data-i18n="confirmation.departure">Departure</dt>
+                    <dd class="mt-1 font-semibold text-forest" data-confirm-checkout>—</dd>
+                  </div>
+                  <div>
+                    <dt class="text-[10px] font-bold uppercase tracking-[0.16em] text-muted" data-i18n="booking.guests">Guests</dt>
+                    <dd class="mt-1 font-semibold text-forest" data-confirm-guests>—</dd>
+                  </div>
+                  <div>
+                    <dt class="text-[10px] font-bold uppercase tracking-[0.16em] text-muted" data-i18n="summary.total">Total</dt>
+                    <dd class="mt-1 font-semibold text-forest" data-confirm-total>—</dd>
+                  </div>
+                </dl>
+
+                <div class="mt-7 flex flex-wrap gap-3">
+                  <button type="button" class="btn-primary" data-add-calendar>
+                    <span class="material-symbols-outlined text-[18px]" aria-hidden="true">calendar_add_on</span>
+                    <span data-i18n="confirmation.addCalendar">Add to calendar</span>
+                  </button>
+                  <a href="index.html" class="btn-outline" data-i18n="confirmation.backHome">Back to home</a>
+                  <a href="https://wa.me/254712345678" target="_blank" rel="noopener noreferrer" class="btn-ghost" data-i18n="confirmation.whatsapp">Message the front desk</a>
+                </div>
+                <p class="mt-5 text-[12px] text-muted" data-i18n="confirmation.change">
+                  Need to change something? Call us on +254 20 765 4321.
+                </p>
+              </section>
+            </form>
+          </div>
+
+          <aside class="lg:sticky lg:top-28 lg:self-start">
+            <div class="overflow-hidden rounded-[28px] border border-line bg-white shadow-soft">
+              <div class="bg-forest p-5 text-white">
+                <div class="flex items-center justify-between gap-3">
+                  <h2 class="font-serif text-xl" data-i18n="summary.title">Your stay</h2>
+                  <span class="pill bg-white/10 text-gold ring-1 ring-white/15">
+                    <span class="material-symbols-outlined text-[13px]" aria-hidden="true">event_available</span>
+                    <span data-i18n="common.freeCancellation">Free cancellation</span>
+                  </span>
+                </div>
+                <div class="mt-4 rounded-2xl bg-white/10 p-4">
+                  <p class="text-sm font-bold" data-summary-room>Standard Executive</p>
+                  <p class="mt-1 text-[12px] text-white/65" data-summary-dates>—</p>
+                  <p class="mt-1 text-[12px] text-white/65" data-summary-meta>—</p>
+                  <button type="button" class="mt-2 inline-flex min-h-[36px] items-center gap-1 text-[11px] font-semibold text-gold transition hover:text-gold-soft" data-edit-dates>
+                    <span class="material-symbols-outlined text-[14px]" aria-hidden="true">edit_calendar</span>
+                    <span data-i18n="booking.checkin">Check-in</span>
+                  </button>
+                </div>
+              </div>
+              <div class="p-5">
+                <dl class="space-y-2.5 text-[13px]">
+                  <div class="flex items-center justify-between gap-3">
+                    <dt class="text-muted" data-i18n="summary.roomTotal">Room total</dt>
+                    <dd class="font-semibold text-forest" data-summary-room-total>KES 0</dd>
+                  </div>
+                  <div class="flex items-center justify-between gap-3">
+                    <dt class="text-muted" data-summary-meal-label>Breakfast included</dt>
+                    <dd class="font-semibold text-forest" data-summary-meal-total>KES 0</dd>
+                  </div>
+                  <div class="flex items-center justify-between gap-3">
+                    <dt class="text-muted" data-i18n="summary.taxes">VAT &amp; service charge</dt>
+                    <dd class="font-semibold text-forest" data-i18n="summary.included">Included</dd>
+                  </div>
+                  <div class="flex items-center justify-between gap-3 border-t border-line pt-3">
+                    <dt class="text-sm font-bold text-forest" data-i18n="summary.total">Total</dt>
+                    <dd class="text-lg font-bold text-forest" data-summary-total>KES 0</dd>
+                  </div>
+                  <div class="flex items-center justify-between gap-3">
+                    <dt class="text-muted" data-i18n="summary.deposit">Payable today</dt>
+                    <dd class="font-semibold text-forest" data-summary-deposit>KES 0</dd>
+                  </div>
+                </dl>
+                <div class="mt-4 flex items-start gap-2 rounded-xl bg-gold-pale p-3 text-[11px] leading-relaxed text-gold-deep">
+                  <span class="material-symbols-outlined text-[16px]" aria-hidden="true">event_available</span>
+                  <span data-i18n="summary.freeCancel">Free cancellation until 48 hours before check-in.</span>
+                </div>
+                <p class="mt-4 text-[11px] leading-relaxed text-muted" data-i18n="summary.help">
+                  Need help? Call the front desk on +254 20 765 4321.
+                </p>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </section>
+    </main>
+
+    <div data-mobile-summary class="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-white px-4 py-3 shadow-[0_-10px_30px_-18px_rgba(6,37,27,0.25)] lg:hidden">
+      <button type="button" class="flex w-full items-center justify-between gap-3" data-mobile-summary-toggle aria-expanded="false" aria-controls="mobile-summary-details">
+        <span class="text-left">
+          <span class="block text-[10px] font-bold uppercase tracking-[0.16em] text-muted" data-i18n="summary.total">Total</span>
+          <span class="block text-lg font-bold text-forest" data-mobile-total>KES 0</span>
+        </span>
+        <span class="inline-flex items-center gap-1.5 rounded-full bg-forest-50 px-3 py-2 text-[12px] font-semibold text-forest">
+          <span data-i18n="summary.details">Price details</span>
+          <span class="material-symbols-outlined text-[18px]" aria-hidden="true">expand_less</span>
+        </span>
+      </button>
+      <div id="mobile-summary-details" class="hidden pt-3">
+        <dl class="space-y-1.5 border-t border-line pt-3 text-[12px]">
+          <div class="flex justify-between gap-3"><dt class="text-muted" data-i18n="summary.roomTotal">Room total</dt><dd class="font-semibold text-forest" data-mobile-room-total>KES 0</dd></div>
+          <div class="flex justify-between gap-3"><dt class="text-muted" data-summary-meal-label>Breakfast included</dt><dd class="font-semibold text-forest" data-mobile-meal-total>KES 0</dd></div>
+          <div class="flex justify-between gap-3"><dt class="text-muted" data-i18n="summary.taxes">VAT &amp; service charge</dt><dd class="font-semibold text-forest" data-i18n="summary.included">Included</dd></div>
+        </dl>
+      </div>
+    </div>
+
+    <div id="site-footer"></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

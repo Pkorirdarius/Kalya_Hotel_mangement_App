@@ -1,446 +1,774 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport">
-  <meta content="mobile_tab" name="shell-type">
-  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,500;0,6..72,600;1,6..72,400&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
-</head>
-<body class="bg-surface text-on-surface font-body-md text-body-md flex flex-col min-h-screen antialiased selection:bg-secondary-fixed selection:text-on-secondary-fixed">
-  <header class="fixed top-0 w-full z-50 pt-safe bg-surface/90 backdrop-blur-xl shadow-[0_4px_20px_-2px_rgba(7,36,23,0.06)]">
-    <div class="h-16 px-gutter-mobile flex items-center justify-between gap-space-sm">
-      <div class="flex items-center gap-space-sm min-w-0">
-        <img alt="Kalya Hotel Logo" class="h-8 w-auto object-contain shrink-0" src="https://lh3.googleusercontent.com/aida/AEtjO1XXOFVd4H7hNRnstcL8n-446vuAeecdZv8_gld7nDZiGCyNLgypIzvhYXzQkHpDD7Ri3VaM1xWC0Mk-tg1Z7-HS7GPb7T98S73UjS0GH7veK5agYuN630Qwny2rd6ZFC27bT9FvVUIdPiyszPrbHIZ7tuo9sf6b7WDV6dmvoY0qxXYv-BNp6qeR5GMA4HSN2g-8Jc7vOmC-2G6UpGCO711vA1kkNshLKei7WCIPIt4x">
-        <div class="flex flex-col truncate">
-          <span class="font-headline-sm text-headline-sm text-primary tracking-tight truncate leading-none">Kalya Hotel</span>
-          <span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider truncate">Rooms</span>
-        </div>
-      </div>
-      <div class="flex items-center gap-space-sm shrink-0">
-        <button aria-label="Language switch" class="h-9 px-2.5 rounded-full bg-surface-container flex items-center justify-center font-label-sm text-label-sm text-on-surface tracking-wider min-w-[44px] min-h-[44px] transition-colors hover:bg-surface-container-high" type="button">
-          <span class="text-primary font-bold">EN</span>
-          <span class="mx-1 text-outline-variant font-normal">|</span>
-          <span class="text-on-surface-variant font-normal">SW</span>
-        </button>
-        <a class="h-11 px-3.5 rounded-full bg-secondary-container text-on-secondary-container font-label-md text-label-md font-semibold flex items-center justify-center shadow-[0_2px_8px_rgba(126,87,19,0.15)] min-w-[44px] min-h-[44px] whitespace-nowrap active:scale-[0.98] transition-transform" data-path="booking" href="#"><span class="">Book Direct</span></a>
-        <button id="nav-drawer-toggle" aria-label="Open Navigation Menu" class="w-9 h-9 rounded-full bg-surface-container flex items-center justify-center text-primary min-w-[36px] min-h-[36px] hover:bg-surface-container-high transition-colors active:scale-95"><span class="material-symbols-outlined text-[22px]">menu</span></button>
-        <div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center shrink-0 min-w-[32px] min-h-[32px]"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div>
-      </div>
-    </div>
-  </header>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Kalya Hotel — A warm welcome in Westlands, Nairobi</title>
+    <meta
+      name="description"
+      content="Kalya Hotel is a warm, independent hotel in Westlands, Nairobi for NGO teams, business travellers and local residents. Book direct for the best rate, free cancellation and M-Pesa payment."
+    />
+    <meta name="theme-color" content="#0B3B2E" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
+      rel="stylesheet"
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='32' fill='%230B3B2E'/%3E%3Ctext x='32' y='45' font-family='Georgia,serif' font-size='38' fill='%23C99A4B' text-anchor='middle'%3EK%3C/text%3E%3C/svg%3E"
+    />
+  </head>
+  <body data-page="home" class="bg-cream">
+    <div id="site-header"></div>
 
-  <main class="flex-1 flex flex-col relative w-full pt-16 bg-surface pb-safe">
-    <div class="flex flex-col w-full">
-      <!-- Top Editorial Header & Trust Anchor -->
-      <section class="px-gutter-mobile pt-space-md pb-space-sm flex flex-col gap-space-xs">
-        <div class="flex items-center gap-space-xs">
-          <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-primary-fixed text-on-primary-fixed font-label-sm text-label-sm font-semibold tracking-wide">
-            <span class="material-symbols-outlined text-[14px]">verified</span>
-            Best Direct Rate Guarantee
-          </span>
-          <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-surface-container-high text-secondary font-label-sm text-label-sm font-medium">
-            <span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">bolt</span>
-            Generator 24/7
-          </span>
+    <main id="main">
+      <section class="relative isolate overflow-hidden bg-forest-dark pb-32 pt-16 text-white md:pb-40 md:pt-24">
+        <img
+          src="https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?auto=format&fit=crop&w=2000&q=85"
+          alt="Warm evening light over the pool terrace at Kalya Hotel in Nairobi"
+          data-i18n-aria="home.hero.imageAlt"
+          class="absolute inset-0 -z-20 h-full w-full object-cover"
+          fetchpriority="high"
+        />
+        <div class="absolute inset-0 -z-10 bg-gradient-to-b from-forest-dark/80 via-forest-dark/45 to-forest-dark/90"></div>
+        <div class="container-page relative animate-fade-up">
+          <div class="flex items-center gap-3">
+            <span class="h-px w-10 bg-gold"></span>
+            <p class="text-[11px] font-bold uppercase tracking-[0.26em] text-gold" data-i18n="home.hero.eyebrow">
+              Westlands, Nairobi · Since 2014
+            </p>
+          </div>
+
+          <h1 class="mt-6 max-w-3xl font-serif text-[2.9rem] font-medium leading-[1.02] tracking-tight text-balance sm:text-6xl lg:text-7xl">
+            <span data-i18n="home.hero.title">A warm welcome in the heart of Nairobi.</span>
+          </h1>
+
+          <p class="mt-6 max-w-xl text-base leading-relaxed text-white/80 sm:text-lg" data-i18n="home.hero.text">
+            Quiet rooms, honest food and a team that knows your name. Kalya is a calm base for NGO teams, business
+            travellers and neighbours from across Nairobi.
+          </p>
+
+          <div class="mt-8 flex flex-wrap items-center gap-x-6 gap-y-4">
+            <div class="flex items-center gap-3 rounded-2xl border border-white/15 bg-white/10 px-4 py-3 backdrop-blur">
+              <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
+                <path fill="#4285F4" d="M23.5 12.27c0-.79-.07-1.54-.2-2.27H12v4.51h6.47a5.53 5.53 0 0 1-2.4 3.63v3h3.88c2.27-2.09 3.55-5.17 3.55-8.87Z" />
+                <path fill="#34A853" d="M12 24c3.24 0 5.96-1.07 7.95-2.91l-3.88-3c-1.08.72-2.45 1.15-4.07 1.15-3.13 0-5.78-2.11-6.73-4.95H1.26v3.09A12 12 0 0 0 12 24Z" />
+                <path fill="#FBBC05" d="M5.27 14.29a7.2 7.2 0 0 1 0-4.58V6.62H1.26a12 12 0 0 0 0 10.76l4.01-3.09Z" />
+                <path fill="#EA4335" d="M12 4.76c1.76 0 3.34.6 4.58 1.79l3.44-3.44A11.98 11.98 0 0 0 12 0 12 12 0 0 0 1.26 6.62l4.01 3.09C6.22 6.87 8.87 4.76 12 4.76Z" />
+              </svg>
+              <div>
+                <div class="flex items-center gap-1.5">
+                  <span class="font-serif text-xl leading-none">4.8</span>
+                  <span class="flex text-gold" aria-hidden="true">
+                    <span class="material-symbols-outlined text-[15px]" data-fill="1">star</span>
+                    <span class="material-symbols-outlined text-[15px]" data-fill="1">star</span>
+                    <span class="material-symbols-outlined text-[15px]" data-fill="1">star</span>
+                    <span class="material-symbols-outlined text-[15px]" data-fill="1">star</span>
+                    <span class="material-symbols-outlined text-[15px]" data-fill="1">star</span>
+                  </span>
+                </div>
+                <p class="mt-1 text-[11px] text-white/65" data-i18n="home.hero.ratingLabel">386 Google reviews</p>
+              </div>
+            </div>
+            <div class="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs font-semibold text-white/75">
+              <span class="inline-flex items-center gap-1.5">
+                <span class="material-symbols-outlined text-[18px] text-gold" aria-hidden="true">schedule</span>
+                <span data-i18n="home.hero.frontDesk">24/7 front desk</span>
+              </span>
+              <span class="inline-flex items-center gap-1.5">
+                <span class="material-symbols-outlined text-[18px] text-gold" aria-hidden="true">local_parking</span>
+                <span data-i18n="home.hero.parking">Secure parking</span>
+              </span>
+            </div>
+          </div>
         </div>
-        <h1 class="font-headline-lg-mobile text-headline-lg-mobile text-primary tracking-tight mt-1">
-          Rooms &amp; Executive Suites
-        </h1>
-        <p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
-          Thoughtfully appointed sanctuaries crafted for focused productivity, quiet replenishment, and Kenyan warmth.
-        </p>
       </section>
 
-      <!-- Filter Pills (Scrollable with Micro-Interaction) -->
-      <div class="w-full overflow-x-auto no-scrollbar px-gutter-mobile py-space-xs">
-        <div class="flex items-center gap-2 min-w-max" id="room-filter-container">
-          <button class="filter-chip px-4 py-2 rounded-full bg-primary text-on-primary font-label-md text-label-md shadow-sm transition-all duration-200 active:scale-95" data-filter="all" type="button">
-            All Rooms
-          </button>
-          <button class="filter-chip px-4 py-2 rounded-full bg-surface-container text-on-surface-variant font-label-md text-label-md hover:bg-surface-container-high transition-all duration-200 active:scale-95" data-filter="executive" type="button">
-            Executive Solo
-          </button>
-          <button class="filter-chip px-4 py-2 rounded-full bg-surface-container text-on-surface-variant font-label-md text-label-md hover:bg-surface-container-high transition-all duration-200 active:scale-95" data-filter="deluxe" type="button">
-            Deluxe Suites
-          </button>
-          <button class="filter-chip px-4 py-2 rounded-full bg-surface-container text-on-surface-variant font-label-md text-label-md hover:bg-surface-container-high transition-all duration-200 active:scale-95" data-filter="extended" type="button">
-            Extended Stay
-          </button>
+      <section class="relative z-20 -mt-20 px-0 md:-mt-24" aria-label="Check availability">
+        <div class="container-page">
+          <form
+            data-booking-search
+            action="booking.html"
+            method="get"
+            class="rounded-[28px] border border-white/70 bg-white p-4 shadow-lift sm:p-5 lg:p-6"
+          >
+            <div class="mb-4 flex flex-wrap items-center justify-between gap-2">
+              <p class="inline-flex items-center gap-2 text-[12px] font-semibold text-forest">
+                <span class="material-symbols-outlined text-[18px] text-gold-deep" aria-hidden="true">verified</span>
+                <span data-i18n="booking.bestRate">Best rate guaranteed</span>
+              </p>
+              <p class="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">
+                <span class="material-symbols-outlined text-[16px] text-forest" aria-hidden="true">event_available</span>
+                <span data-i18n="booking.freeCancelShort">Free cancellation up to 48 hours</span>
+              </p>
+            </div>
+
+            <div class="grid gap-3 md:grid-cols-2 lg:grid-cols-[1fr_1fr_1fr_auto]">
+              <div data-field>
+                <label class="field-label" for="search-checkin" data-i18n="booking.checkin">Check-in</label>
+                <input id="search-checkin" name="checkin" type="date" required class="field" />
+              </div>
+              <div data-field>
+                <label class="field-label" for="search-checkout" data-i18n="booking.checkout">Check-out</label>
+                <input id="search-checkout" name="checkout" type="date" required class="field" />
+              </div>
+              <div data-field>
+                <label class="field-label" for="search-guests" data-i18n="booking.guests">Guests</label>
+                <select id="search-guests" name="guests" class="field field-select">
+                  <option value="1" data-i18n="booking.guest1">1 guest</option>
+                  <option value="2" selected data-i18n="booking.guest2">2 guests</option>
+                  <option value="3" data-i18n="booking.guest3">3 guests</option>
+                  <option value="4" data-i18n="booking.guest4">4 guests</option>
+                </select>
+              </div>
+              <div class="flex items-end">
+                <button type="submit" class="btn-gold w-full whitespace-nowrap lg:w-auto">
+                  <span data-i18n="common.checkAvailability">Check availability</span>
+                  <span class="material-symbols-outlined text-[19px]" aria-hidden="true">arrow_forward</span>
+                </button>
+              </div>
+            </div>
+          </form>
         </div>
-      </div>
+      </section>
 
-      <!-- Direct Perks Highlight Banner (Warm Hospitality Framing) -->
-      <div class="px-gutter-mobile my-space-sm">
-        <div class="w-full bg-surface-container-low rounded-xl p-space-md shadow-sm flex flex-col gap-space-xs">
-          <div class="flex items-center justify-between">
-            <div class="flex items-center gap-2">
-              <div class="w-7 h-7 rounded-full bg-secondary-container text-on-secondary-container flex items-center justify-center shrink-0">
-                <span class="material-symbols-outlined text-[16px]">stars</span>
-              </div>
-              <span class="font-label-md text-label-md text-primary font-bold tracking-tight">Kalya Direct Booking Perks</span>
+      <section class="section pt-14 md:pt-20">
+        <div class="container-page">
+          <div class="grid gap-10 lg:grid-cols-[0.75fr_1.25fr] lg:items-end">
+            <div>
+              <p class="eyebrow" data-i18n="home.why.eyebrow">Why book direct</p>
+              <h2 class="heading mt-4" data-i18n="home.why.title">The best rate, and a real person on the line.</h2>
             </div>
-            <span class="font-label-sm text-label-sm text-secondary font-semibold">Included Free</span>
-          </div>
-          <div class="grid grid-cols-3 gap-2 pt-1 text-center">
-            <div class="flex flex-col items-center bg-surface-container-lowest rounded-lg p-2 shadow-xs">
-              <span class="material-symbols-outlined text-secondary text-[20px] mb-1">free_cancellation</span>
-              <span class="font-label-sm text-label-sm text-on-surface font-semibold leading-tight">24h Free</span>
-              <span class="font-label-sm text-label-sm text-on-surface-variant scale-90">Cancellation</span>
-            </div>
-            <div class="flex flex-col items-center bg-surface-container-lowest rounded-lg p-2 shadow-xs">
-              <span class="material-symbols-outlined text-secondary text-[20px] mb-1">airport_shuttle</span>
-              <span class="font-label-sm text-label-sm text-on-surface font-semibold leading-tight">Airport Ride</span>
-              <span class="font-label-sm text-label-sm text-on-surface-variant scale-90">4+ Night stays</span>
-            </div>
-            <div class="flex flex-col items-center bg-surface-container-lowest rounded-lg p-2 shadow-xs">
-              <span class="material-symbols-outlined text-secondary text-[20px] mb-1">restaurant</span>
-              <span class="font-label-sm text-label-sm text-on-surface font-semibold leading-tight">10% Off</span>
-              <span class="font-label-sm text-label-sm text-on-surface-variant scale-90">Dining voucher</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Room Cards Container -->
-      <div class="px-gutter-mobile flex flex-col gap-space-lg mt-space-xs">
-        <!-- Card 1: Standard Executive Room -->
-        <article class="room-card w-full bg-surface-container-lowest rounded-xl shadow-md overflow-hidden flex flex-col transition-all duration-300" data-category="executive">
-          <!-- Media Header with Badge Overlay -->
-          <div class="relative w-full h-56 bg-surface-container">
-            <img class="w-full h-full object-cover" data-alt="Warm contemporary executive hotel room in Kenya featuring polished acacia hardwood work desk, crisp white cotton bedding with olive green lumbar runner, soft indirect bedside lighting, floor-to-ceiling sheer drapery, and ergonomic desk chair in an elegant calm atmosphere." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBdxdHTuoydgdkzwGSqnt5XydeEXJHC6rOq9G3AZ_xdfW3GuwLhYk8kvypr7ve37vp0i0Epm1gyvnzo_cIwcU462vkAWErYKv55uSnFMVA0bhngIYMBeGO_uWqBCvN2cgeU4t9o5y2Hkr9x4wAr_USJFIomC4s8WjSmhcKKj--vkrFz-TMstiy-knutatsWTdpBolG3hLCDuzZ2WuA_drBXSJN87DVpUZ8IoG4Fd_E">
-            <!-- Floating Badges -->
-            <div class="absolute top-3 left-3 flex flex-wrap gap-1.5">
-              <span class="px-2.5 py-1 rounded-full bg-primary/90 text-on-primary font-label-sm text-label-sm backdrop-blur-md font-medium flex items-center gap-1 shadow-sm">
-                <span class="material-symbols-outlined text-[13px]" style="font-variation-settings: 'FILL' 1;">bakery_dining</span>
-                Free Breakfast Included
-              </span>
-            </div>
-            <div class="absolute bottom-3 right-3">
-              <span class="px-2.5 py-1 rounded-full bg-surface-container-lowest/95 text-on-surface font-label-sm text-label-sm backdrop-blur-md shadow-sm font-semibold flex items-center gap-1">
-                <span class="material-symbols-outlined text-secondary text-[14px]">photo_camera</span>
-                1 / 6
-              </span>
-            </div>
-          </div>
-          <!-- Content Body -->
-          <div class="p-space-md flex flex-col gap-space-sm">
-            <div class="flex items-start justify-between gap-2">
-              <div>
-                <span class="font-label-sm text-label-sm text-secondary uppercase tracking-widest font-semibold">Wing A • High Floor</span>
-                <h2 class="font-headline-md text-headline-md text-primary tracking-tight">Standard Executive Room</h2>
-              </div>
-              <div class="flex items-center gap-1 bg-surface-container-high px-2 py-1 rounded-full shrink-0">
-                <span class="material-symbols-outlined text-secondary text-[16px]" style="font-variation-settings: 'FILL' 1;">star</span>
-                <span class="font-label-md text-label-md text-on-surface font-bold">4.8</span>
-              </div>
-            </div>
-            <p class="font-body-md text-body-md text-on-surface-variant">
-              Specially tailored for corporate guests and visiting NGO staff requiring peace, dependable 100 Mbps fiber internet, and restorative sleep.
+            <p class="lede max-w-2xl lg:justify-self-end" data-i18n="home.why.text">
+              Book on our own website and keep the whole stay simple — from the first enquiry to the final receipt.
             </p>
-            <!-- Amenity Pills -->
-            <div class="flex flex-wrap gap-1.5 pt-1">
-              <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-surface-container text-on-surface font-label-sm text-label-sm">
-                <span class="material-symbols-outlined text-[15px] text-primary">wifi</span>
-                Fiber Wi-Fi
-              </span>
-              <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-surface-container text-on-surface font-label-sm text-label-sm">
-                <span class="material-symbols-outlined text-[15px] text-primary">desk</span>
-                Dedicated Work Desk
-              </span>
-              <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-surface-container text-on-surface font-label-sm text-label-sm">
-                <span class="material-symbols-outlined text-[15px] text-primary">power</span>
-                Generator Backup
-              </span>
-              <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-surface-container text-on-surface font-label-sm text-label-sm">
-                <span class="material-symbols-outlined text-[15px] text-primary">shower</span>
-                Rain Shower
-              </span>
-              <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-surface-container text-on-surface font-label-sm text-label-sm">
-                <span class="material-symbols-outlined text-[15px] text-primary">tv</span>
-                43" Smart TV
-              </span>
-              <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-surface-container text-on-surface font-label-sm text-label-sm">
-                <span class="material-symbols-outlined text-[15px] text-primary">lock</span>
-                In-Room Safe
-              </span>
-            </div>
-            <!-- M-Pesa & Price Panel -->
-            <div class="pt-space-xs mt-space-xs flex items-end justify-between">
-              <div class="flex flex-col">
-                <span class="font-label-sm text-label-sm text-on-surface-variant flex items-center gap-1">
-                  <span class="inline-block w-2 h-2 rounded-full bg-primary-fixed-dim"></span>
-                  All taxes &amp; breakfast incl.
-                </span>
-                <div class="flex items-baseline gap-1 mt-0.5">
-                  <span class="font-label-sm text-label-sm font-semibold text-primary">KES</span>
-                  <span class="font-price-display text-price-display text-primary font-bold">8,500</span>
-                  <span class="font-label-sm text-label-sm text-on-surface-variant">/ night</span>
-                </div>
-              </div>
-              <span class="font-label-sm text-label-sm text-secondary font-medium bg-surface-container px-2 py-1 rounded">
-                ~ $65 USD
-              </span>
-            </div>
-            <!-- Action Target CTAs -->
-            <div class="grid grid-cols-2 gap-space-sm pt-space-xs">
-              <button class="w-full h-12 rounded-full bg-surface-container hover:bg-surface-container-high text-primary font-label-md text-label-md flex items-center justify-center transition-colors active:scale-98" type="button">
-                View Room Specs
-              </button>
-              <a class="w-full h-12 rounded-full bg-primary hover:bg-tertiary text-on-primary font-label-md text-label-md flex items-center justify-center shadow-md active:scale-98 transition-all" data-path="booking" href="#">
-                Check Availability
-              </a>
-            </div>
           </div>
-        </article>
 
-        <!-- Card 2: Deluxe Garden Suite -->
-        <article class="room-card w-full bg-surface-container-lowest rounded-xl shadow-md overflow-hidden flex flex-col transition-all duration-300" data-category="deluxe">
-          <!-- Media Header with Badge Overlay -->
-          <div class="relative w-full h-56 bg-surface-container">
-            <img class="w-full h-full object-cover" data-alt="Spacious luxury boutique garden suite in Kenya featuring a plush king-size bed draped with handcrafted Maasai-inspired woven throws, sliding glass doors opening to a lush private garden patio with tropical palms, natural acacia furniture, and warm afternoon golden sunlight streaming in." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDY9Z_459jXPV6RbqDjSr-49js0Oi-g3nwbY75DQKbXyj6g92QAbeNrq88_bnxoPfRANrys739BvQn4blgOKfJ7ZVGK2cero8csm7sXpVGQGjNAlRTBDGqmrKkU9vLn2en2T3H1eaQN9fPHxypoq_epADteFE-ftudccVOXIyZDIfDIpfuPBhtBRtqsf4mCSefXbgnijxGHgIwKRRGtxXwLSsMxFiX_WVThRPlDqHw">
-            <!-- Floating Badges -->
-            <div class="absolute top-3 left-3 flex flex-wrap gap-1.5">
-              <span class="px-2.5 py-1 rounded-full bg-secondary text-on-secondary font-label-sm text-label-sm backdrop-blur-md font-medium flex items-center gap-1 shadow-sm">
-                <span class="material-symbols-outlined text-[13px]" style="font-variation-settings: 'FILL' 1;">local_florist</span>
-                Direct Garden Access
+          <div class="mt-10 grid gap-4 md:grid-cols-3">
+            <article class="card-flat flex flex-col gap-4 p-6">
+              <span class="icon-tile">
+                <span class="material-symbols-outlined text-[24px]" aria-hidden="true">sell</span>
               </span>
-              <span class="px-2.5 py-1 rounded-full bg-surface-container-lowest/90 text-primary font-label-sm text-label-sm backdrop-blur-md font-semibold">
-                Free Breakfast
-              </span>
-            </div>
-            <div class="absolute bottom-3 right-3">
-              <span class="px-2.5 py-1 rounded-full bg-surface-container-lowest/95 text-on-surface font-label-sm text-label-sm backdrop-blur-md shadow-sm font-semibold flex items-center gap-1">
-                <span class="material-symbols-outlined text-secondary text-[14px]">photo_camera</span>
-                1 / 8
-              </span>
-            </div>
-          </div>
-          <!-- Content Body -->
-          <div class="p-space-md flex flex-col gap-space-sm">
-            <div class="flex items-start justify-between gap-2">
               <div>
-                <span class="font-label-sm text-label-sm text-secondary uppercase tracking-widest font-semibold">Garden Wing • Ground Level</span>
-                <h2 class="font-headline-md text-headline-md text-primary tracking-tight">Deluxe Garden Suite</h2>
+                <h3 class="heading-sm text-[1.45rem]" data-i18n="home.why.best.title">Best rate, guaranteed</h3>
+                <p class="mt-2 text-sm leading-relaxed text-muted" data-i18n="home.why.best.text">
+                  Find your room cheaper elsewhere and we will match it — plus a complimentary welcome drink.
+                </p>
               </div>
-              <div class="flex items-center gap-1 bg-surface-container-high px-2 py-1 rounded-full shrink-0">
-                <span class="material-symbols-outlined text-secondary text-[16px]" style="font-variation-settings: 'FILL' 1;">star</span>
-                <span class="font-label-md text-label-md text-on-surface font-bold">4.9</span>
-              </div>
-            </div>
-            <p class="font-body-md text-body-md text-on-surface-variant">
-              Expansive retreat with private balcony overlooking the indigenous courtyard garden, plush lounge seating, and artisanal coffee bar.
-            </p>
-            <!-- Amenity Pills -->
-            <div class="flex flex-wrap gap-1.5 pt-1">
-              <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-surface-container text-on-surface font-label-sm text-label-sm">
-                <span class="material-symbols-outlined text-[15px] text-primary">bed</span>
-                King Bed
+            </article>
+            <article class="card-flat flex flex-col gap-4 p-6">
+              <span class="icon-tile">
+                <span class="material-symbols-outlined text-[24px]" aria-hidden="true">event_available</span>
               </span>
-              <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-surface-container text-on-surface font-label-sm text-label-sm">
-                <span class="material-symbols-outlined text-[15px] text-primary">deck</span>
-                Garden View Patio
-              </span>
-              <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-surface-container text-on-surface font-label-sm text-label-sm">
-                <span class="material-symbols-outlined text-[15px] text-primary">coffee</span>
-                Artisan Coffee Bar
-              </span>
-              <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-surface-container text-on-surface font-label-sm text-label-sm">
-                <span class="material-symbols-outlined text-[15px] text-primary">ac_unit</span>
-                Air Conditioning
-              </span>
-              <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-surface-container text-on-surface font-label-sm text-label-sm">
-                <span class="material-symbols-outlined text-[15px] text-primary">kitchen</span>
-                Mini Fridge
-              </span>
-              <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-surface-container text-on-surface font-label-sm text-label-sm">
-                <span class="material-symbols-outlined text-[15px] text-primary">spa</span>
-                Robes &amp; Slippers
-              </span>
-            </div>
-            <!-- M-Pesa & Price Panel -->
-            <div class="pt-space-xs mt-space-xs flex items-end justify-between">
-              <div class="flex flex-col">
-                <span class="font-label-sm text-label-sm text-on-surface-variant flex items-center gap-1">
-                  <span class="inline-block w-2 h-2 rounded-full bg-primary-fixed-dim"></span>
-                  Fresh estate breakfast included
-                </span>
-                <div class="flex items-baseline gap-1 mt-0.5">
-                  <span class="font-label-sm text-label-sm font-semibold text-primary">KES</span>
-                  <span class="font-price-display text-price-display text-primary font-bold">12,800</span>
-                  <span class="font-label-sm text-label-sm text-on-surface-variant">/ night</span>
-                </div>
-              </div>
-              <span class="font-label-sm text-label-sm text-secondary font-medium bg-surface-container px-2 py-1 rounded">
-                ~ $98 USD
-              </span>
-            </div>
-            <!-- Action Target CTAs -->
-            <div class="grid grid-cols-2 gap-space-sm pt-space-xs">
-              <button class="w-full h-12 rounded-full bg-surface-container hover:bg-surface-container-high text-primary font-label-md text-label-md flex items-center justify-center transition-colors active:scale-98" type="button">
-                View Room Specs
-              </button>
-              <a class="w-full h-12 rounded-full bg-primary hover:bg-tertiary text-on-primary font-label-md text-label-md flex items-center justify-center shadow-md active:scale-98 transition-all" data-path="booking" href="#">
-                Check Availability
-              </a>
-            </div>
-          </div>
-        </article>
-
-        <!-- Card 3: Mara Residence & NGO Suite -->
-        <article class="room-card w-full bg-surface-container-lowest rounded-xl shadow-md overflow-hidden flex flex-col transition-all duration-300" data-category="extended">
-          <!-- Media Header with Badge Overlay -->
-          <div class="relative w-full h-56 bg-surface-container">
-            <img class="w-full h-full object-cover" data-alt="Expansive multi-room hospitality suite in Nairobi Kenya with sleek modern kitchenette, private wooden four-seat conference briefing table, separate lounge sofa in earth tones, large windows showing acacia treetops, and elegant mid-century decor accents." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDevKTeBeb54cS4_cJXqvSD1fhAZV7HHR_6HqF6SHXwV_ND5hwgt4IdaZ-_6MrMY6G_03B7mZMHVQV34UHCG10ZsvRp5K1Q36IUJznX4F8TFZZfxbg3gfA08TTOErZB_C5PHgXi4eKDd9kPomvDKBzkvgRrV2s3wdvzad_9Vj7Vh-Bb9SLtCxy-JFSnweeKgqbwbbKRBMXfGngSH1TBNCUZrc1qXL1V3TBnff1q6OE">
-            <!-- Floating Badges -->
-            <div class="absolute top-3 left-3 flex flex-wrap gap-1.5">
-              <span class="px-2.5 py-1 rounded-full bg-secondary-container text-on-secondary-container font-label-sm text-label-sm backdrop-blur-md font-bold flex items-center gap-1 shadow-sm">
-                <span class="material-symbols-outlined text-[13px]">groups</span>
-                Executive Long-Stay
-              </span>
-              <span class="px-2.5 py-1 rounded-full bg-primary-container text-on-primary font-label-sm text-label-sm">
-                VIP Lounge Pass
-              </span>
-            </div>
-            <div class="absolute bottom-3 right-3">
-              <span class="px-2.5 py-1 rounded-full bg-surface-container-lowest/95 text-on-surface font-label-sm text-label-sm backdrop-blur-md shadow-sm font-semibold flex items-center gap-1">
-                <span class="material-symbols-outlined text-secondary text-[14px]">photo_camera</span>
-                1 / 10
-              </span>
-            </div>
-          </div>
-          <!-- Content Body -->
-          <div class="p-space-md flex flex-col gap-space-sm">
-            <div class="flex items-start justify-between gap-2">
               <div>
-                <span class="font-label-sm text-label-sm text-secondary uppercase tracking-widest font-semibold">Residence Wing • Private Floor</span>
-                <h2 class="font-headline-md text-headline-md text-primary tracking-tight">Mara Residence &amp; NGO Suite</h2>
+                <h3 class="heading-sm text-[1.45rem]" data-i18n="home.why.cancel.title">Free cancellation</h3>
+                <p class="mt-2 text-sm leading-relaxed text-muted" data-i18n="home.why.cancel.text">
+                  Plans change. Cancel up to 48 hours before arrival with no hidden fees.
+                </p>
               </div>
-              <div class="flex items-center gap-1 bg-surface-container-high px-2 py-1 rounded-full shrink-0">
-                <span class="material-symbols-outlined text-secondary text-[16px]" style="font-variation-settings: 'FILL' 1;">star</span>
-                <span class="font-label-md text-label-md text-on-surface font-bold">5.0</span>
+            </article>
+            <article class="card-flat flex flex-col gap-4 p-6">
+              <span class="icon-tile">
+                <span class="material-symbols-outlined text-[24px]" aria-hidden="true">account_balance_wallet</span>
+              </span>
+              <div>
+                <h3 class="heading-sm text-[1.45rem]" data-i18n="home.why.pay.title">Pay with M-Pesa or card</h3>
+                <p class="mt-2 text-sm leading-relaxed text-muted" data-i18n="home.why.pay.text">
+                  Pay online or settle at the desk. We also accept bank transfers and LPOs.
+                </p>
               </div>
-            </div>
-            <p class="font-body-md text-body-md text-on-surface-variant">
-              Designed for project leads, long-term NGO missions, or small teams. Includes full kitchenette and private 4-seat briefing table.
-            </p>
-            <!-- Amenity Pills -->
-            <div class="flex flex-wrap gap-1.5 pt-1">
-              <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-surface-container text-on-surface font-label-sm text-label-sm">
-                <span class="material-symbols-outlined text-[15px] text-primary">weekend</span>
-                Separate Living Room
-              </span>
-              <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-surface-container text-on-surface font-label-sm text-label-sm">
-                <span class="material-symbols-outlined text-[15px] text-primary">groups_2</span>
-                4-Person Meeting Table
-              </span>
-              <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-surface-container text-on-surface font-label-sm text-label-sm">
-                <span class="material-symbols-outlined text-[15px] text-primary">countertops</span>
-                Kitchenette
-              </span>
-              <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-surface-container text-on-surface font-label-sm text-label-sm">
-                <span class="material-symbols-outlined text-[15px] text-primary">local_laundry_service</span>
-                Daily Laundry Service
-              </span>
-              <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-surface-container text-on-surface font-label-sm text-label-sm">
-                <span class="material-symbols-outlined text-[15px] text-primary">room_service</span>
-                VIP Lounge Access
-              </span>
-            </div>
-            <!-- M-Pesa & Price Panel -->
-            <div class="pt-space-xs mt-space-xs flex items-end justify-between">
-              <div class="flex flex-col">
-                <span class="font-label-sm text-label-sm text-on-surface-variant flex items-center gap-1">
-                  <span class="inline-block w-2 h-2 rounded-full bg-secondary-container"></span>
-                  Weekly discounts available
-                </span>
-                <div class="flex items-baseline gap-1 mt-0.5">
-                  <span class="font-label-sm text-label-sm font-semibold text-primary">KES</span>
-                  <span class="font-price-display text-price-display text-primary font-bold">18,500</span>
-                  <span class="font-label-sm text-label-sm text-on-surface-variant">/ night</span>
-                </div>
-              </div>
-              <span class="font-label-sm text-label-sm text-secondary font-medium bg-surface-container px-2 py-1 rounded">
-                ~ $142 USD
-              </span>
-            </div>
-            <!-- Action Target CTAs -->
-            <div class="grid grid-cols-2 gap-space-sm pt-space-xs">
-              <button class="w-full h-12 rounded-full bg-surface-container hover:bg-surface-container-high text-primary font-label-md text-label-md flex items-center justify-center transition-colors active:scale-98" type="button">
-                View Room Specs
-              </button>
-              <a class="w-full h-12 rounded-full bg-primary hover:bg-tertiary text-on-primary font-label-md text-label-md flex items-center justify-center shadow-md active:scale-98 transition-all" data-path="booking" href="#">
-                Check Availability
-              </a>
-            </div>
+            </article>
           </div>
-        </article>
-      </div>
 
-      <!-- Corporate / Delegation Inquiries Section -->
-      <section class="px-gutter-mobile my-space-lg">
-        <div class="w-full bg-primary-container text-on-primary rounded-xl p-space-lg flex flex-col gap-space-sm shadow-md">
-          <div class="flex items-center gap-2">
-            <span class="material-symbols-outlined text-secondary-container text-[24px]">corporate_fare</span>
-            <span class="font-label-md text-label-md uppercase tracking-wider text-primary-fixed font-bold">Group &amp; Institutional Rates</span>
-          </div>
-          <h3 class="font-headline-sm text-headline-sm tracking-tight text-surface-lowest">
-            Hosting a workshop, NGO retreat, or regional delegation?
-          </h3>
-          <p class="font-body-sm text-body-sm text-primary-fixed-dim leading-relaxed">
-            Speak with our dedicated Guest Services Manager for tailored conference meal plans, airport transfers, and consolidated corporate billing via LPO or M-Pesa Till.
+          <p class="mt-6 flex items-start gap-2 rounded-2xl bg-gold-pale px-4 py-3 text-[13px] font-medium text-gold-deep">
+            <span class="material-symbols-outlined text-[18px]" aria-hidden="true">local_bar</span>
+            <span data-i18n="home.why.note">Direct guests enjoy a complimentary welcome drink and 10% off dining during their stay.</span>
           </p>
-          <div class="pt-space-xs">
-            <a class="inline-flex items-center justify-center gap-2 h-11 px-5 rounded-full bg-surface-container-lowest text-primary font-label-md text-label-md font-semibold hover:bg-surface-container transition-colors active:scale-98" data-path="contact" href="#">
-              <span class="">Inquire for Corporate Rates</span>
-              <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+        </div>
+      </section>
+
+      <section class="section bg-sand/60">
+        <div class="container-page">
+          <div class="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+            <div class="max-w-2xl">
+              <p class="eyebrow" data-i18n="home.rooms.eyebrow">Rooms &amp; suites</p>
+              <h2 class="heading mt-4" data-i18n="home.rooms.title">A room that works as hard as you do.</h2>
+              <p class="lede mt-4" data-i18n="home.rooms.text">
+                Fast fibre Wi-Fi, a proper desk and blackout curtains in every room. Choose the space that fits your
+                stay.
+              </p>
+            </div>
+            <a href="rooms.html" class="link-arrow shrink-0">
+              <span data-i18n="home.rooms.link">View all rooms</span>
+              <span class="material-symbols-outlined text-[18px]" aria-hidden="true">arrow_forward</span>
+            </a>
+          </div>
+
+          <div class="mt-10 grid gap-6 lg:grid-cols-3">
+            <article class="group card overflow-hidden transition duration-300 hover:-translate-y-1 hover:shadow-lift">
+              <a href="rooms.html#standard-executive" class="block">
+                <div class="relative aspect-[4/3] overflow-hidden">
+                  <img
+                    src="https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=1200&q=80"
+                    alt="Standard Executive room with a queen bed and writing desk"
+                    class="h-full w-full object-cover transition duration-700 group-hover:scale-105"
+                    loading="lazy"
+                  />
+                  <span class="pill absolute left-4 top-4 bg-cream/95 text-forest">
+                    <span class="material-symbols-outlined text-[14px]" aria-hidden="true">star</span>
+                    <span data-i18n="room.popular">Most popular</span>
+                  </span>
+                  <span class="absolute bottom-4 right-4 rounded-full bg-forest/95 px-3.5 py-2 text-[12px] font-bold text-white backdrop-blur">
+                    From KES 8,500 <span class="font-medium text-white/70">/ night</span>
+                  </span>
+                </div>
+                <div class="p-6">
+                  <p class="eyebrow" data-i18n="room.standard.tagline">For focused solo stays</p>
+                  <h3 class="heading-sm mt-2" data-i18n="room.standard.name">Standard Executive</h3>
+                  <p class="mt-2 text-sm leading-relaxed text-muted" data-i18n="room.standard.description">
+                    A compact, quiet room with a generous work desk, rain shower and reliable 100 Mbps fibre.
+                  </p>
+                  <div class="mt-4 flex flex-wrap gap-x-4 gap-y-2 text-[12px] font-semibold text-forest">
+                    <span class="inline-flex items-center gap-1.5">
+                      <span class="material-symbols-outlined text-[16px] text-gold-deep" aria-hidden="true">group</span>
+                      <span data-i18n="room.sleeps2">Sleeps 2</span>
+                    </span>
+                    <span class="inline-flex items-center gap-1.5">
+                      <span class="material-symbols-outlined text-[16px] text-gold-deep" aria-hidden="true">square_foot</span>
+                      28 m²
+                    </span>
+                    <span class="inline-flex items-center gap-1.5">
+                      <span class="material-symbols-outlined text-[16px] text-gold-deep" aria-hidden="true">bed</span>
+                      <span data-i18n="room.standard.bed">Queen bed</span>
+                    </span>
+                  </div>
+                  <div class="mt-5 flex items-center justify-between border-t border-line pt-4">
+                    <span class="inline-flex items-center gap-1.5 text-[11px] font-semibold text-gold-deep">
+                      <span class="material-symbols-outlined text-[15px]" aria-hidden="true">event_available</span>
+                      <span data-i18n="common.freeCancellation">Free cancellation</span>
+                    </span>
+                    <span class="inline-flex items-center gap-1 text-[13px] font-bold text-forest">
+                      <span data-i18n="common.viewRooms">View room</span>
+                      <span class="material-symbols-outlined text-[17px] transition group-hover:translate-x-0.5" aria-hidden="true">arrow_forward</span>
+                    </span>
+                  </div>
+                </div>
+              </a>
+            </article>
+
+            <article class="group card overflow-hidden transition duration-300 hover:-translate-y-1 hover:shadow-lift">
+              <a href="rooms.html#deluxe-garden-suite" class="block">
+                <div class="relative aspect-[4/3] overflow-hidden">
+                  <img
+                    src="https://images.unsplash.com/photo-1582719508461-905c673771fd?auto=format&fit=crop&w=1200&q=80"
+                    alt="Deluxe Garden Suite with a king bed and garden-facing windows"
+                    class="h-full w-full object-cover transition duration-700 group-hover:scale-105"
+                    loading="lazy"
+                  />
+                  <span class="pill absolute left-4 top-4 bg-gold text-forest-dark">
+                    <span class="material-symbols-outlined text-[14px]" aria-hidden="true">local_florist</span>
+                    <span data-i18n="room.garden">Garden access</span>
+                  </span>
+                  <span class="absolute bottom-4 right-4 rounded-full bg-forest/95 px-3.5 py-2 text-[12px] font-bold text-white backdrop-blur">
+                    From KES 12,800 <span class="font-medium text-white/70">/ night</span>
+                  </span>
+                </div>
+                <div class="p-6">
+                  <p class="eyebrow" data-i18n="room.deluxe.tagline">For slower mornings</p>
+                  <h3 class="heading-sm mt-2" data-i18n="room.deluxe.name">Deluxe Garden Suite</h3>
+                  <p class="mt-2 text-sm leading-relaxed text-muted" data-i18n="room.deluxe.description">
+                    A calm suite opening onto our courtyard garden, with a king bed and a corner for reading.
+                  </p>
+                  <div class="mt-4 flex flex-wrap gap-x-4 gap-y-2 text-[12px] font-semibold text-forest">
+                    <span class="inline-flex items-center gap-1.5">
+                      <span class="material-symbols-outlined text-[16px] text-gold-deep" aria-hidden="true">group</span>
+                      <span data-i18n="room.sleeps2">Sleeps 2</span>
+                    </span>
+                    <span class="inline-flex items-center gap-1.5">
+                      <span class="material-symbols-outlined text-[16px] text-gold-deep" aria-hidden="true">square_foot</span>
+                      42 m²
+                    </span>
+                    <span class="inline-flex items-center gap-1.5">
+                      <span class="material-symbols-outlined text-[16px] text-gold-deep" aria-hidden="true">bed</span>
+                      <span data-i18n="room.deluxe.bed">King bed</span>
+                    </span>
+                  </div>
+                  <div class="mt-5 flex items-center justify-between border-t border-line pt-4">
+                    <span class="inline-flex items-center gap-1.5 text-[11px] font-semibold text-gold-deep">
+                      <span class="material-symbols-outlined text-[15px]" aria-hidden="true">event_available</span>
+                      <span data-i18n="common.freeCancellation">Free cancellation</span>
+                    </span>
+                    <span class="inline-flex items-center gap-1 text-[13px] font-bold text-forest">
+                      <span data-i18n="common.viewRooms">View room</span>
+                      <span class="material-symbols-outlined text-[17px] transition group-hover:translate-x-0.5" aria-hidden="true">arrow_forward</span>
+                    </span>
+                  </div>
+                </div>
+              </a>
+            </article>
+
+            <article class="group card overflow-hidden transition duration-300 hover:-translate-y-1 hover:shadow-lift">
+              <a href="rooms.html#mara-residence" class="block">
+                <div class="relative aspect-[4/3] overflow-hidden">
+                  <img
+                    src="https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=1200&q=80"
+                    alt="Mara Residence living area with a sofa, meeting table and kitchenette"
+                    class="h-full w-full object-cover transition duration-700 group-hover:scale-105"
+                    loading="lazy"
+                  />
+                  <span class="pill absolute left-4 top-4 bg-cream/95 text-forest">
+                    <span class="material-symbols-outlined text-[14px]" aria-hidden="true">work</span>
+                    <span data-i18n="room.longStay">Long-stay favourite</span>
+                  </span>
+                  <span class="absolute bottom-4 right-4 rounded-full bg-forest/95 px-3.5 py-2 text-[12px] font-bold text-white backdrop-blur">
+                    From KES 18,500 <span class="font-medium text-white/70">/ night</span>
+                  </span>
+                </div>
+                <div class="p-6">
+                  <p class="eyebrow" data-i18n="room.mara.tagline">For longer missions</p>
+                  <h3 class="heading-sm mt-2" data-i18n="room.mara.name">Mara Residence</h3>
+                  <p class="mt-2 text-sm leading-relaxed text-muted" data-i18n="room.mara.description">
+                    A one-bedroom residence with a living area, kitchenette and a four-seat meeting table.
+                  </p>
+                  <div class="mt-4 flex flex-wrap gap-x-4 gap-y-2 text-[12px] font-semibold text-forest">
+                    <span class="inline-flex items-center gap-1.5">
+                      <span class="material-symbols-outlined text-[16px] text-gold-deep" aria-hidden="true">group</span>
+                      <span data-i18n="room.sleeps3">Sleeps 3</span>
+                    </span>
+                    <span class="inline-flex items-center gap-1.5">
+                      <span class="material-symbols-outlined text-[16px] text-gold-deep" aria-hidden="true">square_foot</span>
+                      58 m²
+                    </span>
+                    <span class="inline-flex items-center gap-1.5">
+                      <span class="material-symbols-outlined text-[16px] text-gold-deep" aria-hidden="true">bed</span>
+                      <span data-i18n="room.mara.bed">King bed + sofa bed</span>
+                    </span>
+                  </div>
+                  <div class="mt-5 flex items-center justify-between border-t border-line pt-4">
+                    <span class="inline-flex items-center gap-1.5 text-[11px] font-semibold text-gold-deep">
+                      <span class="material-symbols-outlined text-[15px]" aria-hidden="true">event_available</span>
+                      <span data-i18n="common.freeCancellation">Free cancellation</span>
+                    </span>
+                    <span class="inline-flex items-center gap-1 text-[13px] font-bold text-forest">
+                      <span data-i18n="common.viewRooms">View room</span>
+                      <span class="material-symbols-outlined text-[17px] transition group-hover:translate-x-0.5" aria-hidden="true">arrow_forward</span>
+                    </span>
+                  </div>
+                </div>
+              </a>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="container-page">
+          <div class="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+            <div class="max-w-2xl">
+              <p class="eyebrow" data-i18n="home.facilities.eyebrow">Under one roof</p>
+              <h2 class="heading mt-4" data-i18n="home.facilities.title">More than a bed for the night.</h2>
+              <p class="lede mt-4" data-i18n="home.facilities.text">
+                A restaurant, coffee shop, conference hall and gym — all a short walk from your room in Westlands.
+              </p>
+            </div>
+            <a href="facilities.html" class="link-arrow shrink-0">
+              <span data-i18n="nav.facilities">Facilities</span>
+              <span class="material-symbols-outlined text-[18px]" aria-hidden="true">arrow_forward</span>
+            </a>
+          </div>
+
+          <div class="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            <a href="dining.html?venue=restaurant" class="group relative overflow-hidden rounded-3xl bg-forest-dark shadow-soft">
+              <img
+                src="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&w=900&q=80"
+                alt="Tulia Restaurant dining room with warm lighting"
+                class="aspect-[4/5] w-full object-cover opacity-85 transition duration-700 group-hover:scale-105 group-hover:opacity-100"
+                loading="lazy"
+              />
+              <div class="absolute inset-0 bg-gradient-to-t from-forest-dark via-forest-dark/20 to-transparent"></div>
+              <div class="absolute inset-x-0 bottom-0 p-5 text-white">
+                <span class="material-symbols-outlined text-[22px] text-gold" aria-hidden="true">restaurant</span>
+                <h3 class="mt-2 font-serif text-2xl" data-i18n="facility.restaurant.name">Tulia Restaurant</h3>
+                <p class="mt-1 text-[12px] leading-relaxed text-white/70" data-i18n="facility.restaurant.description">
+                  Kenyan classics and wood-fired favourites, open all day.
+                </p>
+                <p class="mt-3 inline-flex items-center gap-1.5 text-[11px] font-semibold text-gold">
+                  <span class="material-symbols-outlined text-[14px]" aria-hidden="true">schedule</span>
+                  <span data-i18n="facility.restaurant.hours">6:30am – 10:00pm daily</span>
+                </p>
+              </div>
+            </a>
+
+            <a href="dining.html?venue=coffee" class="group relative overflow-hidden rounded-3xl bg-forest-dark shadow-soft">
+              <img
+                src="https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=900&q=80"
+                alt="Jacaranda Café with a long communal table and espresso bar"
+                class="aspect-[4/5] w-full object-cover opacity-85 transition duration-700 group-hover:scale-105 group-hover:opacity-100"
+                loading="lazy"
+              />
+              <div class="absolute inset-0 bg-gradient-to-t from-forest-dark via-forest-dark/20 to-transparent"></div>
+              <div class="absolute inset-x-0 bottom-0 p-5 text-white">
+                <span class="material-symbols-outlined text-[22px] text-gold" aria-hidden="true">local_cafe</span>
+                <h3 class="mt-2 font-serif text-2xl" data-i18n="facility.coffee.name">Jacaranda Café</h3>
+                <p class="mt-1 text-[12px] leading-relaxed text-white/70" data-i18n="facility.coffee.description">
+                  Single-origin Kenyan coffee and a quiet corner to work.
+                </p>
+                <p class="mt-3 inline-flex items-center gap-1.5 text-[11px] font-semibold text-gold">
+                  <span class="material-symbols-outlined text-[14px]" aria-hidden="true">schedule</span>
+                  <span data-i18n="facility.coffee.hours">7:00am – 8:00pm daily</span>
+                </p>
+              </div>
+            </a>
+
+            <a href="conference.html" class="group relative overflow-hidden rounded-3xl bg-forest-dark shadow-soft">
+              <img
+                src="https://images.unsplash.com/photo-1505373877841-8d25f7d46678?auto=format&fit=crop&w=900&q=80"
+                alt="Kilele Hall set up for a workshop with rows of chairs"
+                class="aspect-[4/5] w-full object-cover opacity-85 transition duration-700 group-hover:scale-105 group-hover:opacity-100"
+                loading="lazy"
+              />
+              <div class="absolute inset-0 bg-gradient-to-t from-forest-dark via-forest-dark/20 to-transparent"></div>
+              <div class="absolute inset-x-0 bottom-0 p-5 text-white">
+                <span class="material-symbols-outlined text-[22px] text-gold" aria-hidden="true">co_present</span>
+                <h3 class="mt-2 font-serif text-2xl" data-i18n="facility.conference.name">Kilele Hall</h3>
+                <p class="mt-1 text-[12px] leading-relaxed text-white/70" data-i18n="facility.conference.description">
+                  A flexible hall for workshops, board meetings and small conferences.
+                </p>
+                <p class="mt-3 inline-flex items-center gap-1.5 text-[11px] font-semibold text-gold">
+                  <span class="material-symbols-outlined text-[14px]" aria-hidden="true">schedule</span>
+                  <span data-i18n="facility.conference.hours">By appointment, 7 days</span>
+                </p>
+              </div>
+            </a>
+
+            <a href="gym.html" class="group relative overflow-hidden rounded-3xl bg-forest-dark shadow-soft">
+              <img
+                src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=900&q=80"
+                alt="Kalya Fitness gym with cardio machines and free weights"
+                class="aspect-[4/5] w-full object-cover opacity-85 transition duration-700 group-hover:scale-105 group-hover:opacity-100"
+                loading="lazy"
+              />
+              <div class="absolute inset-0 bg-gradient-to-t from-forest-dark via-forest-dark/20 to-transparent"></div>
+              <div class="absolute inset-x-0 bottom-0 p-5 text-white">
+                <span class="material-symbols-outlined text-[22px] text-gold" aria-hidden="true">fitness_center</span>
+                <h3 class="mt-2 font-serif text-2xl" data-i18n="facility.gym.name">Kalya Fitness</h3>
+                <p class="mt-1 text-[12px] leading-relaxed text-white/70" data-i18n="facility.gym.description">
+                  Cardio, weights and a trainer who knows your name.
+                </p>
+                <p class="mt-3 inline-flex items-center gap-1.5 text-[11px] font-semibold text-gold">
+                  <span class="material-symbols-outlined text-[14px]" aria-hidden="true">schedule</span>
+                  <span data-i18n="facility.gym.hours">5:30am – 10:00pm weekdays</span>
+                </p>
+              </div>
             </a>
           </div>
         </div>
       </section>
-    </div>
-  </main>
 
-  <div id="nav-drawer-backdrop" class="fixed inset-0 bg-primary/40 backdrop-blur-sm z-50 opacity-0 pointer-events-none transition-opacity duration-300"></div>
-  <aside id="nav-drawer" class="fixed top-0 right-0 w-[300px] max-w-[85vw] h-full bg-surface-container-lowest shadow-2xl z-50 flex flex-col transform translate-x-full transition-transform duration-300 ease-in-out">
-    <div class="p-space-md flex items-center justify-between border-b border-surface-container-high">
-      <div class="flex items-center gap-2">
-        <img alt="Kalya Hotel" class="h-7 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1XXOFVd4H7hNRnstcL8n-446vuAeecdZv8_gld7nDZiGCyNLgypIzvhYXzQkHpDD7Ri3VaM1xWC0Mk-tg1Z7-HS7GPb7T98S73UjS0GH7veK5agYuN630Qwny2rd6ZFC27bT9FvVUIdPiyszPrbHIZ7tuo9sf6b7WDV6dmvoY0qxXYv-BNp6qeR5GMA4HSN2g-8Jc7vOmC-2G6UpGCO711vA1kkNshLKei7WCIPIt4x">
-        <span class="font-headline-sm text-headline-sm text-primary">Kalya Hotel</span>
-      </div>
-      <button id="nav-drawer-close" aria-label="Close Navigation Menu" class="w-9 h-9 rounded-full bg-surface-container flex items-center justify-center text-on-surface-variant hover:text-primary transition-colors active:scale-95">
-        <span class="material-symbols-outlined text-[20px]">close</span>
-      </button>
-    </div>
-    <div class="flex-1 overflow-y-auto p-space-md flex flex-col gap-1">
-      <a class="flex items-center gap-space-sm px-3.5 py-3 rounded-xl text-on-surface hover:bg-surface-container transition-colors font-medium" data-path="home" href="#">
-        <span class="material-symbols-outlined text-[22px] text-secondary">villa</span>
-        <span class="">Home</span>
-      </a>
-      <a aria-current="page" class="flex items-center gap-space-sm px-3.5 py-3 rounded-xl bg-primary-fixed text-on-primary-fixed font-semibold transition-colors" data-path="rooms" href="#">
-        <span class="material-symbols-outlined text-[22px] text-primary">bed</span>
-        <span class="">Rooms &amp; Suites</span>
-      </a>
-      <a class="flex items-center gap-space-sm px-3.5 py-3 rounded-xl text-on-surface hover:bg-surface-container transition-colors font-medium" data-path="facilities" href="#">
-        <span class="material-symbols-outlined text-[22px] text-secondary">spa</span>
-        <span class="">Facilities Hub</span>
-      </a>
-      <a class="flex items-center gap-space-sm px-3.5 py-3 rounded-xl text-on-surface hover:bg-surface-container transition-colors font-medium" data-path="booking" href="#">
-        <span class="material-symbols-outlined text-[22px] text-secondary">calendar_month</span>
-        <span class="">Reservation Booking</span>
-      </a>
-      <a class="flex items-center gap-space-sm px-3.5 py-3 rounded-xl text-on-surface hover:bg-surface-container transition-colors font-medium" data-path="contact" href="#">
-        <span class="material-symbols-outlined text-[22px] text-secondary">support_agent</span>
-        <span class="">Contact &amp; Concierge</span>
-      </a>
-    </div>
-    <div class="p-space-md border-t border-surface-container-high flex flex-col gap-2">
-      <a class="w-full h-11 rounded-full bg-secondary-container text-on-secondary-container font-label-md text-label-md font-semibold flex items-center justify-center shadow-sm" data-path="booking" href="#"><span class="">Book Direct Online</span></a>
-      <p class="font-label-sm text-label-sm text-center text-on-surface-variant">24/7 Front Desk &amp; Concierge</p>
-    </div>
-  </aside>
+      <section class="section overflow-hidden bg-forest text-white">
+        <div class="container-page">
+          <div class="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+            <div class="max-w-2xl">
+              <p class="text-[11px] font-bold uppercase tracking-[0.24em] text-gold" data-i18n="home.offers.eyebrow">
+                Current offers
+              </p>
+              <h2 class="mt-4 font-serif text-3xl font-medium tracking-tight text-white sm:text-4xl" data-i18n="home.offers.title">
+                A little more reason to stay.
+              </h2>
+              <p class="mt-4 text-sm leading-relaxed text-white/65" data-i18n="home.offers.text">
+                Direct-only rates and seasonal packages for teams, families and neighbours.
+              </p>
+            </div>
+            <div class="flex items-center gap-2">
+              <button
+                type="button"
+                data-carousel-prev
+                class="flex h-12 w-12 items-center justify-center rounded-full border border-white/20 text-white transition hover:bg-white/10 disabled:opacity-30"
+                data-i18n-aria="offers.prev"
+                aria-label="Previous offer"
+              >
+                <span class="material-symbols-outlined" aria-hidden="true">arrow_back</span>
+              </button>
+              <button
+                type="button"
+                data-carousel-next
+                class="flex h-12 w-12 items-center justify-center rounded-full border border-white/20 text-white transition hover:bg-white/10 disabled:opacity-30"
+                data-i18n-aria="offers.next"
+                aria-label="Next offer"
+              >
+                <span class="material-symbols-outlined" aria-hidden="true">arrow_forward</span>
+              </button>
+            </div>
+          </div>
 
-  <script type="module" src="/src/main.ts"></script>
-</body>
+          <div
+            class="no-scrollbar mt-10 flex snap-x snap-mandatory gap-5 overflow-x-auto scroll-smooth pb-2"
+            data-offers-carousel
+            tabindex="0"
+            aria-label="Current offers"
+          >
+            <article class="w-[86%] min-w-[86%] overflow-hidden rounded-3xl bg-white/5 ring-1 ring-white/10 backdrop-blur sm:w-[400px] sm:min-w-[400px]">
+              <div class="relative h-52 overflow-hidden">
+                <img
+                  src="https://images.unsplash.com/photo-1571896349842-33c89424de2d?auto=format&fit=crop&w=900&q=80"
+                  alt="A calm hotel bedroom prepared for a long stay"
+                  class="h-full w-full object-cover"
+                  loading="lazy"
+                />
+                <span class="pill absolute left-4 top-4 bg-gold text-forest-dark" data-i18n="offer.longStay.tag">Long stay</span>
+              </div>
+              <div class="p-6">
+                <h3 class="font-serif text-2xl text-white" data-i18n="offer.longStay.title">Stay 4 nights, pay for 3</h3>
+                <p class="mt-2 text-sm leading-relaxed text-white/60" data-i18n="offer.longStay.description">
+                  Settle in for a working week. The fourth night is on us when you book direct.
+                </p>
+                <p class="mt-4 text-sm font-bold text-gold" data-i18n="offer.longStay.price">From KES 25,500 for 4 nights</p>
+                <a href="booking.html?offer=long-stay" class="btn-gold btn-sm mt-5 w-full" data-i18n="offer.longStay.cta">Book this offer</a>
+              </div>
+            </article>
+
+            <article class="w-[86%] min-w-[86%] overflow-hidden rounded-3xl bg-white/5 ring-1 ring-white/10 backdrop-blur sm:w-[400px] sm:min-w-[400px]">
+              <div class="relative h-52 overflow-hidden">
+                <img
+                  src="https://images.unsplash.com/photo-1582719508461-905c673771fd?auto=format&fit=crop&w=900&q=80"
+                  alt="King bed in the Deluxe Garden Suite"
+                  class="h-full w-full object-cover"
+                  loading="lazy"
+                />
+                <span class="pill absolute left-4 top-4 bg-cream text-forest" data-i18n="offer.ngo.tag">NGO rate</span>
+              </div>
+              <div class="p-6">
+                <h3 class="font-serif text-2xl text-white" data-i18n="offer.ngo.title">15% off for NGO field teams</h3>
+                <p class="mt-2 text-sm leading-relaxed text-white/60" data-i18n="offer.ngo.description">
+                  Show your NGO ID at check-in and save on our Standard Executive rooms.
+                </p>
+                <p class="mt-4 text-sm font-bold text-gold" data-i18n="offer.ngo.price">From KES 7,225 per night</p>
+                <a href="booking.html?offer=ngo" class="btn-gold btn-sm mt-5 w-full" data-i18n="offer.ngo.cta">Book this offer</a>
+              </div>
+            </article>
+
+            <article class="w-[86%] min-w-[86%] overflow-hidden rounded-3xl bg-white/5 ring-1 ring-white/10 backdrop-blur sm:w-[400px] sm:min-w-[400px]">
+              <div class="relative h-52 overflow-hidden">
+                <img
+                  src="https://images.unsplash.com/photo-1504754524776-8f4f37790ca0?auto=format&fit=crop&w=900&q=80"
+                  alt="Sunday brunch spread with fresh fruit and pastries"
+                  class="h-full w-full object-cover"
+                  loading="lazy"
+                />
+                <span class="pill absolute left-4 top-4 bg-gold text-forest-dark" data-i18n="offer.brunch.tag">Dining</span>
+              </div>
+              <div class="p-6">
+                <h3 class="font-serif text-2xl text-white" data-i18n="offer.brunch.title">Sunday brunch at Tulia</h3>
+                <p class="mt-2 text-sm leading-relaxed text-white/60" data-i18n="offer.brunch.description">
+                  A generous buffet, live omelette station and bottomless Kenyan coffee.
+                </p>
+                <p class="mt-4 text-sm font-bold text-gold" data-i18n="offer.brunch.price">KES 2,500 per person</p>
+                <a href="dining.html?venue=restaurant" class="btn-gold btn-sm mt-5 w-full" data-i18n="offer.brunch.cta">Reserve a table</a>
+              </div>
+            </article>
+
+            <article class="w-[86%] min-w-[86%] overflow-hidden rounded-3xl bg-white/5 ring-1 ring-white/10 backdrop-blur sm:w-[400px] sm:min-w-[400px]">
+              <div class="relative h-52 overflow-hidden">
+                <img
+                  src="https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=900&q=80"
+                  alt="Conference delegates at a workshop in Kilele Hall"
+                  class="h-full w-full object-cover"
+                  loading="lazy"
+                />
+                <span class="pill absolute left-4 top-4 bg-cream text-forest" data-i18n="offer.meetings.tag">Meetings</span>
+              </div>
+              <div class="p-6">
+                <h3 class="font-serif text-2xl text-white" data-i18n="offer.meetings.title">Meet, sleep, repeat</h3>
+                <p class="mt-2 text-sm leading-relaxed text-white/60" data-i18n="offer.meetings.description">
+                  Book five rooms and receive 10% off Kilele Hall hire for your workshop.
+                </p>
+                <p class="mt-4 text-sm font-bold text-gold" data-i18n="offer.meetings.price">Custom quote</p>
+                <a href="conference.html#quote" class="btn-gold btn-sm mt-5 w-full" data-i18n="offer.meetings.cta">Request a quote</a>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="section bg-sand/70">
+        <div class="container-page">
+          <div class="grid gap-10 lg:grid-cols-[0.8fr_1.2fr]">
+            <div>
+              <p class="eyebrow" data-i18n="home.reviews.eyebrow">Guest reviews</p>
+              <h2 class="heading mt-4" data-i18n="home.reviews.title">
+                Loved by people who travel for work — and for life.
+              </h2>
+
+              <div class="card-flat mt-8 inline-flex flex-col gap-3 p-5">
+                <div class="flex items-center gap-4">
+                  <svg width="34" height="34" viewBox="0 0 24 24" aria-hidden="true">
+                    <path fill="#4285F4" d="M23.5 12.27c0-.79-.07-1.54-.2-2.27H12v4.51h6.47a5.53 5.53 0 0 1-2.4 3.63v3h3.88c2.27-2.09 3.55-5.17 3.55-8.87Z" />
+                    <path fill="#34A853" d="M12 24c3.24 0 5.96-1.07 7.95-2.91l-3.88-3c-1.08.72-2.45 1.15-4.07 1.15-3.13 0-5.78-2.11-6.73-4.95H1.26v3.09A12 12 0 0 0 12 24Z" />
+                    <path fill="#FBBC05" d="M5.27 14.29a7.2 7.2 0 0 1 0-4.58V6.62H1.26a12 12 0 0 0 0 10.76l4.01-3.09Z" />
+                    <path fill="#EA4335" d="M12 4.76c1.76 0 3.34.6 4.58 1.79l3.44-3.44A11.98 11.98 0 0 0 12 0 12 12 0 0 0 1.26 6.62l4.01 3.09C6.22 6.87 8.87 4.76 12 4.76Z" />
+                  </svg>
+                  <div>
+                    <div class="flex items-baseline gap-2">
+                      <span class="font-serif text-4xl leading-none text-forest-dark" data-i18n="home.reviews.rating">4.8</span>
+                      <span class="text-sm font-semibold text-muted">/ 5</span>
+                    </div>
+                    <div class="mt-1 flex text-gold-deep" aria-hidden="true">
+                      <span class="material-symbols-outlined text-[17px]" data-fill="1">star</span>
+                      <span class="material-symbols-outlined text-[17px]" data-fill="1">star</span>
+                      <span class="material-symbols-outlined text-[17px]" data-fill="1">star</span>
+                      <span class="material-symbols-outlined text-[17px]" data-fill="1">star</span>
+                      <span class="material-symbols-outlined text-[17px]" data-fill="1">star</span>
+                    </div>
+                  </div>
+                </div>
+                <p class="text-[13px] font-semibold text-muted" data-i18n="home.reviews.count">386 Google reviews</p>
+                <a href="https://www.google.com/search?q=Kalya+Hotel+Westlands+Nairobi+reviews" target="_blank" rel="noopener noreferrer" class="link-arrow text-[13px]">
+                  <span>Read on Google</span>
+                  <span class="material-symbols-outlined text-[16px]" aria-hidden="true">open_in_new</span>
+                </a>
+              </div>
+            </div>
+
+            <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <figure class="card-flat flex h-full flex-col p-5">
+                <div class="flex text-gold-deep" aria-hidden="true">
+                  <span class="material-symbols-outlined text-[15px]" data-fill="1">star</span>
+                  <span class="material-symbols-outlined text-[15px]" data-fill="1">star</span>
+                  <span class="material-symbols-outlined text-[15px]" data-fill="1">star</span>
+                  <span class="material-symbols-outlined text-[15px]" data-fill="1">star</span>
+                  <span class="material-symbols-outlined text-[15px]" data-fill="1">star</span>
+                </div>
+                <blockquote class="mt-4 flex-1 text-[13px] leading-relaxed text-ink/85" data-i18n="review.wanjiku.quote">
+                  I stayed three nights for a field visit. The Wi-Fi never dropped, the desk was proper, and the team
+                  remembered how I take my tea.
+                </blockquote>
+                <figcaption class="mt-5 border-t border-line pt-4">
+                  <p class="text-[13px] font-bold text-forest" data-i18n="review.wanjiku.name">Wanjiku M.</p>
+                  <p class="mt-0.5 text-[11px] text-muted" data-i18n="review.wanjiku.role">NGO programme officer, Kisumu</p>
+                  <p class="mt-2 inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-muted/70">
+                    <span class="material-symbols-outlined text-[13px] text-forest" aria-hidden="true">verified</span>
+                    <span data-i18n="home.reviews.verified">Verified Google review</span>
+                  </p>
+                </figcaption>
+              </figure>
+
+              <figure class="card-flat flex h-full flex-col p-5">
+                <div class="flex text-gold-deep" aria-hidden="true">
+                  <span class="material-symbols-outlined text-[15px]" data-fill="1">star</span>
+                  <span class="material-symbols-outlined text-[15px]" data-fill="1">star</span>
+                  <span class="material-symbols-outlined text-[15px]" data-fill="1">star</span>
+                  <span class="material-symbols-outlined text-[15px]" data-fill="1">star</span>
+                  <span class="material-symbols-outlined text-[15px]" data-fill="1">star</span>
+                </div>
+                <blockquote class="mt-4 flex-1 text-[13px] leading-relaxed text-ink/85" data-i18n="review.daniel.quote">
+                  Quiet, central and secure. I walked to my meetings in Westlands and came back to a genuinely good
+                  dinner.
+                </blockquote>
+                <figcaption class="mt-5 border-t border-line pt-4">
+                  <p class="text-[13px] font-bold text-forest" data-i18n="review.daniel.name">Daniel K.</p>
+                  <p class="mt-0.5 text-[11px] text-muted" data-i18n="review.daniel.role">Business traveller, Nairobi</p>
+                  <p class="mt-2 inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-muted/70">
+                    <span class="material-symbols-outlined text-[13px] text-forest" aria-hidden="true">verified</span>
+                    <span data-i18n="home.reviews.verified">Verified Google review</span>
+                  </p>
+                </figcaption>
+              </figure>
+
+              <figure class="card-flat flex h-full flex-col p-5 sm:col-span-2 lg:col-span-1">
+                <div class="flex text-gold-deep" aria-hidden="true">
+                  <span class="material-symbols-outlined text-[15px]" data-fill="1">star</span>
+                  <span class="material-symbols-outlined text-[15px]" data-fill="1">star</span>
+                  <span class="material-symbols-outlined text-[15px]" data-fill="1">star</span>
+                  <span class="material-symbols-outlined text-[15px]" data-fill="1">star</span>
+                  <span class="material-symbols-outlined text-[15px]" data-fill="1">star</span>
+                </div>
+                <blockquote class="mt-4 flex-1 text-[13px] leading-relaxed text-ink/85" data-i18n="review.amina.quote">
+                  We booked Kilele Hall for a community workshop. The catering was generous and the staff handled every
+                  small request.
+                </blockquote>
+                <figcaption class="mt-5 border-t border-line pt-4">
+                  <p class="text-[13px] font-bold text-forest" data-i18n="review.amina.name">Amina H.</p>
+                  <p class="mt-0.5 text-[11px] text-muted" data-i18n="review.amina.role">Local resident &amp; community organiser</p>
+                  <p class="mt-2 inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-muted/70">
+                    <span class="material-symbols-outlined text-[13px] text-forest" aria-hidden="true">verified</span>
+                    <span data-i18n="home.reviews.verified">Verified Google review</span>
+                  </p>
+                </figcaption>
+              </figure>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section bg-forest-dark text-white">
+        <div class="container-page">
+          <div class="grid items-center gap-10 lg:grid-cols-2">
+            <div>
+              <p class="text-[11px] font-bold uppercase tracking-[0.24em] text-gold" data-i18n="newsletter.eyebrow">Stay in touch</p>
+              <h2 class="mt-4 font-serif text-3xl font-medium tracking-tight text-white sm:text-4xl" data-i18n="newsletter.title">
+                A quiet note from Nairobi.
+              </h2>
+              <p class="mt-4 max-w-md text-sm leading-relaxed text-white/65" data-i18n="newsletter.text">
+                Seasonal offers, new menus and the occasional story from Westlands. One email a month, never more.
+              </p>
+              <p class="mt-6 inline-flex items-center gap-2 text-[12px] text-white/50">
+                <span class="material-symbols-outlined text-[17px] text-gold" aria-hidden="true">mark_email_unread</span>
+                <span data-i18n="newsletter.privacy">We keep your details private. Unsubscribe anytime.</span>
+              </p>
+            </div>
+
+            <form data-newsletter-form class="rounded-3xl border border-white/15 bg-white/5 p-5 backdrop-blur sm:p-7" novalidate>
+              <div class="grid gap-3 sm:grid-cols-[1fr_auto]">
+                <div>
+                  <label class="sr-only" for="newsletter-email" data-i18n="newsletter.emailLabel">Email address</label>
+                  <input
+                    id="newsletter-email"
+                    name="email"
+                    type="email"
+                    required
+                    autocomplete="email"
+                    class="h-14 w-full rounded-2xl border border-white/15 bg-white/10 px-5 text-sm text-white placeholder:text-white/40 focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/30"
+                    data-i18n-placeholder="newsletter.placeholder"
+                    placeholder="Your email address"
+                  />
+                  <p data-error class="mt-2 hidden text-[12px] font-medium text-red-300"></p>
+                </div>
+                <button type="submit" class="btn-gold h-14 sm:px-7" data-i18n="newsletter.button">Subscribe</button>
+              </div>
+              <p data-newsletter-success class="mt-4 hidden items-center gap-2 rounded-xl bg-white/10 px-4 py-3 text-[13px] font-semibold text-gold" role="status"></p>
+            </form>
+          </div>
+        </div>
+      </section>
+
+      <section class="bg-cream py-14">
+        <div class="container-page">
+          <div class="flex flex-col items-start justify-between gap-5 rounded-3xl border border-line bg-white p-6 shadow-soft sm:flex-row sm:items-center sm:p-8">
+            <div>
+              <h2 class="heading-sm" data-i18n="rooms.help.title">Not sure which room fits?</h2>
+              <p class="mt-2 max-w-xl text-sm text-muted" data-i18n="rooms.help.text">
+                Tell us how long you are staying and what you need to get done. We will recommend the right room.
+              </p>
+            </div>
+            <div class="flex flex-wrap gap-3">
+              <a href="contact.html" class="btn-outline btn-sm" data-i18n="rooms.help.cta">Talk to reservations</a>
+              <a href="https://wa.me/254712345678" target="_blank" rel="noopener noreferrer" class="btn-primary btn-sm">
+                <span class="material-symbols-outlined text-[18px]" aria-hidden="true">chat</span>
+                <span data-i18n="common.whatsapp">WhatsApp us</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <div id="site-footer"></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
 </html>
