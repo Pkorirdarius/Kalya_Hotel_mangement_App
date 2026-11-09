@@ -1,4 +1,4 @@
-"""Base settings shared by every environment."""
+"""Base settings shared by every West Premier Hotel environment."""
 
 from pathlib import Path
 
@@ -80,6 +80,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "apps.common.middleware.RequestIDMiddleware",
     "apps.accounts.middleware.CurrentUserMiddleware",
 ]
 
@@ -105,9 +106,9 @@ TEMPLATES = [
 ]
 
 # ---------------------------------------------------------------------------
-# Database — Postgres everywhere real, SQLite for a frictionless local run
+# Database - Postgres everywhere real, SQLite for a frictionless local run
 # ---------------------------------------------------------------------------
-if env("USE_SQLITE"):
+if env.bool("USE_SQLITE", default=False):
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
@@ -119,9 +120,9 @@ else:
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql",
-            "NAME": env("POSTGRES_DB", default="West Premier"),
-            "USER": env("POSTGRES_USER", default="West Premier"),
-            "PASSWORD": env("POSTGRES_PASSWORD", default="West Premier"),
+            "NAME": env("POSTGRES_DB", default="west_premier"),
+            "USER": env("POSTGRES_USER", default="west_premier"),
+            "PASSWORD": env("POSTGRES_PASSWORD", default="west_premier"),
             "HOST": env("POSTGRES_HOST", default="localhost"),
             "PORT": env("POSTGRES_PORT", default="5432"),
             "CONN_MAX_AGE": 60,
@@ -156,7 +157,7 @@ CSRF_COOKIE_HTTPONLY = False  # the React client reads it for the X-CSRFToken he
 SESSION_COOKIE_AGE = 60 * 60 * 12  # a front desk shift
 
 # ---------------------------------------------------------------------------
-# i18n — English and Swahili, Kenya time
+# i18n - English and Swahili, Kenya time
 # ---------------------------------------------------------------------------
 LANGUAGE_CODE = "en"
 LANGUAGES = [("en", "English"), ("sw", "Kiswahili")]
@@ -178,6 +179,7 @@ STORAGES = {
     "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
     "staticfiles": {"BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"},
 }
+
 # ---------------------------------------------------------------------------
 # DRF
 # ---------------------------------------------------------------------------
@@ -210,7 +212,7 @@ REST_FRAMEWORK = {
         "payment": "30/hour",
         "login": "10/min",
     },
-    "EXCEPTION_HANDLER": "apps.common.exceptions.West Premier_exception_handler",
+    "EXCEPTION_HANDLER": "apps.common.exceptions.api_exception_handler",
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
 
@@ -219,6 +221,9 @@ SPECTACULAR_SETTINGS = {
     "DESCRIPTION": "Bilingual hotel website, booking and front desk API.",
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
+    "SERVE_PERMISSIONS": ["rest_framework.permissions.AllowAny"],
+    "COMPONENT_SPLIT_REQUEST": True,
+    "SWAGGER_UI_SETTINGS": {"deepLinking": True, "persistAuthorization": True},
 }
 
 # ---------------------------------------------------------------------------
@@ -226,6 +231,7 @@ SPECTACULAR_SETTINGS = {
 # ---------------------------------------------------------------------------
 CORS_ALLOWED_ORIGINS = env("CORS_ALLOWED_ORIGINS")
 CORS_ALLOW_CREDENTIALS = True
+CORS_EXPOSE_HEADERS = ["X-Request-ID"]
 CSRF_TRUSTED_ORIGINS = env("CSRF_TRUSTED_ORIGINS")
 
 # ---------------------------------------------------------------------------
@@ -251,15 +257,18 @@ EMAIL_PORT = env.int("EMAIL_PORT", default=587)
 EMAIL_HOST_USER = env("EMAIL_HOST_USER", default="")
 EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default="")
 EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=True)
-DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default="reservations@West Premierhotel.co.ke")
-FRONT_DESK_EMAIL = env("FRONT_DESK_EMAIL", default="frontdesk@West Premierhotel.co.ke")
-MANAGER_EMAIL = env("MANAGER_EMAIL", default="manager@West Premierhotel.co.ke")
+EMAIL_TIMEOUT = env.int("EMAIL_TIMEOUT", default=10)
+DEFAULT_FROM_EMAIL = env(
+    "DEFAULT_FROM_EMAIL", default="reservations@westpremierhotel.co.ke"
+)
+FRONT_DESK_EMAIL = env("FRONT_DESK_EMAIL", default="frontdesk@westpremierhotel.co.ke")
+MANAGER_EMAIL = env("MANAGER_EMAIL", default="manager@westpremierhotel.co.ke")
 
 # ---------------------------------------------------------------------------
-# django-q2 — database broker, no Redis
+# django-q2 - database broker, no Redis
 # ---------------------------------------------------------------------------
 Q_CLUSTER = {
-    "name": env("Q_CLUSTER_NAME", default="West Premier"),
+    "name": env("Q_CLUSTER_NAME", default="west_premier"),
     "workers": env.int("Q_CLUSTER_WORKERS", default=2),
     "timeout": env.int("Q_CLUSTER_TIMEOUT", default=120),
     "retry": env.int("Q_CLUSTER_RETRY", default=180),
@@ -271,9 +280,9 @@ Q_CLUSTER = {
 }
 
 # ---------------------------------------------------------------------------
-# Hotel business settings — safe defaults, all overridable in admin
+# Hotel business settings - safe defaults, all overridable in admin
 # ---------------------------------------------------------------------------
-West Premier = {
+HOTEL = {
     "NAME": "West Premier Hotel",
     "TOWN": "Kapenguria",
     "COUNTY": "West Pokot",
@@ -281,17 +290,27 @@ West Premier = {
     "CURRENCY": "KES",
     "PHONE": "+254 20 765 4321",
     "PHONE_HREF": "tel:+254207654321",
-    "EMAIL": "stay@West Premierhotel.co.ke",
+    "EMAIL": "stay@westpremierhotel.co.ke",
     "ADDRESS": "Kapenguria, West Pokot, Kenya",
-    "CANCELLATION_CUTOFF_HOURS": env.int("West Premier_CANCELLATION_CUTOFF_HOURS", default=48),
-    "HOLD_TTL_MINUTES": env.int("West Premier_HOLD_TTL_MINUTES", default=15),
-    "FRONTDESK_TARGET_MINUTES": env.int("West Premier_FRONTDESK_TARGET_MINUTES", default=10),
-    "FRONTDESK_ESCALATE_MINUTES": env.int(
-        "West Premier_FRONTDESK_ESCALATE_MINUTES", default=8
+    # Values below are launch placeholders and must be confirmed by the hotel.
+    "CANCELLATION_CUTOFF_HOURS": env.int(
+        "WEST_PREMIER_CANCELLATION_CUTOFF_HOURS", default=48
     ),
-    "CLAIMS_VERIFIED": env.bool("West Premier_CLAIMS_VERIFIED", default=False),
-    "GOOGLE_REVIEWS_ENABLED": env.bool("West Premier_GOOGLE_REVIEWS_ENABLED", default=False),
+    "HOLD_TTL_MINUTES": env.int("WEST_PREMIER_HOLD_TTL_MINUTES", default=15),
+    "FRONTDESK_TARGET_MINUTES": env.int(
+        "WEST_PREMIER_FRONTDESK_TARGET_MINUTES", default=10
+    ),
+    "FRONTDESK_ESCALATE_MINUTES": env.int(
+        "WEST_PREMIER_FRONTDESK_ESCALATE_MINUTES", default=8
+    ),
+    "CLAIMS_VERIFIED": env.bool("WEST_PREMIER_CLAIMS_VERIFIED", default=False),
+    "GOOGLE_REVIEWS_ENABLED": env.bool(
+        "WEST_PREMIER_GOOGLE_REVIEWS_ENABLED", default=False
+    ),
 }
+
+# Request ID is returned to clients and attached to log records.
+REQUEST_ID_HEADER = "X-Request-ID"
 
 # ---------------------------------------------------------------------------
 # Logging
@@ -299,15 +318,25 @@ West Premier = {
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
+    "filters": {
+        "request_id": {"()": "apps.common.logging.RequestIDFilter"},
+    },
     "formatters": {
-        "verbose": {"format": "{levelname} {asctime} {name} {message}", "style": "{"},
+        "verbose": {
+            "format": "{levelname} {asctime} {name} [{request_id}] {message}",
+            "style": "{",
+        },
     },
     "handlers": {
-        "console": {"class": "logging.StreamHandler", "formatter": "verbose"},
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "verbose",
+            "filters": ["request_id"],
+        },
     },
     "root": {"handlers": ["console"], "level": "INFO"},
     "loggers": {
-        "West Premier": {"handlers": ["console"], "level": "INFO", "propagate": False},
+        "apps": {"handlers": ["console"], "level": "INFO", "propagate": False},
         "django.request": {
             "handlers": ["console"],
             "level": "WARNING",
