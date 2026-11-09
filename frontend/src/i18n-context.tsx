@@ -34,7 +34,6 @@ export function I18nProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     initI18n();
-    setLanguageState(getCurrentLanguage());
 
     const handleChange = (event: Event) => {
       const detail = (event as CustomEvent<LanguageChangeDetail>).detail;

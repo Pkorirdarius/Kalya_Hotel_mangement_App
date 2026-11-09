@@ -834,7 +834,22 @@ const entries: Record<string, Entry> = {
 
 const translations = entries as Record<string, Entry>;
 
-let currentLanguage: Language = 'en';
+function readStoredLanguage(): Language | null {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+
+  try {
+    const value = window.localStorage.getItem(STORAGE_KEY);
+    return value === 'en' || value === 'sw' ? value : null;
+  } catch {
+    return null;
+  }
+}
+
+let currentLanguage: Language =
+  readStoredLanguage() ??
+  (typeof document !== 'undefined' && document.documentElement.lang === 'sw' ? 'sw' : 'en');
 
 export function getCurrentLanguage(): Language {
   return currentLanguage;
@@ -926,26 +941,7 @@ export function setLanguage(language: Language, notify = true): void {
 }
 
 export function initI18n(): void {
-  let stored: Language | null = null;
-  try {
-    const value = window.localStorage.getItem(STORAGE_KEY);
-    stored = value === 'en' || value === 'sw' ? value : null;
-  } catch {
-    stored = null;
-  }
-
-  const initial: Language = stored ?? (document.documentElement.lang === 'sw' ? 'sw' : 'en');
-  currentLanguage = initial;
-  applyLanguage(initial);
-}
-
-export function initLanguageSwitcher(): void {
-  document.querySelectorAll<HTMLElement>('[data-language-switch]').forEach((button) => {
-    button.addEventListener('click', () => {
-      const next: Language = currentLanguage === 'en' ? 'sw' : 'en';
-      setLanguage(next);
-    });
-  });
+  applyLanguage(currentLanguage);
 }
 
 export function formatMoney(amount: number): string {

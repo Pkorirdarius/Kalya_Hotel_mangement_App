@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { usePageMeta } from '../components/Page';
 import { useToast } from '../components/ToastProvider';
@@ -46,10 +46,10 @@ export function DashboardPage() {
   const { showToast } = useToast();
   const [now, setNow] = useState(() => Date.now());
   const [statuses, setStatuses] = useState<Record<string, RequestStatus>>({});
-  const deadlines = useMemo(() => {
+  const [deadlines] = useState<Record<string, number>>(() => {
     const started = Date.now();
     return Object.fromEntries(REQUESTS.map((item) => [item.id, started + item.minutes * 60_000]));
-  }, []);
+  });
 
   usePageMeta('Front Desk Dashboard — West Premier Hotel');
 
