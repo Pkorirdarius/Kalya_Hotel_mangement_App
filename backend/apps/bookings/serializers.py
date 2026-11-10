@@ -178,6 +178,12 @@ class BookingPublicSerializer(serializers.ModelSerializer):
         return payment_summary(payment)
 
 
+class BookingCreateResponseSerializer(serializers.Serializer):
+    """The create endpoint returns the booking inside an envelope."""
+
+    booking = BookingPublicSerializer()
+
+
 class BookingLookupQuerySerializer(serializers.Serializer):
     email = serializers.EmailField(required=False)
     phone = serializers.CharField(required=False, max_length=32)

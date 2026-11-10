@@ -19,13 +19,16 @@ from apps.common.utils import as_kes_int, hotel_today
 from .models import ConferenceEnquiry, GymDayPass, MenuItem, TableBooking
 from .serializers import (
     ConferenceAvailabilitySerializer,
+    ConferenceEnquiryCreateResponseSerializer,
     ConferenceEnquiryCreateSerializer,
     ConferenceEnquirySerializer,
     GymAvailabilitySerializer,
+    GymDayPassCreateResponseSerializer,
     GymDayPassCreateSerializer,
     GymDayPassSerializer,
     MenuItemSerializer,
     RestaurantSlotSerializer,
+    TableBookingCreateResponseSerializer,
     TableBookingCreateSerializer,
     TableBookingSerializer,
 )
@@ -72,7 +75,7 @@ class TableBookingCreateView(APIView):
     permission_classes = [AllowAny]
     throttle_scope = "enquiry"
 
-    @extend_schema(responses={201: TableBookingSerializer})
+    @extend_schema(responses={201: TableBookingCreateResponseSerializer})
     def post(self, request):
         serializer = TableBookingCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -167,7 +170,7 @@ class ConferenceEnquiryCreateView(APIView):
     permission_classes = [AllowAny]
     throttle_scope = "enquiry"
 
-    @extend_schema(responses={201: ConferenceEnquirySerializer})
+    @extend_schema(responses={201: ConferenceEnquiryCreateResponseSerializer})
     def post(self, request):
         serializer = ConferenceEnquiryCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -244,7 +247,7 @@ class GymDayPassCreateView(APIView):
     permission_classes = [AllowAny]
     throttle_scope = "enquiry"
 
-    @extend_schema(responses={201: GymDayPassSerializer})
+    @extend_schema(responses={201: GymDayPassCreateResponseSerializer})
     def post(self, request):
         serializer = GymDayPassCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)

@@ -14,6 +14,7 @@ from apps.rooms.models import RoomType
 from .serializers import (
     AvailabilityQuerySerializer,
     AvailabilityRowSerializer,
+    BookingCreateResponseSerializer,
     BookingCreateSerializer,
     BookingLookupQuerySerializer,
     BookingPublicSerializer,
@@ -116,7 +117,7 @@ class BookingCreateView(APIView):
     permission_classes = [AllowAny]
     throttle_scope = "booking"
 
-    @extend_schema(responses={201: BookingPublicSerializer})
+    @extend_schema(responses={201: BookingCreateResponseSerializer})
     def post(self, request):
         serializer = BookingCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)

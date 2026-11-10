@@ -267,3 +267,15 @@ class GymMembershipEnquirySerializer(serializers.ModelSerializer):
             "created_at",
         )
         read_only_fields = ("id", "created_at")
+
+
+class TableBookingCreateResponseSerializer(serializers.Serializer):
+    booking = TableBookingSerializer()
+
+
+class ConferenceEnquiryCreateResponseSerializer(serializers.Serializer):
+    enquiry = ConferenceEnquirySerializer()
+
+
+class GymDayPassCreateResponseSerializer(serializers.Serializer):
+    day_pass = GymDayPassSerializer()

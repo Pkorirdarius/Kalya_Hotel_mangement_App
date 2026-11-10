@@ -42,7 +42,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BookingPublic'
+                $ref: '#/components/schemas/BookingCreateResponse'
           description: ''
   /api/v1/bookings/{reference}/:
     get:
@@ -332,7 +332,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ConferenceEnquiry'
+                $ref: '#/components/schemas/ConferenceEnquiryCreateResponse'
           description: ''
   /api/v1/facilities/conference/enquiries/{reference}/:
     get:
@@ -397,7 +397,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GymDayPass'
+                $ref: '#/components/schemas/GymDayPassCreateResponse'
           description: ''
   /api/v1/facilities/gym/day-passes/{reference}/:
     get:
@@ -493,7 +493,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TableBooking'
+                $ref: '#/components/schemas/TableBookingCreateResponse'
           description: ''
   /api/v1/facilities/restaurant/bookings/{reference}/:
     get:
@@ -3979,6 +3979,14 @@ components:
       - last_name
       - phone
       - quote
+    BookingCreateResponse:
+      type: object
+      description: The create endpoint returns the booking inside an envelope.
+      properties:
+        booking:
+          $ref: '#/components/schemas/BookingPublic'
+      required:
+      - booking
     BookingPublic:
       type: object
       properties:
@@ -4138,6 +4146,7 @@ components:
           maxLength: 32
         to_status_display:
           type: string
+          readOnly: true
         reason:
           type: string
           maxLength: 255
@@ -4332,6 +4341,13 @@ components:
       - people
       - phone
       - session
+    ConferenceEnquiryCreateResponse:
+      type: object
+      properties:
+        enquiry:
+          $ref: '#/components/schemas/ConferenceEnquiry'
+      required:
+      - enquiry
     ConferenceEnquiryStaff:
       type: object
       properties:
@@ -4722,6 +4738,13 @@ components:
       - full_name
       - payment_method
       - phone
+    GymDayPassCreateResponse:
+      type: object
+      properties:
+        day_pass:
+          $ref: '#/components/schemas/GymDayPass'
+      required:
+      - day_pass
     GymDayPassStaff:
       type: object
       properties:
@@ -8499,6 +8522,13 @@ components:
       - party_size
       - phone
       - time
+    TableBookingCreateResponse:
+      type: object
+      properties:
+        booking:
+          $ref: '#/components/schemas/TableBooking'
+      required:
+      - booking
     TableBookingStaff:
       type: object
       properties:
