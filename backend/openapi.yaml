@@ -278,7 +278,11 @@ paths:
       - {}
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReviewList'
+          description: ''
   /api/v1/facilities/conference/availability/:
     get:
       operationId: v1_facilities_conference_availability_list
@@ -345,17 +349,30 @@ paths:
       - {}
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConferenceEnquiry'
+          description: ''
   /api/v1/facilities/gym/availability/:
     get:
       operationId: v1_facilities_gym_availability_retrieve
+      parameters:
+      - in: query
+        name: date
+        schema:
+          type: string
       tags:
       - gym
       security:
       - {}
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GymAvailability'
+          description: ''
   /api/v1/facilities/gym/day-passes/:
     post:
       operationId: v1_facilities_gym_day_passes_create
@@ -397,7 +414,11 @@ paths:
       - {}
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GymDayPass'
+          description: ''
   /api/v1/facilities/gym/day-passes/{reference}/qr/:
     get:
       operationId: v1_facilities_gym_day_passes_qr_retrieve
@@ -407,13 +428,22 @@ paths:
         schema:
           type: string
         required: true
+      - in: query
+        name: token
+        schema:
+          type: string
       tags:
       - gym
       security:
       - {}
       responses:
         '200':
-          description: No response body
+          content:
+            image/png:
+              schema:
+                type: string
+                format: binary
+          description: ''
   /api/v1/facilities/menu/:
     get:
       operationId: v1_facilities_menu_list
@@ -480,7 +510,11 @@ paths:
       - {}
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TableBooking'
+          description: ''
   /api/v1/facilities/restaurant/slots/:
     get:
       operationId: v1_facilities_restaurant_slots_list
@@ -547,7 +581,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ContactMessage'
+                $ref: '#/components/schemas/ContactMessageEnvelope'
           description: ''
   /api/v1/marketing/newsletter/:
     post:
@@ -569,18 +603,38 @@ paths:
       security:
       - {}
       responses:
-        '200':
-          description: No response body
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NewsletterSubscribeResponse'
+          description: ''
   /api/v1/marketing/newsletter/unsubscribe/:
     post:
       operationId: v1_marketing_newsletter_unsubscribe_create
       tags:
       - marketing
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewsletterSubscribeRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/NewsletterSubscribeRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/NewsletterSubscribeRequest'
+        required: true
       security:
       - {}
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NewsletterUnsubscribeResponse'
+          description: ''
   /api/v1/meal-plans/:
     get:
       operationId: v1_meal_plans_list
@@ -714,8 +768,12 @@ paths:
       security:
       - {}
       responses:
-        '200':
-          description: No response body
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentInitiateResponse'
+          description: ''
   /api/v1/payments/methods/:
     get:
       operationId: v1_payments_methods_retrieve
@@ -725,7 +783,11 @@ paths:
       - {}
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentMethodsResponse'
+          description: ''
   /api/v1/payments/webhooks/card/:
     post:
       operationId: v1_payments_webhooks_card_create
@@ -736,7 +798,11 @@ paths:
       - {}
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WebhookAck'
+          description: ''
   /api/v1/payments/webhooks/mpesa/:
     post:
       operationId: v1_payments_webhooks_mpesa_create
@@ -798,13 +864,30 @@ paths:
   /api/v1/staff/auth/login/:
     post:
       operationId: v1_staff_auth_login_create
+      description: Sign in with a staff username or email and password.
       tags:
       - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+        required: true
       security:
       - {}
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserEnvelope'
+          description: ''
   /api/v1/staff/auth/logout/:
     post:
       operationId: v1_staff_auth_logout_create
@@ -813,7 +896,7 @@ paths:
       security:
       - cookieAuth: []
       responses:
-        '200':
+        '204':
           description: No response body
   /api/v1/staff/auth/me/:
     get:
@@ -824,7 +907,11 @@ paths:
       - cookieAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserEnvelope'
+          description: ''
   /api/v1/staff/bookings/bookings/:
     get:
       operationId: v1_staff_bookings_bookings_list
@@ -2306,13 +2393,22 @@ paths:
   /api/v1/staff/frontdesk/activity/:
     get:
       operationId: v1_staff_frontdesk_activity_retrieve
+      parameters:
+      - in: query
+        name: limit
+        schema:
+          type: integer
       tags:
       - front desk
       security:
       - cookieAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActivityResponse'
+          description: ''
   /api/v1/staff/frontdesk/escalate/:
     post:
       operationId: v1_staff_frontdesk_escalate_create
@@ -2322,7 +2418,11 @@ paths:
       - cookieAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EscalateResponse'
+          description: ''
   /api/v1/staff/frontdesk/queue/:
     get:
       operationId: v1_staff_frontdesk_queue_retrieve
@@ -2332,7 +2432,11 @@ paths:
       - cookieAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QueueResponse'
+          description: ''
   /api/v1/staff/marketing/contact-messages/:
     get:
       operationId: v1_staff_marketing_contact_messages_list
@@ -3225,7 +3329,16 @@ paths:
       - cookieAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            text/csv:
+              schema:
+                type: string
+                format: binary
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+          description: ''
   /api/v1/staff/reports/occupancy/:
     get:
       operationId: v1_staff_reports_occupancy_retrieve
@@ -3244,7 +3357,11 @@ paths:
       - cookieAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OccupancyResponse'
+          description: ''
   /api/v1/staff/reports/overview/:
     get:
       operationId: v1_staff_reports_overview_retrieve
@@ -3259,7 +3376,11 @@ paths:
       - cookieAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Overview'
+          description: ''
   /api/v1/staff/rooms/room-blocks/:
     get:
       operationId: v1_staff_rooms_room_blocks_list
@@ -3598,6 +3719,49 @@ paths:
           description: No response body
 components:
   schemas:
+    ActivityResponse:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/ActivityRow'
+      required:
+      - results
+    ActivityRow:
+      type: object
+      properties:
+        id:
+          type: integer
+        entity_type:
+          type: string
+        entity_id:
+          type: integer
+        action:
+          type: string
+        previous_status:
+          type: string
+        new_status:
+          type: string
+        actor:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        undone_at:
+          type: string
+          format: date-time
+          nullable: true
+      required:
+      - action
+      - actor
+      - created_at
+      - entity_id
+      - entity_type
+      - id
+      - new_status
+      - previous_status
+      - undone_at
     AvailabilityRow:
       type: object
       properties:
@@ -3929,7 +4093,9 @@ components:
           format: date-time
           readOnly: true
         latest_payment:
-          type: string
+          allOf:
+          - $ref: '#/components/schemas/PaymentSummary'
+          nullable: true
           readOnly: true
         status_events:
           type: array
@@ -4298,6 +4464,13 @@ components:
       - email
       - message
       - name
+    ContactMessageEnvelope:
+      type: object
+      properties:
+        message:
+          $ref: '#/components/schemas/ContactMessage'
+      required:
+      - message
     ContactMessageStaff:
       type: object
       properties:
@@ -4436,6 +4609,27 @@ components:
         * `table_booking` - Table booking
         * `conference_enquiry` - Conference enquiry
         * `gym_pass` - Gym day pass
+    EscalateResponse:
+      type: object
+      properties:
+        escalated:
+          type: integer
+      required:
+      - escalated
+    GymAvailability:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+        remaining:
+          type: integer
+        price:
+          type: integer
+      required:
+      - date
+      - price
+      - remaining
     GymDayPass:
       type: object
       properties:
@@ -4480,6 +4674,7 @@ components:
           nullable: true
         qr_url:
           type: string
+          nullable: true
           readOnly: true
         paid_at:
           type: string
@@ -4571,6 +4766,7 @@ components:
           nullable: true
         qr_url:
           type: string
+          nullable: true
           readOnly: true
         paid_at:
           type: string
@@ -4705,6 +4901,21 @@ components:
         * `boardroom` - Boardroom
         * `ushape` - U-shape
         * `theatre` - Theatre
+    LoginRequest:
+      type: object
+      properties:
+        username:
+          type: string
+          minLength: 1
+          title: Username or email
+          maxLength: 150
+        password:
+          type: string
+          writeOnly: true
+          minLength: 1
+      required:
+      - password
+      - username
     LongStayDiscount:
       type: object
       properties:
@@ -5014,6 +5225,16 @@ components:
           maxLength: 80
       required:
       - email
+    NewsletterSubscribeResponse:
+      type: object
+      properties:
+        subscribed:
+          type: boolean
+        already_subscribed:
+          type: boolean
+      required:
+      - already_subscribed
+      - subscribed
     NewsletterSubscriberStaff:
       type: object
       properties:
@@ -5044,6 +5265,13 @@ components:
       - created_at
       - email
       - id
+    NewsletterUnsubscribeResponse:
+      type: object
+      properties:
+        unsubscribed:
+          type: boolean
+      required:
+      - unsubscribed
     NightlyRate:
       type: object
       properties:
@@ -5061,6 +5289,36 @@ components:
       - rate
       - season
       - weekend
+    OccupancyResponse:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/OccupancyRow'
+      required:
+      - results
+    OccupancyRow:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+        in_house_bookings:
+          type: integer
+        in_house_guests:
+          type: integer
+        occupancy_percent:
+          type: number
+          format: double
+        revenue_today:
+          type: integer
+      required:
+      - date
+      - in_house_bookings
+      - in_house_guests
+      - occupancy_percent
+      - revenue_today
     Offer:
       type: object
       properties:
@@ -5224,6 +5482,39 @@ components:
       required:
       - slug
       - title_en
+    Overview:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+        arrivals:
+          type: integer
+        departures:
+          type: integer
+        in_house_bookings:
+          type: integer
+        in_house_guests:
+          type: integer
+        total_rooms:
+          type: integer
+        occupancy_percent:
+          type: number
+          format: double
+        revenue_today:
+          type: integer
+        pending:
+          $ref: '#/components/schemas/Pending'
+      required:
+      - arrivals
+      - date
+      - departures
+      - in_house_bookings
+      - in_house_guests
+      - occupancy_percent
+      - pending
+      - revenue_today
+      - total_rooms
     PaginatedBlogPostStaffList:
       type: object
       required:
@@ -6498,7 +6789,8 @@ components:
           format: date-time
           readOnly: true
         instructions:
-          type: string
+          type: object
+          additionalProperties: {}
           readOnly: true
       required:
       - amount
@@ -6551,6 +6843,33 @@ components:
         * `mpesa` - M-Pesa
         * `card` - Card
         * `reception` - Pay at reception
+    PaymentMethodRow:
+      type: object
+      properties:
+        code:
+          type: string
+        label:
+          type: string
+        enabled:
+          type: boolean
+      required:
+      - code
+      - enabled
+      - label
+    PaymentMethodsResponse:
+      type: object
+      properties:
+        methods:
+          type: array
+          items:
+            $ref: '#/components/schemas/PaymentMethodRow'
+        bank: {}
+        sandbox:
+          type: boolean
+      required:
+      - bank
+      - methods
+      - sandbox
     PaymentStatusEnum:
       enum:
       - initiated
@@ -6567,6 +6886,53 @@ components:
         * `failed` - Failed
         * `cancelled` - Cancelled
         * `refunded` - Refunded
+    PaymentSummary:
+      type: object
+      properties:
+        reference:
+          type: string
+        provider:
+          type: string
+        provider_display:
+          type: string
+        status:
+          type: string
+        amount:
+          type: integer
+        checkout_request_id:
+          type: string
+        failure_message:
+          type: string
+        paid_at:
+          type: string
+          format: date-time
+          nullable: true
+        instructions: {}
+      required:
+      - amount
+      - checkout_request_id
+      - failure_message
+      - paid_at
+      - provider
+      - provider_display
+      - reference
+      - status
+    Pending:
+      type: object
+      properties:
+        room_bookings:
+          type: integer
+        table_bookings:
+          type: integer
+        conference_enquiries:
+          type: integer
+        gym_day_passes:
+          type: integer
+      required:
+      - conference_enquiries
+      - gym_day_passes
+      - room_bookings
+      - table_bookings
     ProviderEnum:
       enum:
       - mpesa
@@ -6757,6 +7123,79 @@ components:
       description: |-
         * `room_booking` - Room booking
         * `gym_day_pass` - Gym day pass
+    QueueItem:
+      type: object
+      properties:
+        entity_type:
+          type: string
+        id:
+          type: integer
+        reference:
+          type: string
+        guest_name:
+          type: string
+        phone:
+          type: string
+        summary:
+          type: string
+        amount:
+          type: integer
+          nullable: true
+        status:
+          type: string
+        payment_status:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        deadline_at:
+          type: string
+          format: date-time
+        seconds_remaining:
+          type: integer
+        overdue:
+          type: boolean
+        actions:
+          type: array
+          items:
+            type: string
+      required:
+      - actions
+      - amount
+      - created_at
+      - deadline_at
+      - entity_type
+      - guest_name
+      - id
+      - overdue
+      - payment_status
+      - phone
+      - reference
+      - seconds_remaining
+      - status
+      - summary
+    QueueResponse:
+      type: object
+      properties:
+        generated_at:
+          type: string
+          format: date-time
+        target_minutes:
+          type: integer
+        escalate_minutes:
+          type: integer
+        undo_seconds:
+          type: integer
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/QueueItem'
+      required:
+      - escalate_minutes
+      - generated_at
+      - items
+      - target_minutes
+      - undo_seconds
     QuoteRequestRequest:
       type: object
       properties:
@@ -6974,6 +7413,45 @@ components:
       required:
       - remaining
       - time
+    Review:
+      type: object
+      properties:
+        author:
+          type: string
+          maxLength: 120
+        rating:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        quote_en:
+          type: string
+        quote_sw:
+          type: string
+        source:
+          type: string
+          maxLength: 40
+        reviewed_at:
+          type: string
+          format: date
+          nullable: true
+        needs_confirmation:
+          type: boolean
+      required:
+      - author
+      - quote_en
+    ReviewList:
+      type: object
+      properties:
+        enabled:
+          type: boolean
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Review'
+      required:
+      - enabled
+      - results
     ReviewStaff:
       type: object
       properties:
@@ -7045,6 +7523,20 @@ components:
       required:
       - author
       - quote_en
+    RoleEnum:
+      enum:
+      - director
+      - data_manager
+      - front_desk
+      - marketing
+      - ict_admin
+      type: string
+      description: |-
+        * `director` - Director
+        * `data_manager` - Data manager
+        * `front_desk` - Front desk
+        * `marketing` - Marketing
+        * `ict_admin` - ICT admin
     RoomBlock:
       type: object
       properties:
@@ -7167,7 +7659,10 @@ components:
           type: boolean
           description: Placeholder copy/price; hide or review before launch.
         rate_plans:
-          type: string
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
           readOnly: true
       required:
       - description
@@ -7638,7 +8133,9 @@ components:
           format: date-time
           readOnly: true
         latest_payment:
-          type: string
+          allOf:
+          - $ref: '#/components/schemas/PaymentSummary'
+          nullable: true
           readOnly: true
         status_events:
           type: array
@@ -8065,6 +8562,65 @@ components:
       - reference
       - status_display
       - time
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        username:
+          type: string
+          readOnly: true
+          description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
+            only.
+        email:
+          type: string
+          format: email
+          readOnly: true
+          title: Email address
+        first_name:
+          type: string
+          readOnly: true
+        last_name:
+          type: string
+          readOnly: true
+        role:
+          allOf:
+          - $ref: '#/components/schemas/RoleEnum'
+          readOnly: true
+        role_display:
+          type: string
+          readOnly: true
+        phone:
+          type: string
+          readOnly: true
+        is_staff:
+          type: boolean
+          readOnly: true
+          title: Staff status
+          description: Designates whether the user can log into this admin site.
+        capabilities:
+          type: object
+          additionalProperties: {}
+          readOnly: true
+      required:
+      - capabilities
+      - email
+      - first_name
+      - id
+      - is_staff
+      - last_name
+      - phone
+      - role
+      - role_display
+      - username
+    UserEnvelope:
+      type: object
+      properties:
+        user:
+          $ref: '#/components/schemas/User'
+      required:
+      - user
     VenueEnum:
       enum:
       - restaurant
@@ -8073,6 +8629,15 @@ components:
       description: |-
         * `restaurant` - Restaurant
         * `coffee` - Coffee shop
+    WebhookAck:
+      type: object
+      properties:
+        status:
+          type: string
+        ResultCode:
+          type: integer
+        ResultDesc:
+          type: string
   securitySchemes:
     cookieAuth:
       type: apiKey

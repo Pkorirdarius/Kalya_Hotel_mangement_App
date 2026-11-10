@@ -83,7 +83,7 @@ class PaymentSerializer(serializers.ModelSerializer):
             "instructions",
         )
 
-    def get_instructions(self, obj):
+    def get_instructions(self, obj) -> dict:
         return payment_summary(obj)["instructions"]
 
 
@@ -117,3 +117,21 @@ class SandboxCompleteSerializer(serializers.Serializer):
     success = serializers.BooleanField(default=True)
     failure_code = serializers.CharField(required=False, allow_blank=True)
     failure_message = serializers.CharField(required=False, allow_blank=True)
+
+
+class PaymentMethodRowSerializer(serializers.Serializer):
+    code = serializers.CharField()
+    label = serializers.CharField()
+    enabled = serializers.BooleanField()
+
+
+class PaymentMethodsResponseSerializer(serializers.Serializer):
+    methods = PaymentMethodRowSerializer(many=True)
+    bank = serializers.JSONField()
+    sandbox = serializers.BooleanField()
+
+
+class WebhookAckSerializer(serializers.Serializer):
+    status = serializers.CharField(required=False)
+    ResultCode = serializers.IntegerField(required=False)
+    ResultDesc = serializers.CharField(required=False)

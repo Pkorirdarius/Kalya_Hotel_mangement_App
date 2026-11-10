@@ -12,8 +12,11 @@ from apps.common.utils import unique_reference
 from .models import ContactMessage, NewsletterSubscriber
 from .serializers import (
     ContactMessageCreateSerializer,
+    ContactMessageEnvelopeSerializer,
     ContactMessageSerializer,
+    NewsletterSubscribeResponseSerializer,
     NewsletterSubscribeSerializer,
+    NewsletterUnsubscribeResponseSerializer,
 )
 
 
@@ -23,7 +26,10 @@ class NewsletterSubscribeView(APIView):
     permission_classes = [AllowAny]
     throttle_scope = "newsletter"
 
-    @extend_schema(request=NewsletterSubscribeSerializer)
+    @extend_schema(
+        request=NewsletterSubscribeSerializer,
+        responses={201: NewsletterSubscribeResponseSerializer},
+    )
     def post(self, request):
         serializer = NewsletterSubscribeSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -56,6 +62,10 @@ class NewsletterUnsubscribeView(APIView):
     permission_classes = [AllowAny]
     throttle_scope = "newsletter"
 
+    @extend_schema(
+        request=NewsletterSubscribeSerializer,
+        responses=NewsletterUnsubscribeResponseSerializer,
+    )
     def post(self, request):
         email = str(request.data.get("email", "")).strip().lower()
         subscriber = NewsletterSubscriber.objects.filter(email=email).first()
@@ -74,7 +84,7 @@ class ContactMessageCreateView(APIView):
 
     @extend_schema(
         request=ContactMessageCreateSerializer,
-        responses={201: ContactMessageSerializer},
+        responses={201: ContactMessageEnvelopeSerializer},
     )
     def post(self, request):
         serializer = ContactMessageCreateSerializer(data=request.data)

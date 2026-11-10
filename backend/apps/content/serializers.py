@@ -69,3 +69,8 @@ class OfferStaffSerializer(OfferSerializer):
 class ReviewStaffSerializer(ReviewSerializer):
     class Meta(ReviewSerializer.Meta):
         fields = ReviewSerializer.Meta.fields + ("active", "created_at", "updated_at")
+
+
+class ReviewListSerializer(serializers.Serializer):
+    enabled = serializers.BooleanField()
+    results = ReviewSerializer(many=True)

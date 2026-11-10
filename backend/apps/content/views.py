@@ -8,7 +8,12 @@ from rest_framework.views import APIView
 from apps.common.models import HotelSetting
 
 from .models import BlogPost, Offer, Review
-from .serializers import BlogPostSerializer, OfferSerializer, ReviewSerializer
+from .serializers import (
+    BlogPostSerializer,
+    OfferSerializer,
+    ReviewListSerializer,
+    ReviewSerializer,
+)
 
 
 @extend_schema(tags=["content"])
@@ -64,6 +69,7 @@ class ReviewListView(APIView):
     authentication_classes = []
     permission_classes = [AllowAny]
 
+    @extend_schema(responses=ReviewListSerializer)
     def get(self, request):
         enabled = HotelSetting.load().google_reviews_enabled
         results = []

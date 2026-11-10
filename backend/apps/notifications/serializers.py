@@ -81,3 +81,16 @@ class ContactMessageStaffSerializer(serializers.ModelSerializer):
             "created_at",
         )
         read_only_fields = ("reference", "created_at")
+
+
+class NewsletterSubscribeResponseSerializer(serializers.Serializer):
+    subscribed = serializers.BooleanField()
+    already_subscribed = serializers.BooleanField()
+
+
+class NewsletterUnsubscribeResponseSerializer(serializers.Serializer):
+    unsubscribed = serializers.BooleanField()
+
+
+class ContactMessageEnvelopeSerializer(serializers.Serializer):
+    message = ContactMessageSerializer()

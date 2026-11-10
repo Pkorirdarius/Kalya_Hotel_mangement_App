@@ -3,8 +3,9 @@ from __future__ import annotations
 from datetime import date
 
 from django.http import HttpResponse
+from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import OpenApiParameter, extend_schema
-from rest_framework import status
+from rest_framework import status, serializers
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -13,6 +14,37 @@ from apps.accounts.permissions import CanExportGuestData
 from apps.common.utils import hotel_today
 from apps.frontdesk.reports import occupancy_report, overview
 from apps.integrations.hotelplus import get_adapter
+
+
+class PendingSerializer(serializers.Serializer):
+    room_bookings = serializers.IntegerField()
+    table_bookings = serializers.IntegerField()
+    conference_enquiries = serializers.IntegerField()
+    gym_day_passes = serializers.IntegerField()
+
+
+class OverviewSerializer(serializers.Serializer):
+    date = serializers.DateField()
+    arrivals = serializers.IntegerField()
+    departures = serializers.IntegerField()
+    in_house_bookings = serializers.IntegerField()
+    in_house_guests = serializers.IntegerField()
+    total_rooms = serializers.IntegerField()
+    occupancy_percent = serializers.FloatField()
+    revenue_today = serializers.IntegerField()
+    pending = PendingSerializer()
+
+
+class OccupancyRowSerializer(serializers.Serializer):
+    date = serializers.DateField()
+    in_house_bookings = serializers.IntegerField()
+    in_house_guests = serializers.IntegerField()
+    occupancy_percent = serializers.FloatField()
+    revenue_today = serializers.IntegerField()
+
+
+class OccupancyResponseSerializer(serializers.Serializer):
+    results = OccupancyRowSerializer(many=True)
 
 
 def _parse_day(raw: str | None, default=None) -> date:
@@ -28,7 +60,10 @@ def _parse_day(raw: str | None, default=None) -> date:
 class OverviewView(APIView):
     permission_classes = [CanExportGuestData]
 
-    @extend_schema(parameters=[OpenApiParameter("date", str, required=False)])
+    @extend_schema(
+        parameters=[OpenApiParameter("date", str, required=False)],
+        responses=OverviewSerializer,
+    )
     def get(self, request):
         day = _parse_day(request.query_params.get("date"))
         return Response(overview(day))
@@ -42,7 +77,8 @@ class OccupancyReportView(APIView):
         parameters=[
             OpenApiParameter("start", str, required=False),
             OpenApiParameter("end", str, required=False),
-        ]
+        ],
+        responses=OccupancyResponseSerializer,
     )
     def get(self, request):
         end = _parse_day(request.query_params.get("end"))
@@ -62,7 +98,8 @@ class HotelPlusExportView(APIView):
         parameters=[
             OpenApiParameter("date", str, required=False),
             OpenApiParameter("format", str, required=False),
-        ]
+        ],
+        responses={(200, "text/csv"): OpenApiTypes.BINARY, (200, "application/pdf"): OpenApiTypes.BINARY},
     )
     def get(self, request):
         day = _parse_day(request.query_params.get("date"))

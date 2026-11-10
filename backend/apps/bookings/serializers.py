@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from datetime import date
 
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
 from apps.common.serializers import KesField
@@ -9,7 +10,7 @@ from apps.common.utils import normalise_kenyan_phone
 from apps.rates.models import MealPlan
 from apps.rooms.models import RoomType
 
-from .models import Booking, BookingStatusEvent
+from .models import Booking, BookingStatus, BookingStatusEvent
 
 
 class QuoteRequestSerializer(serializers.Serializer):
@@ -100,11 +101,14 @@ class PaymentSummarySerializer(serializers.Serializer):
 
 
 class BookingStatusEventSerializer(serializers.ModelSerializer):
-    to_status_display = serializers.CharField(source="get_to_status_display")
+    to_status_display = serializers.SerializerMethodField()
 
     class Meta:
         model = BookingStatusEvent
         fields = ("from_status", "to_status", "to_status_display", "reason", "created_at")
+
+    def get_to_status_display(self, obj) -> str:
+        return BookingStatus(obj.to_status).label
 
 
 class BookingPublicSerializer(serializers.ModelSerializer):
@@ -164,6 +168,7 @@ class BookingPublicSerializer(serializers.ModelSerializer):
             "status_events",
         )
 
+    @extend_schema_field(PaymentSummarySerializer(allow_null=True))
     def get_latest_payment(self, obj):
         payment = obj.payments.order_by("-created_at").first()
         if payment is None:

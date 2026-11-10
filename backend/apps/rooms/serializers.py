@@ -39,7 +39,7 @@ class RoomTypeDetailSerializer(RoomTypePublicSerializer):
     class Meta(RoomTypePublicSerializer.Meta):
         fields = RoomTypePublicSerializer.Meta.fields + ("rate_plans",)
 
-    def get_rate_plans(self, obj):
+    def get_rate_plans(self, obj) -> list[dict]:
         from apps.rates.serializers import RatePlanPublicSerializer
 
         return RatePlanPublicSerializer(

@@ -164,7 +164,7 @@ class GymDayPassSerializer(serializers.ModelSerializer):
             "created_at",
         )
 
-    def get_qr_url(self, obj):
+    def get_qr_url(self, obj) -> str | None:
         if not obj.qr_token:
             return None
         request = self.context.get("request")

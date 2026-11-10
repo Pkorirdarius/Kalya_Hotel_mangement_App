@@ -5,6 +5,7 @@ from datetime import timedelta
 
 import qrcode
 from django.http import HttpResponse
+from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework import status
 from rest_framework.exceptions import NotFound, ValidationError
@@ -102,6 +103,7 @@ class TableBookingDetailView(APIView):
     permission_classes = [AllowAny]
     throttle_scope = "lookup"
 
+    @extend_schema(responses=TableBookingSerializer)
     def get(self, request, reference: str):
         phone = request.query_params.get("phone", "")
         booking = TableBooking.objects.filter(reference__iexact=reference).first()
@@ -198,6 +200,7 @@ class ConferenceEnquiryDetailView(APIView):
     permission_classes = [AllowAny]
     throttle_scope = "lookup"
 
+    @extend_schema(responses=ConferenceEnquirySerializer)
     def get(self, request, reference: str):
         email = request.query_params.get("email", "").strip().lower()
         enquiry = ConferenceEnquiry.objects.filter(reference__iexact=reference).first()
@@ -211,6 +214,10 @@ class GymAvailabilityView(APIView):
     authentication_classes = []
     permission_classes = [AllowAny]
 
+    @extend_schema(
+        parameters=[OpenApiParameter("date", str, required=False)],
+        responses=GymAvailabilitySerializer,
+    )
     def get(self, request):
         raw = request.query_params.get("date")
         from datetime import date as date_cls
@@ -264,6 +271,7 @@ class GymDayPassDetailView(APIView):
     permission_classes = [AllowAny]
     throttle_scope = "lookup"
 
+    @extend_schema(responses=GymDayPassSerializer)
     def get(self, request, reference: str):
         phone = request.query_params.get("phone", "")
         gym_pass = GymDayPass.objects.filter(reference__iexact=reference).first()
@@ -279,6 +287,10 @@ class GymDayPassQrView(APIView):
     authentication_classes = []
     permission_classes = [AllowAny]
 
+    @extend_schema(
+        parameters=[OpenApiParameter("token", str, required=False)],
+        responses={(200, "image/png"): OpenApiTypes.BINARY},
+    )
     def get(self, request, reference: str):
         gym_pass = GymDayPass.objects.filter(reference__iexact=reference).first()
         if gym_pass is None or gym_pass.qr_token is None:

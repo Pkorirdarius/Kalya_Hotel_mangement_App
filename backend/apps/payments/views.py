@@ -20,8 +20,10 @@ from apps.payments.providers.card import BankTransferProvider
 from apps.payments.serializers import (
     PaymentInitiateResponseSerializer,
     PaymentInitiateSerializer,
+    PaymentMethodsResponseSerializer,
     PaymentSerializer,
     SandboxCompleteSerializer,
+    WebhookAckSerializer,
     payment_summary,
 )
 from apps.payments.services import (
@@ -56,6 +58,7 @@ class PaymentMethodsView(APIView):
     authentication_classes = []
     permission_classes = [AllowAny]
 
+    @extend_schema(responses=PaymentMethodsResponseSerializer)
     def get(self, request):
         return Response(
             {
@@ -189,6 +192,7 @@ class CardWebhookView(APIView):
     authentication_classes = []
     permission_classes = [AllowAny]
 
+    @extend_schema(request=None, responses=WebhookAckSerializer)
     def post(self, request):
         payment_reference = str(request.data.get("reference", ""))
         payment = Payment.objects.filter(provider_reference=payment_reference).first()
@@ -214,6 +218,10 @@ class GymPaymentInitiateView(APIView):
     permission_classes = [AllowAny]
     throttle_scope = "payment"
 
+    @extend_schema(
+        request=PaymentInitiateSerializer,
+        responses={201: PaymentInitiateResponseSerializer},
+    )
     def post(self, request, reference: str):
         gym_pass = GymDayPass.objects.filter(reference__iexact=reference).first()
         if gym_pass is None:

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from django.utils import timezone
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework import serializers, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -43,14 +43,60 @@ class DeskActionSerializer(serializers.ModelSerializer):
             "created_at",
         )
 
-    def get_actor_name(self, obj):
+    def get_actor_name(self, obj) -> str:
         return obj.actor.get_full_name() if obj.actor else "System"
+
+
+class QueueItemSerializer(serializers.Serializer):
+    entity_type = serializers.CharField()
+    id = serializers.IntegerField()
+    reference = serializers.CharField()
+    guest_name = serializers.CharField()
+    phone = serializers.CharField()
+    summary = serializers.CharField()
+    amount = serializers.IntegerField(allow_null=True)
+    status = serializers.CharField()
+    payment_status = serializers.CharField()
+    created_at = serializers.DateTimeField()
+    deadline_at = serializers.DateTimeField()
+    seconds_remaining = serializers.IntegerField()
+    overdue = serializers.BooleanField()
+    actions = serializers.ListField(child=serializers.CharField())
+
+
+class QueueResponseSerializer(serializers.Serializer):
+    generated_at = serializers.DateTimeField()
+    target_minutes = serializers.IntegerField()
+    escalate_minutes = serializers.IntegerField()
+    undo_seconds = serializers.IntegerField()
+    items = QueueItemSerializer(many=True)
+
+
+class ActivityRowSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    entity_type = serializers.CharField()
+    entity_id = serializers.IntegerField()
+    action = serializers.CharField()
+    previous_status = serializers.CharField()
+    new_status = serializers.CharField()
+    actor = serializers.CharField()
+    created_at = serializers.DateTimeField()
+    undone_at = serializers.DateTimeField(allow_null=True)
+
+
+class ActivityResponseSerializer(serializers.Serializer):
+    results = ActivityRowSerializer(many=True)
+
+
+class EscalateResponseSerializer(serializers.Serializer):
+    escalated = serializers.IntegerField()
 
 
 @extend_schema(tags=["front desk"])
 class FrontDeskQueueView(APIView):
     permission_classes = [CanManageBookings]
 
+    @extend_schema(responses=QueueResponseSerializer)
     def get(self, request):
         settings_obj = HotelSetting.load()
         items = frontdesk_queue()
@@ -91,6 +137,10 @@ class FrontDeskActionView(APIView):
 class FrontDeskActivityView(APIView):
     permission_classes = [CanManageBookings]
 
+    @extend_schema(
+        parameters=[OpenApiParameter("limit", int, required=False)],
+        responses=ActivityResponseSerializer,
+    )
     def get(self, request):
         limit = min(100, max(1, int(request.query_params.get("limit", 30))))
         return Response({"results": recent_activity(limit)})
@@ -100,5 +150,6 @@ class FrontDeskActivityView(APIView):
 class FrontDeskEscalateView(APIView):
     permission_classes = [CanManageBookings]
 
+    @extend_schema(request=None, responses=EscalateResponseSerializer)
     def post(self, request):
         return Response({"escalated": escalate_overdue_items()})
