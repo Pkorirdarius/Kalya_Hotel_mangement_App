@@ -28,6 +28,11 @@ CSRF_TRUSTED_ORIGINS = env.list(  # noqa: F405
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 Q_CLUSTER["sync"] = env.bool("Q_CLUSTER_SYNC", default=True)  # noqa: F405
 
+# Local development can complete M-Pesa/card payments without Safaricom keys
+# via the sandbox completion endpoint. Production must set these false.
+PAYMENTS_SANDBOX = env.bool("PAYMENTS_SANDBOX", default=True)  # noqa: F405
+MPESA_SIMULATE = env.bool("MPESA_SIMULATE", default=True)  # noqa: F405
+
 SPECTACULAR_SETTINGS["SERVE_PERMISSIONS"] = [  # noqa: F405
     "rest_framework.permissions.AllowAny"
 ]

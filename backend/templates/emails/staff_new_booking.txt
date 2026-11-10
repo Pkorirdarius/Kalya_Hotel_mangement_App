@@ -1,0 +1,20 @@
+{% autoescape off %}New paid booking ready to confirm
+
+Reference: {{ booking.reference }}
+Guest: {{ guest_name }}
+Phone: {{ booking.phone }}
+Email: {{ booking.email }}
+Room: {{ booking.room_type.name_en }}
+Check-in: {{ booking.checkin|date:"D d M Y" }}
+Check-out: {{ booking.checkout|date:"D d M Y" }}
+Guests: {{ booking.guests }}
+Nights: {{ booking.nights }}
+Total: KES {{ booking.total|floatformat:0 }}
+Payment: {{ booking.latest_payment.provider_display|default:"See dashboard" }}
+
+Open the front desk queue:
+{{ site_url }}/dashboard
+
+{{ hotel.name }}
+{{ hotel.phone }} · {{ hotel.email }}
+{% endautoescape %}

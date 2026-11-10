@@ -1,0 +1,15 @@
+{% autoescape off %}Kikumbusho cha kukaa kwako {{ hotel.name }}
+
+Habari {{ guest_name }},
+
+Tunatarajia kukukaribisha kesho.
+
+Kumbukumbu: {{ booking.reference }}
+Kuingia: {{ booking.checkin|date:"D d M Y" }} kuanzia saa 8 mchana
+Chumba: {{ booking.room_type.name_sw|default:booking.room_type.name_en }}
+Anwani: {{ hotel.address }}
+
+Kama mipango yako imebadilika, wasiliana na mapokezi kwa {{ hotel.phone }}.
+
+{{ hotel.name }}
+{% endautoescape %}

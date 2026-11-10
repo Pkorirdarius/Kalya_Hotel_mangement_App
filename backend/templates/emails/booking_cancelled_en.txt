@@ -1,0 +1,13 @@
+{% autoescape off %}Your booking was cancelled
+
+Hello {{ booking.guest_name }},
+
+Booking {{ booking.reference }} has been cancelled.
+
+Room: {{ booking.room_type.name_en }}
+Dates: {{ booking.checkin|date:"d M Y" }} to {{ booking.checkout|date:"d M Y" }}
+
+If this was not you, please contact the front desk on {{ hotel.phone }}.
+
+{{ hotel.name }}
+{% endautoescape %}

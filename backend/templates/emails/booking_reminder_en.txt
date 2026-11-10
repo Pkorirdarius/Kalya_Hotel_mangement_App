@@ -1,0 +1,15 @@
+{% autoescape off %}A reminder of your stay at {{ hotel.name }}
+
+Hello {{ guest_name }},
+
+We look forward to welcoming you tomorrow.
+
+Reference: {{ booking.reference }}
+Check-in: {{ booking.checkin|date:"D d M Y" }} from 2:00 PM
+Room: {{ booking.room_type.name_en }}
+Address: {{ hotel.address }}
+
+If your plans have changed, contact the front desk on {{ hotel.phone }}.
+
+{{ hotel.name }}
+{% endautoescape %}

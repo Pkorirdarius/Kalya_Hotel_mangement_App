@@ -1,0 +1,12 @@
+{% autoescape off %}New website message · {{ message.reference }}
+
+From: {{ message.name }}
+Email: {{ message.email }}
+Phone: {{ message.phone|default:"not provided" }}
+Topic: {{ message.topic|default:"General" }}
+Language: {{ message.language }}
+
+{{ message.message }}
+
+Reply directly to the guest email above.
+{% endautoescape %}

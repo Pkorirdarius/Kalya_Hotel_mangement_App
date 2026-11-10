@@ -1,0 +1,15 @@
+{% autoescape off %}Front desk item overdue
+
+{{ label }} {{ item.reference }} has passed the front desk target time.
+
+{{ detail }}
+
+Guest: {{ item.guest_name|default:item.full_name }}
+Phone: {{ item.phone }}
+Created: {{ item.created_at|date:"d M Y H:i" }}
+
+Please review the queue:
+{{ site_url }}/dashboard
+
+{{ hotel.name }}
+{% endautoescape %}

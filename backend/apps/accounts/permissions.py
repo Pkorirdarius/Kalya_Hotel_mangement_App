@@ -34,5 +34,21 @@ class CanManageContent(RolePermission):
     roles = (UserRole.DIRECTOR, UserRole.MARKETING)
 
 
+class CanManageInventory(RolePermission):
+    """Room types, rates and inventory blocks."""
+
+    roles = (UserRole.DIRECTOR, UserRole.DATA_MANAGER)
+
+
+class CanManageFacilities(RolePermission):
+    """Restaurant, conference and gym records."""
+
+    roles = (UserRole.DIRECTOR, UserRole.DATA_MANAGER, UserRole.FRONT_DESK)
+
+
+class CanExportGuestData(RolePermission):
+    roles = (UserRole.DIRECTOR, UserRole.DATA_MANAGER)
+
+
 class CanManageSystem(RolePermission):
     roles = (UserRole.DIRECTOR, UserRole.ICT_ADMIN)

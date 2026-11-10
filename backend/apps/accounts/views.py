@@ -39,6 +39,11 @@ class LoginView(APIView):
     permission_classes = [AllowAny]
     throttle_scope = "login"
 
+    @extend_schema(
+        request=LoginSerializer,
+        responses={200: UserEnvelopeSerializer},
+        description="Sign in with a staff username or email and password.",
+    )
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -73,6 +78,7 @@ class LoginView(APIView):
 class LogoutView(APIView):
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(request=None, responses={204: None})
     def post(self, request):
         record_audit(
             "staff.logout",
@@ -89,5 +95,6 @@ class LogoutView(APIView):
 class MeView(APIView):
     permission_classes = [IsHotelStaff]
 
+    @extend_schema(responses={200: UserEnvelopeSerializer})
     def get(self, request):
         return Response({"user": UserSerializer(request.user).data})

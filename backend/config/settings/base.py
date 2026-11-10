@@ -265,6 +265,51 @@ FRONT_DESK_EMAIL = env("FRONT_DESK_EMAIL", default="frontdesk@westpremierhotel.c
 MANAGER_EMAIL = env("MANAGER_EMAIL", default="manager@westpremierhotel.co.ke")
 
 # ---------------------------------------------------------------------------
+# Payments and integrations
+# ---------------------------------------------------------------------------
+PAYMENTS_SANDBOX = env.bool("PAYMENTS_SANDBOX", default=DEBUG)
+
+MPESA_ENV = env("MPESA_ENV", default="sandbox")
+MPESA_BASE_URL = env(
+    "MPESA_BASE_URL", default="https://sandbox.safaricom.co.ke"
+)
+MPESA_CONSUMER_KEY = env("MPESA_CONSUMER_KEY", default="")
+MPESA_CONSUMER_SECRET = env("MPESA_CONSUMER_SECRET", default="")
+MPESA_SHORTCODE = env("MPESA_SHORTCODE", default="")
+MPESA_PASSKEY = env("MPESA_PASSKEY", default="")
+MPESA_CALLBACK_URL = env(
+    "MPESA_CALLBACK_URL",
+    default="http://localhost:8000/api/v1/payments/webhooks/mpesa/",
+)
+MPESA_CALLBACK_SECRET = env("MPESA_CALLBACK_SECRET", default="")
+MPESA_TRANSACTION_TYPE = env(
+    "MPESA_TRANSACTION_TYPE", default="CustomerPayBillOnline"
+)
+MPESA_ACCOUNT_REFERENCE = env("MPESA_ACCOUNT_REFERENCE", default="WestPremier")
+MPESA_SIMULATE = env.bool("MPESA_SIMULATE", default=False)
+MPESA_ALLOWED_IPS = env.list("MPESA_ALLOWED_IPS", default=[])
+
+CARD_GATEWAY = env("CARD_GATEWAY", default="stub")
+CARD_BASE_URL = env("CARD_BASE_URL", default="")
+CARD_CONSUMER_KEY = env("CARD_CONSUMER_KEY", default="")
+CARD_CONSUMER_SECRET = env("CARD_CONSUMER_SECRET", default="")
+CARD_CALLBACK_SECRET = env("CARD_CALLBACK_SECRET", default="")
+
+BANK_NAME = env("BANK_NAME", default="Equity Bank Kenya")
+BANK_ACCOUNT_NAME = env("BANK_ACCOUNT_NAME", default="West Premier Hotel Limited")
+BANK_ACCOUNT_NUMBER = env("BANK_ACCOUNT_NUMBER", default="")
+BANK_BRANCH = env("BANK_BRANCH", default="")
+BANK_SWIFT = env("BANK_SWIFT", default="")
+
+SMS_PROVIDER = env("SMS_PROVIDER", default="stub")
+SMS_USERNAME = env("SMS_USERNAME", default="")
+SMS_API_KEY = env("SMS_API_KEY", default="")
+SMS_SENDER_ID = env("SMS_SENDER_ID", default="WESTPREMIER")
+SMS_SEND_ENABLED = env.bool("SMS_SEND_ENABLED", default=False)
+
+HOTELPLUS_ADAPTER = env("HOTELPLUS_ADAPTER", default="manual_export")
+
+# ---------------------------------------------------------------------------
 # django-q2 - database broker, no Redis
 # ---------------------------------------------------------------------------
 Q_CLUSTER = {

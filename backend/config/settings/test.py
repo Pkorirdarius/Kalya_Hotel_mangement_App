@@ -17,6 +17,8 @@ CSRF_COOKIE_SECURE = False
 PASSWORD_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]
 EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
 Q_CLUSTER["sync"] = True  # noqa: F405
+PAYMENTS_SANDBOX = True
+MPESA_SIMULATE = True
 
 CORS_ALLOWED_ORIGINS = ["http://localhost:5173"]
 CSRF_TRUSTED_ORIGINS = ["http://localhost:5173"]

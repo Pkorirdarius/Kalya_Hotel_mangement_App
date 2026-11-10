@@ -1,0 +1,22 @@
+{% autoescape off %}Your booking is confirmed
+
+Hello {{ guest_name }},
+
+Thank you for choosing {{ hotel.name }}. Your booking details are below.
+
+Reference: {{ booking.reference }}
+Room: {{ booking.room_type.name_en }}
+Check-in: {{ booking.checkin|date:"D d M Y" }} from 2:00 PM
+Check-out: {{ booking.checkout|date:"D d M Y" }} by 11:00 AM
+Guests: {{ booking.guests }}
+Meal plan: {{ booking.meal_plan.name_en }}
+Total: KES {{ booking.total|floatformat:0 }}
+
+Address: {{ hotel.address }}
+Phone: {{ hotel.phone }}
+Email: {{ hotel.email }}
+
+Please keep your reference handy. To change or cancel, contact the front desk.
+
+{{ hotel.name }}
+{% endautoescape %}

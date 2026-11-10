@@ -1,0 +1,16 @@
+{% autoescape off %}Gym day pass confirmed
+
+Hello {{ gym_pass.full_name }},
+
+Your gym day pass is confirmed.
+
+Reference: {{ gym_pass.reference }}
+Date: {{ gym_pass.date|date:"D d M Y" }}
+Amount: KES {{ gym_pass.amount|floatformat:0 }}
+Hours: {{ hotel.gym_hours }}
+
+Show this reference at reception. Your QR code:
+{{ qr_url }}
+
+{{ hotel.name }} · {{ hotel.phone }}
+{% endautoescape %}

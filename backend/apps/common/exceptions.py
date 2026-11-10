@@ -1,10 +1,28 @@
 """Consistent JSON error envelope for every API failure."""
 
 from django.core.exceptions import ValidationError as DjangoValidationError
-from rest_framework.exceptions import AuthenticationFailed, NotAuthenticated, ValidationError
+from rest_framework import status
+from rest_framework.exceptions import (
+    APIException,
+    AuthenticationFailed,
+    NotAuthenticated,
+    ValidationError,
+)
 from rest_framework.views import exception_handler
 
 from .context import get_request_id
+
+
+class Conflict(APIException):
+    status_code = status.HTTP_409_CONFLICT
+    default_detail = "That action conflicts with the current state."
+    default_code = "conflict"
+
+
+class PaymentRequired(APIException):
+    status_code = status.HTTP_402_PAYMENT_REQUIRED
+    default_detail = "Payment is required."
+    default_code = "payment_required"
 
 
 def _clean_detail(value):
