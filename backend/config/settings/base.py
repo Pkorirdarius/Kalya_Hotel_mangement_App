@@ -1,4 +1,4 @@
-"""Base settings shared by every West Premier Hotel environment."""
+"""Base settings shared by every hotel environment."""
 
 from pathlib import Path
 
@@ -31,6 +31,49 @@ ALLOWED_HOSTS = env("ALLOWED_HOSTS")
 
 SITE_URL = env("SITE_URL", default="http://localhost:5173")
 API_BASE_URL = env("API_BASE_URL", default="http://localhost:8000")
+
+# ---------------------------------------------------------------------------
+# Hotel business settings - safe defaults, all overridable in admin
+# ---------------------------------------------------------------------------
+# Brand-neutral environment names (HOTEL_*): the hotel may rename the brand
+# later, so no env var or setting may carry a brand-specific prefix. The
+# values below are launch placeholders confirmed for this repo; contact and
+# location details are flagged "needs hotel confirmation" (see
+# docs/LAUNCH-CHECKLIST.md).
+HOTEL = {
+    "NAME": env("HOTEL_NAME", default="West Premier Hotel"),
+    "SHORT_NAME": env("HOTEL_SHORT_NAME", default="West Premier"),
+    "LEGAL_NAME": env("HOTEL_LEGAL_NAME", default="West Premier Hotel Ltd"),
+    "TOWN": env("HOTEL_TOWN", default="Kapenguria"),
+    "COUNTY": env("HOTEL_COUNTY", default="West Pokot"),
+    "COUNTRY": env("HOTEL_COUNTRY", default="Kenya"),
+    "CURRENCY": "KES",
+    "PHONE": env("HOTEL_PHONE", default="+254 20 765 4321"),
+    "PHONE_HREF": env("HOTEL_PHONE_HREF", default="tel:+254207654321"),
+    "EMAIL": env("HOTEL_EMAIL", default="stay@westpremierhotel.co.ke"),
+    "ADDRESS": env("HOTEL_ADDRESS", default="Kapenguria, West Pokot, Kenya"),
+    # Values below are launch placeholders and must be confirmed by the hotel.
+    "CANCELLATION_CUTOFF_HOURS": env.int(
+        "HOTEL_CANCELLATION_CUTOFF_HOURS", default=48
+    ),
+    "HOLD_TTL_MINUTES": env.int("HOTEL_HOLD_TTL_MINUTES", default=15),
+    "FRONTDESK_TARGET_MINUTES": env.int("HOTEL_FRONTDESK_TARGET_MINUTES", default=10),
+    "FRONTDESK_ESCALATE_MINUTES": env.int(
+        "HOTEL_FRONTDESK_ESCALATE_MINUTES", default=8
+    ),
+    "CLAIMS_VERIFIED": env.bool("HOTEL_CLAIMS_VERIFIED", default=False),
+    "GOOGLE_REVIEWS_ENABLED": env.bool("HOTEL_GOOGLE_REVIEWS_ENABLED", default=False),
+}
+
+
+def _email_on_hotel_domain(local_part: str) -> str:
+    domain = HOTEL["EMAIL"].split("@")[-1]
+    return f"{local_part}@{domain}"
+
+
+def _brand_token() -> str:
+    """Compact brand token for SMS sender IDs and M-Pesa references."""
+    return HOTEL["SHORT_NAME"].replace(" ", "")
 
 # ---------------------------------------------------------------------------
 # Applications
@@ -120,9 +163,9 @@ else:
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql",
-            "NAME": env("POSTGRES_DB", default="west_premier"),
-            "USER": env("POSTGRES_USER", default="west_premier"),
-            "PASSWORD": env("POSTGRES_PASSWORD", default="west_premier"),
+            "NAME": env("POSTGRES_DB", default="hotel"),
+            "USER": env("POSTGRES_USER", default="hotel"),
+            "PASSWORD": env("POSTGRES_PASSWORD", default="hotel"),
             "HOST": env("POSTGRES_HOST", default="localhost"),
             "PORT": env("POSTGRES_PORT", default="5432"),
             "CONN_MAX_AGE": 60,
@@ -217,7 +260,7 @@ REST_FRAMEWORK = {
 }
 
 SPECTACULAR_SETTINGS = {
-    "TITLE": "West Premier Hotel API",
+    "TITLE": f"{HOTEL['NAME']} API",
     "DESCRIPTION": "Bilingual hotel website, booking and front desk API.",
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
@@ -258,11 +301,11 @@ EMAIL_HOST_USER = env("EMAIL_HOST_USER", default="")
 EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default="")
 EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=True)
 EMAIL_TIMEOUT = env.int("EMAIL_TIMEOUT", default=10)
-DEFAULT_FROM_EMAIL = env(
-    "DEFAULT_FROM_EMAIL", default="reservations@westpremierhotel.co.ke"
+DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default=HOTEL["EMAIL"])
+FRONT_DESK_EMAIL = env(
+    "FRONT_DESK_EMAIL", default=_email_on_hotel_domain("frontdesk")
 )
-FRONT_DESK_EMAIL = env("FRONT_DESK_EMAIL", default="frontdesk@westpremierhotel.co.ke")
-MANAGER_EMAIL = env("MANAGER_EMAIL", default="manager@westpremierhotel.co.ke")
+MANAGER_EMAIL = env("MANAGER_EMAIL", default=_email_on_hotel_domain("manager"))
 
 # ---------------------------------------------------------------------------
 # Payments and integrations
@@ -285,7 +328,7 @@ MPESA_CALLBACK_SECRET = env("MPESA_CALLBACK_SECRET", default="")
 MPESA_TRANSACTION_TYPE = env(
     "MPESA_TRANSACTION_TYPE", default="CustomerPayBillOnline"
 )
-MPESA_ACCOUNT_REFERENCE = env("MPESA_ACCOUNT_REFERENCE", default="WestPremier")
+MPESA_ACCOUNT_REFERENCE = env("MPESA_ACCOUNT_REFERENCE", default=_brand_token())
 MPESA_SIMULATE = env.bool("MPESA_SIMULATE", default=False)
 MPESA_ALLOWED_IPS = env.list("MPESA_ALLOWED_IPS", default=[])
 
@@ -296,7 +339,7 @@ CARD_CONSUMER_SECRET = env("CARD_CONSUMER_SECRET", default="")
 CARD_CALLBACK_SECRET = env("CARD_CALLBACK_SECRET", default="")
 
 BANK_NAME = env("BANK_NAME", default="Equity Bank Kenya")
-BANK_ACCOUNT_NAME = env("BANK_ACCOUNT_NAME", default="West Premier Hotel Limited")
+BANK_ACCOUNT_NAME = env("BANK_ACCOUNT_NAME", default=HOTEL["LEGAL_NAME"])
 BANK_ACCOUNT_NUMBER = env("BANK_ACCOUNT_NUMBER", default="")
 BANK_BRANCH = env("BANK_BRANCH", default="")
 BANK_SWIFT = env("BANK_SWIFT", default="")
@@ -304,7 +347,7 @@ BANK_SWIFT = env("BANK_SWIFT", default="")
 SMS_PROVIDER = env("SMS_PROVIDER", default="stub")
 SMS_USERNAME = env("SMS_USERNAME", default="")
 SMS_API_KEY = env("SMS_API_KEY", default="")
-SMS_SENDER_ID = env("SMS_SENDER_ID", default="WESTPREMIER")
+SMS_SENDER_ID = env("SMS_SENDER_ID", default=_brand_token()[:11])
 SMS_SEND_ENABLED = env.bool("SMS_SEND_ENABLED", default=False)
 
 HOTELPLUS_ADAPTER = env("HOTELPLUS_ADAPTER", default="manual_export")
@@ -313,7 +356,7 @@ HOTELPLUS_ADAPTER = env("HOTELPLUS_ADAPTER", default="manual_export")
 # django-q2 - database broker, no Redis
 # ---------------------------------------------------------------------------
 Q_CLUSTER = {
-    "name": env("Q_CLUSTER_NAME", default="west_premier"),
+    "name": env("Q_CLUSTER_NAME", default="hotel_jobs"),
     "workers": env.int("Q_CLUSTER_WORKERS", default=2),
     "timeout": env.int("Q_CLUSTER_TIMEOUT", default=120),
     "retry": env.int("Q_CLUSTER_RETRY", default=180),
@@ -321,37 +364,7 @@ Q_CLUSTER = {
     "orm": "default",
     "catch_up": False,
     "save_limit": 250,
-    "label": "West Premier jobs",
-}
-
-# ---------------------------------------------------------------------------
-# Hotel business settings - safe defaults, all overridable in admin
-# ---------------------------------------------------------------------------
-HOTEL = {
-    "NAME": "West Premier Hotel",
-    "TOWN": "Kapenguria",
-    "COUNTY": "West Pokot",
-    "COUNTRY": "Kenya",
-    "CURRENCY": "KES",
-    "PHONE": "+254 20 765 4321",
-    "PHONE_HREF": "tel:+254207654321",
-    "EMAIL": "stay@westpremierhotel.co.ke",
-    "ADDRESS": "Kapenguria, West Pokot, Kenya",
-    # Values below are launch placeholders and must be confirmed by the hotel.
-    "CANCELLATION_CUTOFF_HOURS": env.int(
-        "WEST_PREMIER_CANCELLATION_CUTOFF_HOURS", default=48
-    ),
-    "HOLD_TTL_MINUTES": env.int("WEST_PREMIER_HOLD_TTL_MINUTES", default=15),
-    "FRONTDESK_TARGET_MINUTES": env.int(
-        "WEST_PREMIER_FRONTDESK_TARGET_MINUTES", default=10
-    ),
-    "FRONTDESK_ESCALATE_MINUTES": env.int(
-        "WEST_PREMIER_FRONTDESK_ESCALATE_MINUTES", default=8
-    ),
-    "CLAIMS_VERIFIED": env.bool("WEST_PREMIER_CLAIMS_VERIFIED", default=False),
-    "GOOGLE_REVIEWS_ENABLED": env.bool(
-        "WEST_PREMIER_GOOGLE_REVIEWS_ENABLED", default=False
-    ),
+    "label": "Hotel jobs",
 }
 
 # Request ID is returned to clients and attached to log records.

@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { usePageMeta } from '../components/Page';
 import { useToast } from '../components/ToastProvider';
 import { useI18n } from '../i18n-context';
-import { WHATSAPP_NUMBER } from '../lib/constants';
+import { whatsappHref } from '../config/hotel';
 import { addDaysISO, isValidEmail, isValidKenyanPhone, todayISO } from '../utils';
 
 type Venue = 'restaurant' | 'coffee';
@@ -82,10 +82,7 @@ export function DiningPage() {
   const [reference, setReference] = useState('');
   const [summary, setSummary] = useState('');
 
-  usePageMeta(
-    'Dining — West Premier Hotel, Kapenguria',
-    'Tulia Restaurant and Jacaranda Café at West Premier Hotel in Westlands, Kapenguria. All-day dining, Kenyan coffee and table reservations.',
-  );
+  usePageMeta(t('meta.dining.title'), t('meta.dining.description'));
 
   const active = VENUES[venue];
 
@@ -424,7 +421,7 @@ export function DiningPage() {
                     {t('dining.another')}
                   </button>
                   <a
-                    href={`https://wa.me/${WHATSAPP_NUMBER}`}
+                    href={whatsappHref()}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="btn-primary btn-sm"

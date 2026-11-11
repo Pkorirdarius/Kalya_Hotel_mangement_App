@@ -1,5 +1,5 @@
 /**
- * Thin typed fetch wrapper around the West Premier REST API.
+ * Thin typed fetch wrapper around the hotel REST API.
  *
  * - Reads the base URL from `VITE_API_URL` (defaults to `/api/v1`).
  * - Sends the Django CSRF cookie as `X-CSRFToken` on unsafe requests.

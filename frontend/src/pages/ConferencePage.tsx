@@ -2,7 +2,7 @@ import { useState, type FormEvent } from 'react';
 import { usePageMeta } from '../components/Page';
 import { useToast } from '../components/ToastProvider';
 import { useI18n } from '../i18n-context';
-import { WHATSAPP_NUMBER } from '../lib/constants';
+import { whatsappHref } from '../config/hotel';
 import { addDaysISO, isValidEmail, isValidKenyanPhone, todayISO } from '../utils';
 
 type Mode = 'instant' | 'quote';
@@ -83,10 +83,7 @@ export function ConferencePage() {
   const [reference, setReference] = useState('');
   const [summary, setSummary] = useState('');
 
-  usePageMeta(
-    'Conference & Events — West Premier Hotel, Kapenguria',
-    'Hire Kilele Hall at West Premier Hotel in Westlands, Kapenguria. Flexible layouts for 8–120 guests, fibre Wi-Fi, projector, sound and catering. Check availability or request a quote.',
-  );
+  usePageMeta(t('meta.conference.title'), t('meta.conference.description'));
 
   const days = Array.from({ length: 10 }, (_, index) => {
     const iso = addDaysISO(today, index);
@@ -172,7 +169,7 @@ export function ConferencePage() {
           </div>
           <img
             src="https://images.unsplash.com/photo-1505373877841-8d25f7d46678?auto=format&fit=crop&w=1400&q=85"
-            alt="Kilele Hall set for a conference at West Premier Hotel"
+            alt={t('conference.heroAlt')}
             className="aspect-[5/4] w-full rounded-[28px] object-cover shadow-lift"
             fetchPriority="high"
           />
@@ -516,7 +513,7 @@ export function ConferencePage() {
                     {t('conference.another')}
                   </button>
                   <a
-                    href={`https://wa.me/${WHATSAPP_NUMBER}`}
+                    href={whatsappHref()}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="btn-primary btn-sm"
