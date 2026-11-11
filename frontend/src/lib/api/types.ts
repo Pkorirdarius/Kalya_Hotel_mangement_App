@@ -1,4 +1,4 @@
-import type { components, operations } from './api-schema';
+import type { components, operations } from '../api-schema';
 
 /**
  * Re-exported generated OpenAPI types.
