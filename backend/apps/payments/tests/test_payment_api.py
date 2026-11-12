@@ -5,7 +5,9 @@ from datetime import timedelta
 import pytest
 
 from apps.bookings.models import Booking, BookingStatus
+from apps.bookings.state import transition_booking
 from apps.payments.models import Payment, PaymentWebhookEvent
+from apps.payments.services import complete_payment
 
 pytestmark = pytest.mark.django_db
 
@@ -184,6 +186,132 @@ def test_mpesa_callback_requires_secret_when_configured(
         format="json",
     )
     assert accepted.status_code == 200
+
+
+def test_card_callback_is_idempotent_and_logged(api, booking_payload):
+    reference = _create_booking(api, booking_payload)
+    initiated = _initiate(api, reference, method="card", email="amina@example.com")
+    assert initiated.status_code == 201, initiated.content
+    payment = initiated.json()["payment"]
+
+    payload = {
+        "event_id": "evt-card-1",
+        "reference": payment["provider_reference"],
+        "status": "succeeded",
+    }
+    first = api.post("/api/v1/payments/webhooks/card/", payload, format="json")
+    second = api.post("/api/v1/payments/webhooks/card/", payload, format="json")
+
+    assert first.status_code == 200, first.content
+    assert second.status_code == 200, second.content
+    assert first.json()["status"] == "accepted"
+    assert second.json()["status"] == "accepted"
+    assert PaymentWebhookEvent.objects.filter(provider=Payment.Provider.CARD).count() == 1
+    assert PaymentWebhookEvent.objects.get().processed is True
+
+    stored = Payment.objects.get(reference=payment["reference"])
+    assert stored.status == Payment.Status.SUCCEEDED
+    assert booking_status(reference) == BookingStatus.PENDING_CONFIRMATION
+
+
+def test_card_callback_requires_secret_when_configured(
+    api, booking_payload, settings
+):
+    settings.CARD_CALLBACK_SECRET = "expected-secret"
+    reference = _create_booking(api, booking_payload)
+    initiated = _initiate(api, reference, method="card", email="amina@example.com")
+    payment = initiated.json()["payment"]
+    payload = {
+        "event_id": "evt-card-secret",
+        "reference": payment["provider_reference"],
+        "status": "succeeded",
+    }
+
+    rejected = api.post(
+        "/api/v1/payments/webhooks/card/?secret=wrong", payload, format="json"
+    )
+    assert rejected.status_code == 403
+    assert PaymentWebhookEvent.objects.count() == 0
+
+    accepted = api.post(
+        "/api/v1/payments/webhooks/card/?secret=expected-secret",
+        payload,
+        format="json",
+    )
+    assert accepted.status_code == 200
+    assert accepted.json()["status"] == "accepted"
+
+
+def test_card_callback_failure_marks_payment_failed(api, booking_payload):
+    reference = _create_booking(api, booking_payload)
+    initiated = _initiate(api, reference, method="card", email="amina@example.com")
+    payment = initiated.json()["payment"]
+
+    response = api.post(
+        "/api/v1/payments/webhooks/card/",
+        {
+            "event_id": "evt-card-failed",
+            "reference": payment["provider_reference"],
+            "status": "declined",
+            "failure_message": "The card was declined.",
+        },
+        format="json",
+    )
+
+    assert response.status_code == 200
+    stored = Payment.objects.get(reference=payment["reference"])
+    assert stored.status == Payment.Status.FAILED
+    assert stored.failure_message == "The card was declined."
+    assert booking_status(reference) == BookingStatus.PENDING_PAYMENT
+
+
+def test_payment_received_after_booking_expired_is_flagged_for_review(
+    api, booking_payload
+):
+    reference = _create_booking(api, booking_payload)
+    initiated = _initiate(api, reference, method="card", email="amina@example.com")
+    payment_reference = initiated.json()["payment"]["reference"]
+
+    booking = Booking.objects.get(reference=reference)
+    transition_booking(booking, BookingStatus.EXPIRED, reason="Test expiry")
+
+    response = api.post(
+        f"/api/v1/payments/{payment_reference}/sandbox-complete/",
+        {"success": True},
+        format="json",
+    )
+
+    assert response.status_code == 200, response.content
+    booking.refresh_from_db()
+    assert booking.status == BookingStatus.EXPIRED
+    payment = Payment.objects.get(reference=payment_reference)
+    assert payment.status == Payment.Status.SUCCEEDED
+    assert payment.requires_review is True
+    assert "no longer payable" in payment.review_reason
+
+
+def test_successful_payment_can_complete_a_still_held_booking(api, booking_payload):
+    reference = _create_booking(api, booking_payload)
+    booking = Booking.objects.get(reference=reference)
+    assert booking.status == BookingStatus.HELD
+
+    payment = Payment.objects.create(
+        reference="PAY-HELD01",
+        purpose=Payment.Purpose.ROOM_BOOKING,
+        booking=booking,
+        amount=booking.total,
+        currency=booking.currency,
+        provider=Payment.Provider.CARD,
+        status=Payment.Status.INITIATED,
+    )
+
+    complete_payment(payment=payment, success=True, provider_reference="CARD-HELD01")
+
+    booking.refresh_from_db()
+    assert booking.status == BookingStatus.PENDING_CONFIRMATION
+    payment.refresh_from_db()
+    assert payment.status == Payment.Status.SUCCEEDED
+    assert payment.requires_review is False
 
 
 def booking_status(reference: str) -> str:

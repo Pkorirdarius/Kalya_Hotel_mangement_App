@@ -31,6 +31,7 @@ from apps.payments.services import (
     complete_payment,
     initiate_booking_payment,
     initiate_gym_payment,
+    process_card_callback,
     process_mpesa_callback,
 )
 
@@ -187,29 +188,36 @@ class MpesaWebhookView(APIView):
 
 @method_decorator(csrf_exempt, name="dispatch")
 class CardWebhookView(APIView):
-    """Gateway-neutral card callback placeholder."""
+    """Gateway-neutral card callback placeholder.
+
+    A real adapter (Pesapal/Flutterwave/DPO) validates its signature in the same
+    place this shared-secret check runs and then calls the same idempotent
+    service. Card details are never accepted by this endpoint.
+    """
 
     authentication_classes = []
     permission_classes = [AllowAny]
 
-    @extend_schema(request=None, responses=WebhookAckSerializer)
+    @extend_schema(
+        request=None,
+        responses=WebhookAckSerializer,
+        parameters=[OpenApiParameter("secret", str, required=False)],
+    )
     def post(self, request):
-        payment_reference = str(request.data.get("reference", ""))
-        payment = Payment.objects.filter(provider_reference=payment_reference).first()
-        if payment is None:
-            return Response({"status": "ignored"})
-        success = str(request.data.get("status", "")).lower() in (
-            "success",
-            "succeeded",
-            "paid",
+        secret = settings.CARD_CALLBACK_SECRET
+        if secret:
+            supplied = request.headers.get("X-Callback-Secret") or request.query_params.get(
+                "secret", ""
+            )
+            if not hmac.compare_digest(str(supplied), str(secret)):
+                raise PermissionDenied("Invalid callback secret.")
+        event = process_card_callback(request.data, signature_valid=True)
+        return Response(
+            {
+                "status": "accepted" if event.processed else "ignored",
+                "detail": event.error,
+            }
         )
-        complete_payment(
-            payment=payment,
-            success=success,
-            provider_reference=payment_reference,
-            raw_response=request.data,
-        )
-        return Response({"status": "accepted"})
 
 
 @extend_schema(tags=["payments"], request=PaymentInitiateSerializer)

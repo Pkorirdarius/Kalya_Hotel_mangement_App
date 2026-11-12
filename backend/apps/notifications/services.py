@@ -144,6 +144,26 @@ def notify_booking_confirmed(booking, language: str | None = None) -> None:
         )
 
 
+def notify_payment_review(payment, *, reason: str) -> None:
+    """Alert staff when money arrives after a booking/pass stopped being payable."""
+
+    context = {
+        **_public_context(),
+        "payment": payment,
+        "booking": payment.booking if payment.booking_id else None,
+        "gym_pass": payment.gym_pass if payment.gym_pass_id else None,
+        "reason": reason,
+    }
+    send_email(
+        kind="staff_payment_review",
+        subject=f"Payment needs review · {payment.reference}",
+        recipient=settings.FRONT_DESK_EMAIL,
+        template="staff_payment_review",
+        context=context,
+        entity=payment,
+    )
+
+
 def notify_booking_cancelled(booking) -> None:
     context = {**_public_context(), "booking": booking}
     if booking.email:
