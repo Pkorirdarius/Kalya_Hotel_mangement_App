@@ -63,7 +63,7 @@ class MpesaDarajaProvider(BaseProvider):
             "PhoneNumber": phone,
             "CallBackURL": settings.MPESA_CALLBACK_URL,
             "AccountReference": account_reference[:12],
-            "TransactionDesc": "West Premier Hotel booking"[:40],
+            "TransactionDesc": f"{settings.HOTEL['NAME']} booking"[:40],
         }
         try:
             token = self._token()

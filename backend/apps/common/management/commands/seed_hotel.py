@@ -1,6 +1,7 @@
-"""Seed West Premier Hotel with launch content.
+"""Seed the hotel with launch content.
 
-Every value is an editable placeholder. Items that still need hotel
+Brand values come from ``settings.HOTEL`` so re-branding stays a one-line
+change. Every value is an editable placeholder. Items that still need hotel
 confirmation are flagged so marketing can review them before launch.
 """
 
@@ -9,6 +10,7 @@ from __future__ import annotations
 from datetime import date, timedelta
 from decimal import Decimal
 
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand
 from django.db import transaction
@@ -151,7 +153,13 @@ MEAL_PLANS = [
 ]
 
 MENU_ITEMS = [
-    ("restaurant", "Breakfast", "West Premier breakfast", "Kifungua kinywa cha West Premier", 1500),
+    (
+        "restaurant",
+        "Breakfast",
+        f"{settings.HOTEL['SHORT_NAME']} breakfast",
+        f"Kifungua kinywa cha {settings.HOTEL['SHORT_NAME']}",
+        1500,
+    ),
     ("restaurant", "Mains", "Grilled tilapia", "Sato wa kuchoma", 1800),
     ("restaurant", "Mains", "Nyama choma platter", "Sahani ya nyama choma", 2200),
     ("restaurant", "Desserts", "Seasonal fruit plate", "Sahani ya matunda ya msimu", 700),
@@ -196,7 +204,7 @@ REVIEWS = [
 
 
 class Command(BaseCommand):
-    help = "Create or refresh West Premier launch content and placeholder data."
+    help = "Create or refresh hotel launch content and placeholder data."
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -208,16 +216,19 @@ class Command(BaseCommand):
     @transaction.atomic
     def handle(self, *args, **options):
         settings_obj = HotelSetting.load()
-        settings_obj.name = "West Premier Hotel"
-        settings_obj.tagline = "A calm stay in the heart of West Pokot"
-        settings_obj.address = "Kapenguria, West Pokot, Kenya"
-        settings_obj.town = "Kapenguria"
-        settings_obj.county = "West Pokot"
-        settings_obj.phone = "+254 20 765 4321"
-        settings_obj.phone_href = "tel:+254207654321"
-        settings_obj.email = "stay@westpremierhotel.co.ke"
-        settings_obj.whatsapp = "+254 20 765 4321"
-        settings_obj.map_query = "West Premier Hotel, Kapenguria, Kenya"
+        settings_obj.name = settings.HOTEL["NAME"]
+        settings_obj.tagline = f"A calm stay in the heart of {settings.HOTEL['COUNTY']}"
+        settings_obj.address = settings.HOTEL["ADDRESS"]
+        settings_obj.town = settings.HOTEL["TOWN"]
+        settings_obj.county = settings.HOTEL["COUNTY"]
+        settings_obj.phone = settings.HOTEL["PHONE"]
+        settings_obj.phone_href = settings.HOTEL["PHONE_HREF"]
+        settings_obj.email = settings.HOTEL["EMAIL"]
+        settings_obj.whatsapp = settings.HOTEL["PHONE"]
+        settings_obj.map_query = (
+            f"{settings.HOTEL['NAME']}, {settings.HOTEL['TOWN']}, "
+            f"{settings.HOTEL['COUNTRY']}"
+        )
         settings_obj.restaurant_capacity = 80
         settings_obj.coffee_capacity = 100
         settings_obj.conference_capacity = 100
@@ -229,7 +240,7 @@ class Command(BaseCommand):
         settings_obj.conference_half_day_price = Decimal("8000.00")
         settings_obj.conference_full_day_price = Decimal("15000.00")
         settings_obj.bank_name = "Equity Bank Kenya"
-        settings_obj.bank_account_name = "West Premier Hotel Limited"
+        settings_obj.bank_account_name = settings.HOTEL["LEGAL_NAME"]
         settings_obj.bank_account_number = ""
         settings_obj.bank_branch = ""
         settings_obj.bank_swift = ""
@@ -361,7 +372,7 @@ class Command(BaseCommand):
             )
 
         NewsletterSubscriber.objects.get_or_create(
-            email="stay@westpremierhotel.co.ke",
+            email=settings.HOTEL["EMAIL"],
             defaults={"consent": False, "language": "en", "source": "seed"},
         )
 
@@ -378,12 +389,13 @@ class Command(BaseCommand):
         User = get_user_model()
         password = "ChangeMe-2026!"
         roles = ["director", "data_manager", "front_desk", "marketing", "ict_admin"]
+        email_domain = settings.HOTEL["EMAIL"].split("@")[-1]
         for role in roles:
             username = f"{role}_demo"
             user, created = User.objects.get_or_create(
                 username=username,
                 defaults={
-                    "email": f"{role}@westpremierhotel.co.ke",
+                    "email": f"{role}@{email_domain}",
                     "first_name": role.replace("_", " ").title(),
                     "role": role,
                     "is_staff": True,

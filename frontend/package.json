@@ -8,7 +8,9 @@
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "lint": "eslint .",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "check:brand": "python ../scripts/check_brand.py",
+    "check": "npm run typecheck && npm run lint && npm run check:brand"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

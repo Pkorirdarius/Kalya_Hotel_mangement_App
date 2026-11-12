@@ -14,6 +14,23 @@ from django.utils import timezone
 REFERENCE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
 
 
+def hotel_display_name() -> str:
+    """Public hotel name, preferring the editable admin record.
+
+    Imported lazily so this helper stays safe to use during app loading.
+    """
+
+    from apps.common.models import HotelSetting
+
+    return HotelSetting.load().name or settings.HOTEL["NAME"]
+
+
+def hotel_brand_token() -> str:
+    """Compact uppercase brand token for QR payloads and references."""
+
+    return settings.HOTEL["SHORT_NAME"].replace(" ", "").upper()
+
+
 def hotel_tz() -> ZoneInfo:
     return ZoneInfo(settings.TIME_ZONE)
 

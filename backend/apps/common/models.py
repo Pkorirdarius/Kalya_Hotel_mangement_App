@@ -4,6 +4,12 @@ from django.conf import settings
 from django.db import models
 
 
+def default_hotel_name() -> str:
+    """Brand default kept in one place: the HOTEL settings dictionary."""
+
+    return settings.HOTEL["NAME"]
+
+
 class TimeStampedModel(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -20,17 +26,40 @@ class HotelSetting(TimeStampedModel):
     confirmation by the hotel.
     """
 
-    name = models.CharField(max_length=120, default="West Premier Hotel")
+    name = models.CharField(max_length=120, default=default_hotel_name)
     tagline = models.CharField(max_length=200, blank=True)
-    address = models.CharField(max_length=255, blank=True)
-    town = models.CharField(max_length=120, blank=True)
-    county = models.CharField(max_length=120, blank=True)
+    address = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text="Needs hotel confirmation: sources disagree (Nairobi vs Kapenguria).",
+    )
+    town = models.CharField(
+        max_length=120,
+        blank=True,
+        help_text="Needs hotel confirmation: do not launch until checked.",
+    )
+    county = models.CharField(
+        max_length=120,
+        blank=True,
+        help_text="Needs hotel confirmation: do not launch until checked.",
+    )
     country = models.CharField(max_length=120, default="Kenya")
-    phone = models.CharField(max_length=40, blank=True)
+    phone = models.CharField(
+        max_length=40,
+        blank=True,
+        help_text="Needs hotel confirmation: replace with the hotel's real number.",
+    )
     phone_href = models.CharField(max_length=60, blank=True)
-    email = models.EmailField(blank=True)
+    email = models.EmailField(
+        blank=True,
+        help_text="Needs hotel confirmation: replace with the hotel's real inbox.",
+    )
     whatsapp = models.CharField(max_length=40, blank=True)
-    map_query = models.CharField(max_length=255, blank=True)
+    map_query = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text="Needs hotel confirmation: pin the correct location on Google Maps.",
+    )
 
     currency = models.CharField(max_length=3, default="KES")
     timezone = models.CharField(max_length=64, default="Africa/Nairobi")
