@@ -32,6 +32,14 @@ export function isValidKenyanPhone(value: string): boolean {
   return /^(\+254|254|0)?7\d{8}$/.test(digits) || /^(\+254|254|0)?1\d{8}$/.test(digits);
 }
 
+/** Stable id used to make booking creation idempotent across retries. */
+export function newRequestId(): string {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+  return `req-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+}
+
 export function escapeHtml(value: string): string {
   return value
     .replace(/&/g, '&amp;')

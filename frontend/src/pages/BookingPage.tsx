@@ -1,11 +1,30 @@
-import { useMemo, useRef, useState, type FormEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { usePageMeta } from '../components/Page';
 import { useToast } from '../components/ToastProvider';
 import { HOTEL, addressText, whatsappHref } from '../config/hotel';
 import { useI18n } from '../i18n-context';
+import type { Booking, Payment, Quote } from '../lib/api/types';
+import { errorMessage, fieldErrors } from '../lib/query/errors';
+import {
+  useCompleteSandboxPaymentMutation,
+  useCreateBookingMutation,
+  useInitiateBookingPaymentMutation,
+  usePayment,
+  usePaymentMethods,
+  useQuoteMutation,
+  useRoomAvailability,
+} from '../lib/query/hooks';
 import { MEAL_PLANS, ROOMS, type MealPlanId } from '../types';
-import { addDaysISO, isValidEmail, nightsBetween, todayISO } from '../utils';
+import {
+  addDaysISO,
+  isValidEmail,
+  isValidKenyanPhone,
+  newRequestId,
+  nightsBetween,
+  todayISO,
+} from '../utils';
+import { backendPaymentMethod, isPaymentFailed, isPaymentPending, isPaymentSucceeded, quoteKeyFor } from './bookingFlow';
 
 type PaymentMethod = 'mpesa' | 'card' | 'bank';
 
@@ -27,15 +46,42 @@ interface BookingForm {
   marketing: boolean;
   payment: PaymentMethod;
   mpesaPhone: string;
-  cardNumber: string;
-  cardName: string;
-  cardExpiry: string;
-  cardCvv: string;
 }
 
 type Errors = Partial<Record<keyof BookingForm, string>>;
 
 const STEP_KEYS = ['step.dates', 'step.room', 'step.details', 'step.payment', 'step.confirm'];
+
+const BOOKING_FIELDS: Array<keyof BookingForm> = [
+  'checkin',
+  'checkout',
+  'guests',
+  'roomId',
+  'mealId',
+];
+
+const FIELD_MAP: Record<string, keyof BookingForm> = {
+  first_name: 'firstName',
+  last_name: 'lastName',
+  email: 'email',
+  phone: 'phone',
+  consent_privacy: 'terms',
+};
+
+const ARRIVAL_KEYS: Record<string, string> = {
+  morning: 'arrival.early',
+  afternoon: 'arrival.afternoon',
+  evening: 'arrival.evening',
+  late: 'arrival.late',
+};
+
+const BANK_FIELDS: Array<[string, string]> = [
+  ['bank_name', 'payment.bankLabel'],
+  ['account_name', 'payment.accountName'],
+  ['account_number', 'payment.accountNumber'],
+  ['branch', 'payment.branch'],
+  ['swift', 'payment.swift'],
+];
 
 const COUNTRIES = [
   'Kenya',
@@ -66,10 +112,6 @@ function isMealPlanId(value: string | null): value is MealPlanId {
   return MEAL_PLANS.some((plan) => plan.id === value);
 }
 
-function isPhone(value: string): boolean {
-  return /^\+?\d{9,15}$/.test(value.replace(/[^\d+]/g, ''));
-}
-
 function errorClass(hasError: boolean): string {
   return hasError ? '!border-red-400' : '';
 }
@@ -80,7 +122,7 @@ function FieldError({ message }: { message?: string }) {
 }
 
 export function BookingPage() {
-  const { t, formatDate, formatMoney } = useI18n();
+  const { language, t, formatDate, formatMoney } = useI18n();
   const { showToast } = useToast();
   const [searchParams] = useSearchParams();
   const formRef = useRef<HTMLFormElement>(null);
@@ -142,27 +184,122 @@ export function BookingPage() {
     marketing: false,
     payment: 'mpesa',
     mpesaPhone: '',
-    cardNumber: '',
-    cardName: '',
-    cardExpiry: '',
-    cardCvv: '',
   });
   const [errors, setErrors] = useState<Errors>({});
   const [submitting, setSubmitting] = useState(false);
-  const [reference, setReference] = useState('');
   const [mobileSummaryOpen, setMobileSummaryOpen] = useState(false);
+
+  const [quote, setQuote] = useState<Quote | null>(null);
+  const [quoteFor, setQuoteFor] = useState('');
+  const [quoteError, setQuoteError] = useState('');
+  const [booking, setBooking] = useState<Booking | null>(null);
+  const [paymentState, setPayment] = useState<Payment | null>(null);
+  const [paymentMessage, setPaymentMessage] = useState('');
+  const [paymentSandbox, setPaymentSandbox] = useState(false);
+  const [flowError, setFlowError] = useState('');
+  const [sandboxBusy, setSandboxBusy] = useState(false);
+
+  const clientRequestId = useRef(newRequestId());
+  const paymentAttempt = useRef(0);
+  const paidToastShown = useRef(false);
+
+  const quoteMutation = useQuoteMutation();
+  const createBookingMutation = useCreateBookingMutation();
+  const initiatePaymentMutation = useInitiateBookingPaymentMutation();
+  const sandboxMutation = useCompleteSandboxPaymentMutation();
+  const paymentMethodsQuery = usePaymentMethods();
+
+  const quoteKey = quoteKeyFor({
+    room: form.roomId,
+    meal: form.mealId,
+    checkin: form.checkin,
+    checkout: form.checkout,
+    guests: form.guests,
+  });
+  const activeQuote = quote && quoteFor === quoteKey ? quote : null;
+
+  const availabilityQuery = useRoomAvailability(
+    { checkin: form.checkin, checkout: form.checkout, guests: form.guests },
+    { enabled: step === 2 },
+  );
+  const availabilityByRoom = useMemo(() => {
+    const rows = new Map<string, { available_rooms: number; fits_guests: boolean }>();
+    for (const row of availabilityQuery.data ?? []) {
+      rows.set(row.room_type, row);
+    }
+    return rows;
+  }, [availabilityQuery.data]);
+
+  const paymentQuery = usePayment(
+    paymentState?.reference,
+    step === 5 && isPaymentPending(paymentState?.status),
+  );
+  // Prefer the polled record while it matches the payment we initiated, so the
+  // UI updates without copying query data into state inside an effect. A local
+  // terminal result (sandbox completion) wins over a stale poll.
+  const paymentStateSettled =
+    isPaymentSucceeded(paymentState?.status) || isPaymentFailed(paymentState?.status);
+  const payment =
+    paymentQuery.data &&
+    paymentState &&
+    paymentQuery.data.reference === paymentState.reference &&
+    !paymentStateSettled
+      ? paymentQuery.data
+      : paymentState;
+  const paymentStatus = payment?.status;
+  const paymentSucceeded = isPaymentSucceeded(paymentStatus);
+  const paymentFailed = isPaymentFailed(paymentStatus);
+
+  useEffect(() => {
+    if (!paymentSucceeded || paidToastShown.current) {
+      return;
+    }
+    paidToastShown.current = true;
+    showToast(t('toast.booking'), 'success');
+  }, [paymentSucceeded, showToast, t]);
 
   const room = ROOMS.find((item) => item.id === form.roomId) ?? ROOMS[0];
   const meal = MEAL_PLANS.find((item) => item.id === form.mealId) ?? MEAL_PLANS[1];
   const nights = Math.max(0, nightsBetween(form.checkin, form.checkout));
-  const roomTotal = room.price * nights;
-  const mealTotal = meal.supplement * form.guests * nights;
-  const total = roomTotal + mealTotal;
+  const roomTotal = activeQuote?.accommodation_total ?? room.price * nights;
+  const mealTotal = activeQuote?.meal_total ?? meal.supplement * form.guests * nights;
+  const discountTotal = activeQuote?.discount_total ?? 0;
+  const taxTotal = activeQuote?.tax_total ?? 0;
+  const taxIncluded = activeQuote?.tax_included ?? true;
+  const total = activeQuote?.total ?? roomTotal + mealTotal;
+  const cutoffHours = activeQuote?.cancellation_cutoff_hours ?? 48;
+  const reference = booking?.reference ?? '';
   const nightLabel = nights === 1 ? t('common.night') : t('common.nights');
   const money = (amount: number) => `KES ${formatMoney(amount)}`;
 
+  const bankSource = (payment?.instructions ??
+    paymentMethodsQuery.data?.bank ??
+    {}) as Record<string, unknown>;
+  const bankRows = BANK_FIELDS.map(([key, labelKey]) => ({
+    label: t(labelKey),
+    value: String(bankSource[key] ?? '').trim(),
+  })).filter((row) => row.value);
+
+  const resetCreatedBooking = () => {
+    if (!booking) {
+      return;
+    }
+    setBooking(null);
+    setPayment(null);
+    setPaymentMessage('');
+    setPaymentSandbox(false);
+    setFlowError('');
+    paymentAttempt.current = 0;
+    paidToastShown.current = false;
+    clientRequestId.current = newRequestId();
+  };
+
   const goToStep = (next: number) => {
-    setStep(Math.min(5, Math.max(1, next)));
+    const target = Math.min(5, Math.max(1, next));
+    if (target === 4 && form.payment === 'mpesa' && !form.mpesaPhone) {
+      setValue('mpesaPhone', form.phone);
+    }
+    setStep(target);
     setErrors({});
     window.requestAnimationFrame(() => {
       formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -170,6 +307,12 @@ export function BookingPage() {
   };
 
   const setValue = <K extends keyof BookingForm>(key: K, value: BookingForm[K]) => {
+    if (BOOKING_FIELDS.includes(key)) {
+      resetCreatedBooking();
+      setQuote(null);
+      setQuoteFor('');
+      setQuoteError('');
+    }
     setForm((current) => ({ ...current, [key]: value }));
     setErrors((current) => ({ ...current, [key]: undefined }));
   };
@@ -213,8 +356,8 @@ export function BookingPage() {
 
     if (!form.phone.trim()) {
       next.phone = t('common.required');
-    } else if (!isPhone(form.phone)) {
-      next.phone = t('validation.phone');
+    } else if (!isValidKenyanPhone(form.phone)) {
+      next.phone = t('validation.phoneKe');
     }
 
     if (!form.terms) next.terms = t('validation.terms');
@@ -229,20 +372,8 @@ export function BookingPage() {
     if (form.payment === 'mpesa') {
       if (!form.mpesaPhone.trim()) {
         next.mpesaPhone = t('validation.mpesa');
-      } else if (!isPhone(form.mpesaPhone)) {
-        next.mpesaPhone = t('validation.phone');
-      }
-    }
-    if (form.payment === 'card') {
-      if (form.cardNumber.replace(/\s/g, '').length < 13) {
-        next.cardNumber = t('validation.card');
-      }
-      if (!form.cardName.trim()) next.cardName = t('validation.card');
-      if (!/^(0[1-9]|1[0-2])\/\d{2}$/.test(form.cardExpiry.trim())) {
-        next.cardExpiry = t('validation.card');
-      }
-      if (!/^\d{3,4}$/.test(form.cardCvv.trim())) {
-        next.cardCvv = t('validation.card');
+      } else if (!isValidKenyanPhone(form.mpesaPhone)) {
+        next.mpesaPhone = t('validation.phoneKe');
       }
     }
     setErrors(next);
@@ -250,14 +381,191 @@ export function BookingPage() {
     return Object.keys(next).length === 0;
   };
 
-  const completeBooking = () => {
-    const nextReference = `KY-${Math.random().toString(36).slice(2, 7).toUpperCase()}`;
-    setReference(nextReference);
-    setStep(5);
-    showToast(
-      form.payment === 'bank' ? t('confirmation.pending') : t('toast.booking'),
-      form.payment === 'bank' ? 'info' : 'success',
-    );
+  const loadQuote = async (): Promise<Quote | null> => {
+    const key = quoteKeyFor({
+      room: form.roomId,
+      meal: form.mealId,
+      checkin: form.checkin,
+      checkout: form.checkout,
+      guests: form.guests,
+    });
+    setQuoteError('');
+    try {
+      const result = await quoteMutation.mutateAsync({
+        room_type: form.roomId,
+        meal_plan: form.mealId,
+        checkin: form.checkin,
+        checkout: form.checkout,
+        guests: form.guests,
+      });
+      setQuote(result);
+      setQuoteFor(key);
+      return result;
+    } catch (error) {
+      setQuoteError(errorMessage(error, t('booking.quoteError')));
+      return null;
+    }
+  };
+
+  const handleRoomsContinue = async () => {
+    const row = availabilityByRoom.get(form.roomId);
+    if (availabilityQuery.isFetching) {
+      setErrors({ roomId: t('booking.checkingAvailability') });
+      return;
+    }
+    if (availabilityQuery.isError || !row) {
+      setErrors({ roomId: t('booking.availabilityError') });
+      return;
+    }
+    if (!row.fits_guests) {
+      setErrors({ roomId: t('booking.tooManyGuests') });
+      return;
+    }
+    if (row.available_rooms < 1) {
+      setErrors({ roomId: t('booking.roomUnavailable') });
+      return;
+    }
+    const result = await loadQuote();
+    if (result) {
+      goToStep(3);
+    }
+  };
+
+  const handleDetailsContinue = async () => {
+    if (!validateGuestDetails()) {
+      return;
+    }
+    if (!activeQuote) {
+      const result = await loadQuote();
+      if (!result) {
+        return;
+      }
+    }
+    goToStep(4);
+  };
+
+  const initiatePaymentFor = async (target: Booking) => {
+    const method = backendPaymentMethod(form.payment);
+    const result = await initiatePaymentMutation.mutateAsync({
+      reference: target.reference,
+      body: {
+        method,
+        email: form.email.trim(),
+        phone: form.payment === 'mpesa' ? form.mpesaPhone.trim() : form.phone.trim(),
+        idempotency_key: `${target.reference}-${method}-${paymentAttempt.current}`,
+      },
+    });
+    setPayment(result.payment);
+    setPaymentMessage(result.message);
+    setPaymentSandbox(result.sandbox);
+    return result;
+  };
+
+  const applyServerErrors = (error: unknown) => {
+    const next: Errors = {};
+    for (const [key, messages] of Object.entries(fieldErrors(error))) {
+      const mapped = FIELD_MAP[key];
+      if (mapped && messages[0]) {
+        next[mapped] = messages[0];
+      }
+    }
+    if (Object.keys(next).length > 0) {
+      setErrors(next);
+      focusFirstError(next);
+    }
+  };
+
+  const submitBooking = async () => {
+    setSubmitting(true);
+    setFlowError('');
+
+    const arrivalKey = ARRIVAL_KEYS[form.arrival] ?? 'arrival.afternoon';
+    const notes = [
+      form.requests.trim(),
+      `${t('field.arrivalTime')}: ${t(arrivalKey)}`,
+      `${t('booking.purpose.label')}: ${t(`booking.purpose.${form.purpose}`)}`,
+    ]
+      .filter(Boolean)
+      .join('\n');
+
+    try {
+      let target = booking;
+      if (!target) {
+        const created = await createBookingMutation.mutateAsync({
+          quote: {
+            room_type: form.roomId,
+            meal_plan: form.mealId,
+            checkin: form.checkin,
+            checkout: form.checkout,
+            guests: form.guests,
+          },
+          first_name: form.firstName.trim(),
+          last_name: form.lastName.trim(),
+          email: form.email.trim(),
+          phone: form.phone.trim(),
+          country: form.country,
+          notes,
+          language,
+          consent_privacy: form.terms,
+          marketing_consent: form.marketing,
+          client_request_id: clientRequestId.current,
+        });
+        target = created.booking;
+        setBooking(target);
+      }
+
+      try {
+        await initiatePaymentFor(target);
+      } catch (error) {
+        setPayment(null);
+        setPaymentMessage('');
+        setFlowError(errorMessage(error));
+      }
+      goToStep(5);
+    } catch (error) {
+      applyServerErrors(error);
+      setFlowError(errorMessage(error));
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const retryPayment = async () => {
+    if (!booking) {
+      goToStep(4);
+      return;
+    }
+    setSubmitting(true);
+    setFlowError('');
+    setPayment(null);
+    setPaymentMessage('');
+    paymentAttempt.current += 1;
+    try {
+      await initiatePaymentFor(booking);
+    } catch (error) {
+      setFlowError(errorMessage(error));
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const simulateSandbox = async (success: boolean) => {
+    if (!payment) {
+      return;
+    }
+    setSandboxBusy(true);
+    setFlowError('');
+    try {
+      const result = await sandboxMutation.mutateAsync({
+        reference: payment.reference,
+        success,
+      });
+      setPayment(result);
+    } catch (error) {
+      setFlowError(errorMessage(error));
+    } finally {
+      setSandboxBusy(false);
+    }
   };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -265,15 +573,12 @@ export function BookingPage() {
     if (step !== 4 || !validatePayment()) {
       return;
     }
-    setSubmitting(true);
-    await new Promise((resolve) => window.setTimeout(resolve, 900));
-    setSubmitting(false);
-    completeBooking();
+    await submitBooking();
   };
 
   const downloadCalendar = () => {
-    const start = form.checkin.replace(/-/g, '');
-    const end = form.checkout.replace(/-/g, '');
+    const start = (booking?.checkin ?? form.checkin).replace(/-/g, '');
+    const end = (booking?.checkout ?? form.checkout).replace(/-/g, '');
     const ics = [
       'BEGIN:VCALENDAR',
       'VERSION:2.0',
@@ -301,10 +606,52 @@ export function BookingPage() {
     URL.revokeObjectURL(url);
   };
 
-  const paymentBadge =
-    form.payment === 'bank'
-      ? { label: t('confirmation.pending'), className: 'pill bg-gold-soft text-gold-deep ring-1 ring-gold/30' }
-      : { label: t('confirmation.paid'), className: 'pill bg-white text-forest ring-1 ring-line' };
+  const paymentBadge = paymentSucceeded
+    ? { label: t('payment.statusSucceeded'), className: 'pill bg-white text-forest ring-1 ring-line' }
+    : paymentFailed
+      ? { label: t('payment.statusFailed'), className: 'pill bg-red-50 text-red-700 ring-1 ring-red-200' }
+      : { label: t('payment.statusPending'), className: 'pill bg-gold-soft text-gold-deep ring-1 ring-gold/30' };
+
+  const confirmedEmail = booking?.email ?? form.email.trim();
+  const confirmedRoom = booking?.room_type_name ?? t(room.nameKey);
+  const confirmedMeal = booking?.meal_plan_name ?? t(meal.labelKey);
+  const confirmedCheckin = booking?.checkin ?? form.checkin;
+  const confirmedCheckout = booking?.checkout ?? form.checkout;
+  const confirmedGuests = booking?.guests ?? form.guests;
+  const confirmedNights = booking?.nights ?? nights;
+  const confirmedTotal = booking?.total ?? total;
+  const waitTitle = form.payment === 'mpesa' ? t('payment.waitTitle') : t('payment.pendingTitle');
+  const waitText =
+    form.payment === 'mpesa'
+      ? t('payment.waitText', { phone: form.mpesaPhone || form.phone })
+      : t('payment.pendingText');
+  const step5Title = paymentSucceeded
+    ? t('booking.step5.title')
+    : paymentFailed
+      ? t('payment.failedTitle')
+      : waitTitle;
+  const step5Text = paymentSucceeded
+    ? t('confirmation.confirmedText')
+    : paymentFailed
+      ? t('payment.failedText')
+      : waitText;
+  const step5Icon = paymentSucceeded ? 'check_circle' : paymentFailed ? 'error' : 'hourglass_top';
+  const step5IconClass = paymentSucceeded
+    ? 'bg-forest-50 text-forest'
+    : paymentFailed
+      ? 'bg-red-50 text-red-600'
+      : 'bg-gold-soft text-gold-deep';
+
+  const changePaymentMethod = () => {
+    setPayment(null);
+    setPaymentMessage('');
+    setFlowError('');
+    if (booking) {
+      // Force a fresh idempotency key even if the same method is chosen again.
+      paymentAttempt.current += 1;
+    }
+    goToStep(4);
+  };
 
   return (
     <>
@@ -409,6 +756,10 @@ export function BookingPage() {
                         value={form.checkin}
                         onChange={(event) => {
                           const value = event.target.value;
+                          resetCreatedBooking();
+                          setQuote(null);
+                          setQuoteFor('');
+                          setQuoteError('');
                           setForm((current) => {
                             const minCheckout = addDaysISO(value || today, 1);
                             return {
@@ -525,14 +876,22 @@ export function BookingPage() {
                   <div className="mt-6 space-y-3">
                     {ROOMS.map((item) => {
                       const selected = form.roomId === item.id;
+                      const availability = availabilityByRoom.get(item.id);
+                      const soldOut = availability ? availability.available_rooms < 1 : false;
+                      const tooSmall = availability ? !availability.fits_guests : false;
+                      const unavailable = soldOut || tooSmall;
                       return (
-                        <label key={item.id} className="block cursor-pointer">
+                        <label
+                          key={item.id}
+                          className={`block ${unavailable ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'}`}
+                        >
                           <input
                             type="radio"
                             name="room"
                             value={item.id}
                             className="peer sr-only"
                             checked={selected}
+                            disabled={unavailable}
                             onChange={() => setValue('roomId', item.id)}
                           />
                           <div className="flex gap-3 rounded-2xl border border-line p-3 transition peer-checked:border-forest peer-checked:bg-forest-50 peer-checked:ring-1 peer-checked:ring-forest/25">
@@ -552,6 +911,29 @@ export function BookingPage() {
                               <p className="mt-1 text-[11px] text-muted">
                                 {t(`room.sleeps${item.sleeps}`)} · {item.size} m² · {t(item.bedKey)}
                               </p>
+                              {availability ? (
+                                <p
+                                  className={`mt-1 text-[11px] font-semibold ${
+                                    unavailable
+                                      ? 'text-red-600'
+                                      : availability.available_rooms <= 2
+                                        ? 'text-gold-deep'
+                                        : 'text-muted'
+                                  }`}
+                                >
+                                  {soldOut
+                                    ? t('booking.soldOut')
+                                    : tooSmall
+                                      ? t('booking.tooManyGuests')
+                                      : availability.available_rooms <= 2
+                                        ? `${availability.available_rooms} ${t('booking.roomsLeft')}`
+                                        : null}
+                                </p>
+                              ) : availabilityQuery.isFetching ? (
+                                <p className="mt-1 text-[11px] text-muted">
+                                  {t('booking.checkingAvailability')}
+                                </p>
+                              ) : null}
                               <p className="mt-1.5 text-[11px] font-semibold text-gold-deep">
                                 {t('common.freeCancellation')}
                               </p>
@@ -561,6 +943,22 @@ export function BookingPage() {
                       );
                     })}
                   </div>
+                  <FieldError message={errors.roomId} />
+                  {availabilityQuery.isError ? (
+                    <div
+                      role="alert"
+                      className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-red-50 px-4 py-3 text-[12px] font-medium text-red-700"
+                    >
+                      <span>{t('booking.availabilityError')}</span>
+                      <button
+                        type="button"
+                        className="inline-flex min-h-[36px] items-center gap-1 font-semibold underline"
+                        onClick={() => void availabilityQuery.refetch()}
+                      >
+                        {t('booking.retry')}
+                      </button>
+                    </div>
+                  ) : null}
 
                   <fieldset className="mt-7">
                     <legend className="text-[11px] font-bold uppercase tracking-[0.16em] text-muted">
@@ -610,8 +1008,15 @@ export function BookingPage() {
                       </span>
                       <span>{t('common.back')}</span>
                     </button>
-                    <button type="button" className="btn-primary" onClick={() => goToStep(3)}>
-                      <span>{t('booking.step2.continue')}</span>
+                    <button
+                      type="button"
+                      className="btn-primary"
+                      disabled={quoteMutation.isPending}
+                      onClick={() => void handleRoomsContinue()}
+                    >
+                      <span>
+                        {quoteMutation.isPending ? t('common.sending') : t('booking.step2.continue')}
+                      </span>
                       <span className="material-symbols-outlined text-[18px]" aria-hidden="true">
                         arrow_forward
                       </span>
@@ -747,11 +1152,12 @@ export function BookingPage() {
                     <button
                       type="button"
                       className="btn-primary"
-                      onClick={() => {
-                        if (validateGuestDetails()) goToStep(4);
-                      }}
+                      disabled={quoteMutation.isPending}
+                      onClick={() => void handleDetailsContinue()}
                     >
-                      <span>{t('booking.step3.continue')}</span>
+                      <span>
+                        {quoteMutation.isPending ? t('common.sending') : t('booking.step3.continue')}
+                      </span>
                       <span className="material-symbols-outlined text-[18px]" aria-hidden="true">
                         arrow_forward
                       </span>
@@ -846,78 +1252,12 @@ export function BookingPage() {
                         <p className="mt-1 text-[12px] leading-relaxed text-muted">
                           {t('payment.cardText')}
                         </p>
-                        <div className="mt-4 grid gap-4 sm:grid-cols-2">
-                          <div className="sm:col-span-2">
-                            <label className="field-label" htmlFor="cardNumber">
-                              {t('payment.cardNumber')}
-                            </label>
-                            <input
-                              id="cardNumber"
-                              name="cardNumber"
-                              type="text"
-                              inputMode="numeric"
-                              autoComplete="cc-number"
-                              value={form.cardNumber}
-                              onChange={(event) => setValue('cardNumber', event.target.value)}
-                              className={`field ${errorClass(Boolean(errors.cardNumber))}`}
-                              placeholder="4242 4242 4242 4242"
-                              aria-invalid={errors.cardNumber ? 'true' : 'false'}
-                            />
-                            <FieldError message={errors.cardNumber} />
-                          </div>
-                          <div className="sm:col-span-2">
-                            <label className="field-label" htmlFor="cardName">
-                              {t('payment.cardName')}
-                            </label>
-                            <input
-                              id="cardName"
-                              name="cardName"
-                              type="text"
-                              autoComplete="cc-name"
-                              value={form.cardName}
-                              onChange={(event) => setValue('cardName', event.target.value)}
-                              className={`field ${errorClass(Boolean(errors.cardName))}`}
-                              aria-invalid={errors.cardName ? 'true' : 'false'}
-                            />
-                            <FieldError message={errors.cardName} />
-                          </div>
-                          <div>
-                            <label className="field-label" htmlFor="cardExpiry">
-                              {t('payment.cardExpiry')}
-                            </label>
-                            <input
-                              id="cardExpiry"
-                              name="cardExpiry"
-                              type="text"
-                              inputMode="numeric"
-                              autoComplete="cc-exp"
-                              value={form.cardExpiry}
-                              onChange={(event) => setValue('cardExpiry', event.target.value)}
-                              className={`field ${errorClass(Boolean(errors.cardExpiry))}`}
-                              placeholder="MM/YY"
-                              aria-invalid={errors.cardExpiry ? 'true' : 'false'}
-                            />
-                            <FieldError message={errors.cardExpiry} />
-                          </div>
-                          <div>
-                            <label className="field-label" htmlFor="cardCvv">
-                              {t('payment.cardCvv')}
-                            </label>
-                            <input
-                              id="cardCvv"
-                              name="cardCvv"
-                              type="text"
-                              inputMode="numeric"
-                              autoComplete="cc-csc"
-                              value={form.cardCvv}
-                              onChange={(event) => setValue('cardCvv', event.target.value)}
-                              className={`field ${errorClass(Boolean(errors.cardCvv))}`}
-                              placeholder="123"
-                              aria-invalid={errors.cardCvv ? 'true' : 'false'}
-                            />
-                            <FieldError message={errors.cardCvv} />
-                          </div>
-                        </div>
+                        <p className="mt-3 inline-flex items-start gap-2 rounded-xl bg-gold-pale px-3 py-2 text-[11px] leading-relaxed text-gold-deep">
+                          <span className="material-symbols-outlined text-[15px]" aria-hidden="true">
+                            lock
+                          </span>
+                          <span>{t('payment.cardSecureNote')}</span>
+                        </p>
                       </div>
                     </div>
                   ) : null}
@@ -927,21 +1267,22 @@ export function BookingPage() {
                       <div className="rounded-2xl border border-line p-4 sm:p-5">
                         <p className="text-[13px] font-bold text-forest">{t('payment.bank')}</p>
                         <p className="mt-1 text-[12px] leading-relaxed text-muted">
-                          {t('payment.bankText')}
+                          {t('payment.bankIntro')}
                         </p>
-                        <dl className="mt-4 grid gap-2 rounded-xl bg-sand/60 p-4 text-[12px]">
-                          {[
-                            { label: t('payment.bankLabel'), value: 'Equity Bank Kenya' },
-                            { label: t('payment.accountName'), value: HOTEL.legalName },
-                            { label: t('payment.accountNumber'), value: '1234 5678 9012' },
-                            { label: 'SWIFT', value: 'EQBLKENA' },
-                          ].map((row) => (
-                            <div key={row.label} className="flex justify-between gap-3">
-                              <dt className="text-muted">{row.label}</dt>
-                              <dd className="font-semibold text-forest">{row.value}</dd>
-                            </div>
-                          ))}
-                        </dl>
+                        {bankRows.length > 0 ? (
+                          <dl className="mt-4 grid gap-2 rounded-xl bg-sand/60 p-4 text-[12px]">
+                            {bankRows.map((row) => (
+                              <div key={row.label} className="flex justify-between gap-3">
+                                <dt className="text-muted">{row.label}</dt>
+                                <dd className="font-semibold text-forest">{row.value}</dd>
+                              </div>
+                            ))}
+                          </dl>
+                        ) : (
+                          <p className="mt-4 rounded-xl bg-sand/60 p-4 text-[12px] text-muted">
+                            {t('payment.bankDetailsSoon')}
+                          </p>
+                        )}
                         <p className="mt-3 text-[11px] leading-relaxed text-muted">
                           {t('payment.bankNote')}
                         </p>
@@ -949,9 +1290,27 @@ export function BookingPage() {
                     </div>
                   ) : null}
 
+                  {flowError ? (
+                    <div
+                      role="alert"
+                      className="mt-5 flex items-start gap-2 rounded-xl bg-red-50 px-4 py-3 text-[12px] font-medium text-red-700"
+                    >
+                      <span className="material-symbols-outlined text-[18px]" aria-hidden="true">
+                        error
+                      </span>
+                      <span>{flowError}</span>
+                    </div>
+                  ) : null}
+
                   <div className="mt-6">
                     <button type="submit" className="btn-gold w-full sm:w-auto" disabled={submitting}>
-                      <span>{submitting ? t('common.sending') : `${t('payment.payNow')} · ${money(total)}`}</span>
+                      <span>
+                        {submitting
+                          ? t('common.sending')
+                          : form.payment === 'bank'
+                            ? t('payment.reserveBank')
+                            : `${t('payment.payNow')} · ${money(total)}`}
+                      </span>
                       <span className="material-symbols-outlined text-[18px]" aria-hidden="true">
                         lock
                       </span>
@@ -984,18 +1343,18 @@ export function BookingPage() {
               {step === 5 ? (
                 <section aria-labelledby="booking-step-5">
                   <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
-                    <span className="flex h-14 w-14 items-center justify-center rounded-full bg-forest-50 text-forest">
+                    <span
+                      className={`flex h-14 w-14 items-center justify-center rounded-full ${step5IconClass}`}
+                    >
                       <span className="material-symbols-outlined text-[30px]" aria-hidden="true">
-                        check_circle
+                        {step5Icon}
                       </span>
                     </span>
                     <div>
                       <h2 id="booking-step-5" className="heading-sm">
-                        {t('booking.step5.title')}
+                        {step5Title}
                       </h2>
-                      <p className="mt-1 text-sm leading-relaxed text-muted">
-                        {t('booking.step5.text')}
-                      </p>
+                      <p className="mt-1 text-sm leading-relaxed text-muted">{step5Text}</p>
                     </div>
                   </div>
 
@@ -1005,27 +1364,165 @@ export function BookingPage() {
                         <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-muted">
                           {t('confirmation.reference')}
                         </p>
-                        <p className="mt-1 font-serif text-2xl text-forest-dark">{reference}</p>
+                        <p className="mt-1 font-serif text-2xl text-forest-dark">
+                          {reference || '—'}
+                        </p>
                       </div>
                       <span className={paymentBadge.className}>{paymentBadge.label}</span>
                     </div>
                     <p className="mt-3 text-[12px] text-muted">
                       <span>{t('confirmation.emailSent')}</span>{' '}
-                      <span className="font-semibold text-forest">{form.email.trim()}</span>
+                      <span className="font-semibold text-forest">{confirmedEmail}</span>
                     </p>
+                    {!paymentSucceeded ? (
+                      <p className="mt-1 text-[12px] font-medium text-gold-deep">
+                        {t('payment.bookingHeld')}
+                      </p>
+                    ) : null}
                   </div>
 
-                  <dl className="mt-5 grid gap-x-6 gap-y-4 text-sm sm:grid-cols-2">
+                  {flowError ? (
+                    <div
+                      role="alert"
+                      className="mt-5 flex items-start gap-2 rounded-xl bg-red-50 px-4 py-3 text-[12px] font-medium text-red-700"
+                    >
+                      <span className="material-symbols-outlined text-[18px]" aria-hidden="true">
+                        error
+                      </span>
+                      <span>{flowError}</span>
+                    </div>
+                  ) : null}
+
+                  {isPaymentPending(payment?.status) ? (
+                    <div className="mt-5 rounded-2xl border border-line p-4 sm:p-5">
+                      <div className="flex flex-wrap items-center justify-between gap-3">
+                        <div>
+                          <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted">
+                            {t('payment.amountDue')}
+                          </p>
+                          <p className="mt-1 text-xl font-bold text-forest">
+                            {money(confirmedTotal)}
+                          </p>
+                        </div>
+                        <span className="inline-flex items-center gap-2 rounded-full bg-gold-pale px-3 py-1.5 text-[11px] font-semibold text-gold-deep">
+                          <span
+                            className={`h-2 w-2 rounded-full bg-gold-deep ${
+                              paymentQuery.isFetching ? 'animate-pulse' : ''
+                            }`}
+                            aria-hidden="true"
+                          />
+                          {paymentQuery.isFetching ? t('payment.waiting') : t('payment.statusPending')}
+                        </span>
+                      </div>
+                      {paymentMessage ? (
+                        <p className="mt-3 text-[12px] leading-relaxed text-muted">{paymentMessage}</p>
+                      ) : null}
+                      {form.payment === 'bank' && bankRows.length > 0 ? (
+                        <>
+                          <dl className="mt-4 grid gap-2 rounded-xl bg-sand/60 p-4 text-[12px]">
+                            {bankRows.map((row) => (
+                              <div key={row.label} className="flex justify-between gap-3">
+                                <dt className="text-muted">{row.label}</dt>
+                                <dd className="font-semibold text-forest">{row.value}</dd>
+                              </div>
+                            ))}
+                          </dl>
+                          <p className="mt-3 text-[11px] leading-relaxed text-muted">
+                            {t('payment.bankPending')}
+                          </p>
+                        </>
+                      ) : null}
+                    </div>
+                  ) : null}
+
+                  {paymentFailed ? (
+                    <div className="mt-5 rounded-2xl border border-red-200 bg-red-50 p-4 sm:p-5">
+                      <p className="text-[13px] font-bold text-red-700">{t('payment.failedTitle')}</p>
+                      <p className="mt-1 text-[12px] leading-relaxed text-red-700/80">
+                        {payment?.failure_message || t('payment.failedText')}
+                      </p>
+                      <p className="mt-3 text-[12px] font-semibold text-forest">
+                        {t('payment.amountDue')}: {money(confirmedTotal)}
+                      </p>
+                    </div>
+                  ) : null}
+
+                  {paymentSandbox && isPaymentPending(payment?.status) ? (
+                    <div className="mt-5 rounded-2xl border border-dashed border-gold/60 bg-gold-pale p-4 sm:p-5">
+                      <p className="inline-flex items-center gap-2 text-[12px] font-bold text-gold-deep">
+                        <span className="material-symbols-outlined text-[16px]" aria-hidden="true">
+                          science
+                        </span>
+                        <span>{t('payment.sandbox')}</span>
+                      </p>
+                      <p className="mt-1 text-[11px] leading-relaxed text-gold-deep/80">
+                        {t('payment.sandboxText')}
+                      </p>
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        <button
+                          type="button"
+                          className="btn-primary btn-sm"
+                          disabled={sandboxBusy}
+                          onClick={() => void simulateSandbox(true)}
+                        >
+                          {t('payment.sandboxSuccess')}
+                        </button>
+                        <button
+                          type="button"
+                          className="btn-outline btn-sm"
+                          disabled={sandboxBusy}
+                          onClick={() => void simulateSandbox(false)}
+                        >
+                          {t('payment.sandboxFail')}
+                        </button>
+                      </div>
+                    </div>
+                  ) : null}
+
+                  {!paymentSucceeded ? (
+                    <div className="mt-5 flex flex-wrap gap-3">
+                      {!payment || paymentFailed ? (
+                        <button
+                          type="button"
+                          className="btn-primary"
+                          disabled={submitting}
+                          onClick={() => void retryPayment()}
+                        >
+                          <span>
+                            {submitting ? t('common.sending') : t('payment.retry')}
+                          </span>
+                          <span className="material-symbols-outlined text-[18px]" aria-hidden="true">
+                            refresh
+                          </span>
+                        </button>
+                      ) : null}
+                      <button type="button" className="btn-outline" onClick={changePaymentMethod}>
+                        {t('payment.changeMethod')}
+                      </button>
+                      {payment ? (
+                        <button
+                          type="button"
+                          className="btn-ghost"
+                          disabled={paymentQuery.isFetching}
+                          onClick={() => void paymentQuery.refetch()}
+                        >
+                          {paymentQuery.isFetching ? t('common.sending') : t('payment.refresh')}
+                        </button>
+                      ) : null}
+                    </div>
+                  ) : null}
+
+                  <dl className="mt-6 grid gap-x-6 gap-y-4 text-sm sm:grid-cols-2">
                     {[
-                      { label: 'summary.room', value: t(room.nameKey) },
-                      { label: 'summary.meal', value: t(meal.labelKey) },
-                      { label: 'confirmation.arrival', value: formatDate(form.checkin) },
-                      { label: 'confirmation.departure', value: formatDate(form.checkout) },
+                      { label: 'summary.room', value: confirmedRoom },
+                      { label: 'summary.meal', value: confirmedMeal },
+                      { label: 'confirmation.arrival', value: formatDate(confirmedCheckin) },
+                      { label: 'confirmation.departure', value: formatDate(confirmedCheckout) },
                       {
                         label: 'booking.guests',
-                        value: `${form.guests} ${t('common.guests').toLowerCase()} · ${nights} ${nightLabel}`,
+                        value: `${confirmedGuests} ${t('common.guests').toLowerCase()} · ${confirmedNights} ${nightLabel}`,
                       },
-                      { label: 'summary.total', value: money(total) },
+                      { label: 'summary.total', value: money(confirmedTotal) },
                     ].map((item) => (
                       <div key={item.label}>
                         <dt className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted">
@@ -1036,26 +1533,30 @@ export function BookingPage() {
                     ))}
                   </dl>
 
-                  <div className="mt-7 flex flex-wrap gap-3">
-                    <button type="button" className="btn-primary" onClick={downloadCalendar}>
-                      <span className="material-symbols-outlined text-[18px]" aria-hidden="true">
-                        calendar_add_on
-                      </span>
-                      <span>{t('confirmation.addCalendar')}</span>
-                    </button>
-                    <Link to="/" className="btn-outline">
-                      {t('confirmation.backHome')}
-                    </Link>
-                    <a
-                      href={whatsappHref()}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="btn-ghost"
-                    >
-                      {t('confirmation.whatsapp')}
-                    </a>
-                  </div>
-                  <p className="mt-5 text-[12px] text-muted">{t('confirmation.change')}</p>
+                  {paymentSucceeded ? (
+                    <>
+                      <div className="mt-7 flex flex-wrap gap-3">
+                        <button type="button" className="btn-primary" onClick={downloadCalendar}>
+                          <span className="material-symbols-outlined text-[18px]" aria-hidden="true">
+                            calendar_add_on
+                          </span>
+                          <span>{t('confirmation.addCalendar')}</span>
+                        </button>
+                        <Link to="/" className="btn-outline">
+                          {t('confirmation.backHome')}
+                        </Link>
+                        <a
+                          href={whatsappHref()}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="btn-ghost"
+                        >
+                          {t('confirmation.whatsapp')}
+                        </a>
+                      </div>
+                      <p className="mt-5 text-[12px] text-muted">{t('confirmation.change')}</p>
+                    </>
+                  ) : null}
                 </section>
               ) : null}
             </form>
@@ -1081,16 +1582,18 @@ export function BookingPage() {
                   <p className="mt-1 text-[12px] text-white/65">
                     {form.guests} {t('common.guests').toLowerCase()} · {nights} {nightLabel}
                   </p>
-                  <button
-                    type="button"
-                    onClick={() => goToStep(1)}
-                    className="mt-2 inline-flex min-h-[36px] items-center gap-1 text-[11px] font-semibold text-gold transition hover:text-gold-soft"
-                  >
-                    <span className="material-symbols-outlined text-[14px]" aria-hidden="true">
-                      edit_calendar
-                    </span>
-                    <span>{t('booking.checkin')}</span>
-                  </button>
+                  {step < 5 ? (
+                    <button
+                      type="button"
+                      onClick={() => goToStep(1)}
+                      className="mt-2 inline-flex min-h-[36px] items-center gap-1 text-[11px] font-semibold text-gold transition hover:text-gold-soft"
+                    >
+                      <span className="material-symbols-outlined text-[14px]" aria-hidden="true">
+                        edit_calendar
+                      </span>
+                      <span>{t('booking.checkin')}</span>
+                    </button>
+                  ) : null}
                 </div>
               </div>
               <div className="p-5">
@@ -1100,14 +1603,22 @@ export function BookingPage() {
                     <dd className="font-semibold text-forest">{money(roomTotal)}</dd>
                   </div>
                   <div className="flex items-center justify-between gap-3">
-                    <dt className="text-muted">{t(meal.labelKey)}</dt>
+                    <dt className="text-muted">{t('summary.mealTotal')}</dt>
                     <dd className="font-semibold text-forest">
-                      {meal.supplement === 0 ? t('meal.included') : money(mealTotal)}
+                      {mealTotal === 0 ? t('meal.included') : money(mealTotal)}
                     </dd>
                   </div>
+                  {discountTotal > 0 ? (
+                    <div className="flex items-center justify-between gap-3">
+                      <dt className="text-muted">{t('summary.discount')}</dt>
+                      <dd className="font-semibold text-forest">− {money(discountTotal)}</dd>
+                    </div>
+                  ) : null}
                   <div className="flex items-center justify-between gap-3">
                     <dt className="text-muted">{t('summary.taxes')}</dt>
-                    <dd className="font-semibold text-forest">{t('summary.included')}</dd>
+                    <dd className="font-semibold text-forest">
+                      {taxIncluded ? t('summary.included') : money(taxTotal)}
+                    </dd>
                   </div>
                   <div className="flex items-center justify-between gap-3 border-t border-line pt-3">
                     <dt className="text-sm font-bold text-forest">{t('summary.total')}</dt>
@@ -1118,11 +1629,19 @@ export function BookingPage() {
                     <dd className="font-semibold text-forest">{money(total)}</dd>
                   </div>
                 </dl>
+                {quoteError ? (
+                  <div
+                    role="alert"
+                    className="mt-4 rounded-xl bg-red-50 px-3 py-2 text-[11px] font-medium text-red-700"
+                  >
+                    {quoteError}
+                  </div>
+                ) : null}
                 <div className="mt-4 flex items-start gap-2 rounded-xl bg-gold-pale p-3 text-[11px] leading-relaxed text-gold-deep">
                   <span className="material-symbols-outlined text-[16px]" aria-hidden="true">
                     event_available
                   </span>
-                  <span>{t('summary.freeCancel')}</span>
+                  <span>{t('summary.freeCancelHours', { hours: cutoffHours })}</span>
                 </div>
                 <p className="mt-4 text-[11px] leading-relaxed text-muted">{t('summary.help')}</p>
                 <span className="sr-only">{HOTEL.contact.email}</span>
@@ -1162,16 +1681,27 @@ export function BookingPage() {
                   <dd className="font-semibold text-forest">{money(roomTotal)}</dd>
                 </div>
                 <div className="flex justify-between gap-3">
-                  <dt className="text-muted">{t(meal.labelKey)}</dt>
+                  <dt className="text-muted">{t('summary.mealTotal')}</dt>
                   <dd className="font-semibold text-forest">
-                    {meal.supplement === 0 ? t('meal.included') : money(mealTotal)}
+                    {mealTotal === 0 ? t('meal.included') : money(mealTotal)}
                   </dd>
                 </div>
+                {discountTotal > 0 ? (
+                  <div className="flex justify-between gap-3">
+                    <dt className="text-muted">{t('summary.discount')}</dt>
+                    <dd className="font-semibold text-forest">− {money(discountTotal)}</dd>
+                  </div>
+                ) : null}
                 <div className="flex justify-between gap-3">
                   <dt className="text-muted">{t('summary.taxes')}</dt>
-                  <dd className="font-semibold text-forest">{t('summary.included')}</dd>
+                  <dd className="font-semibold text-forest">
+                    {taxIncluded ? t('summary.included') : money(taxTotal)}
+                  </dd>
                 </div>
               </dl>
+              {quoteError ? (
+                <p className="mt-2 text-[11px] font-medium text-red-700">{quoteError}</p>
+              ) : null}
             </div>
           ) : null}
         </div>

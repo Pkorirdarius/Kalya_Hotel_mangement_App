@@ -22,7 +22,7 @@ interface I18nContextValue {
   language: Language;
   setLanguage: (language: Language) => void;
   toggleLanguage: () => void;
-  t: (key: string) => string;
+  t: (key: string, vars?: Record<string, string | number>) => string;
   formatDate: (iso: string) => string;
   formatMoney: (amount: number) => string;
 }

@@ -59,7 +59,7 @@ export const ROOMS: RoomType[] = [
   },
 ];
 
-export type MealPlanId = 'room-only' | 'breakfast' | 'half-board' | 'full-board';
+export type MealPlanId = 'room-only' | 'breakfast' | 'dinner' | 'half-board' | 'full-board';
 
 export interface MealPlan {
   id: MealPlanId;
@@ -71,6 +71,7 @@ export interface MealPlan {
 export const MEAL_PLANS: MealPlan[] = [
   { id: 'room-only', labelKey: 'meal.roomOnly', supplement: 0, noteKey: 'meal.roomOnlyNote' },
   { id: 'breakfast', labelKey: 'meal.breakfast', supplement: 1200, noteKey: 'meal.breakfastNote' },
+  { id: 'dinner', labelKey: 'meal.dinner', supplement: 1800, noteKey: 'meal.dinnerNote' },
   { id: 'half-board', labelKey: 'meal.halfBoard', supplement: 2800, noteKey: 'meal.halfBoardNote' },
   { id: 'full-board', labelKey: 'meal.fullBoard', supplement: 4200, noteKey: 'meal.fullBoardNote' },
 ];
