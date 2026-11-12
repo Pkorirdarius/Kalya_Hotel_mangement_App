@@ -6544,12 +6544,15 @@ components:
           maxLength: 200
         address:
           type: string
+          description: 'Needs hotel confirmation: sources disagree (Nairobi vs Kapenguria).'
           maxLength: 255
         town:
           type: string
+          description: 'Needs hotel confirmation: do not launch until checked.'
           maxLength: 120
         county:
           type: string
+          description: 'Needs hotel confirmation: do not launch until checked.'
           maxLength: 120
         country:
           type: string
@@ -6557,11 +6560,13 @@ components:
           maxLength: 120
         phone:
           type: string
+          description: 'Needs hotel confirmation: replace with the hotel''s real number.'
           maxLength: 40
         phone_href:
           type: string
           maxLength: 60
         email:
+          description: 'Needs hotel confirmation: replace with the hotel''s real inbox.'
           oneOf:
           - type: string
             format: email
@@ -6573,6 +6578,8 @@ components:
           maxLength: 40
         map_query:
           type: string
+          description: 'Needs hotel confirmation: pin the correct location on Google
+            Maps.'
           maxLength: 255
         currency:
           type: string
@@ -6977,23 +6984,28 @@ components:
           maxLength: 200
         address:
           type: string
+          description: 'Needs hotel confirmation: sources disagree (Nairobi vs Kapenguria).'
           maxLength: 255
         town:
           type: string
+          description: 'Needs hotel confirmation: do not launch until checked.'
           maxLength: 120
         county:
           type: string
+          description: 'Needs hotel confirmation: do not launch until checked.'
           maxLength: 120
         country:
           type: string
           maxLength: 120
         phone:
           type: string
+          description: 'Needs hotel confirmation: replace with the hotel''s real number.'
           maxLength: 40
         phone_href:
           type: string
           maxLength: 60
         email:
+          description: 'Needs hotel confirmation: replace with the hotel''s real inbox.'
           oneOf:
           - type: string
             format: email
@@ -7005,6 +7017,8 @@ components:
           maxLength: 40
         map_query:
           type: string
+          description: 'Needs hotel confirmation: pin the correct location on Google
+            Maps.'
           maxLength: 255
         currency:
           type: string
@@ -8208,23 +8222,28 @@ components:
           maxLength: 200
         address:
           type: string
+          description: 'Needs hotel confirmation: sources disagree (Nairobi vs Kapenguria).'
           maxLength: 255
         town:
           type: string
+          description: 'Needs hotel confirmation: do not launch until checked.'
           maxLength: 120
         county:
           type: string
+          description: 'Needs hotel confirmation: do not launch until checked.'
           maxLength: 120
         country:
           type: string
           maxLength: 120
         phone:
           type: string
+          description: 'Needs hotel confirmation: replace with the hotel''s real number.'
           maxLength: 40
         phone_href:
           type: string
           maxLength: 60
         email:
+          description: 'Needs hotel confirmation: replace with the hotel''s real inbox.'
           oneOf:
           - type: string
             format: email
@@ -8236,6 +8255,8 @@ components:
           maxLength: 40
         map_query:
           type: string
+          description: 'Needs hotel confirmation: pin the correct location on Google
+            Maps.'
           maxLength: 255
         currency:
           type: string

@@ -14,7 +14,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.common.models import HotelSetting
-from apps.common.utils import as_kes_int, hotel_today
+from apps.common.utils import as_kes_int, hotel_brand_token, hotel_today
 
 from .models import ConferenceEnquiry, GymDayPass, MenuItem, TableBooking
 from .serializers import (
@@ -302,7 +302,9 @@ class GymDayPassQrView(APIView):
         is_staff = bool(getattr(request.user, "is_staff", False))
         if not is_staff and token != str(gym_pass.qr_token):
             raise NotFound("That QR code is not available.")
-        payload = f"WESTPREMIER-GYM:{gym_pass.reference}:{gym_pass.qr_token}"
+        payload = (
+            f"{hotel_brand_token()}-GYM:{gym_pass.reference}:{gym_pass.qr_token}"
+        )
         image = qrcode.make(payload)
         buffer = io.BytesIO()
         image.save(buffer, format="PNG")

@@ -94,7 +94,10 @@ class ManualExportAdapter(HotelPlusAdapter):
         from reportlab.platypus import Paragraph
 
         elements = [
-            Paragraph(f"West Premier Hotel · HotelPlus export · {day}", styles["Title"]),
+            Paragraph(
+                f"{settings.HOTEL['NAME']} · HotelPlus export · {day}",
+                styles["Title"],
+            ),
             Paragraph(
                 f"Generated {timezone.localtime():%d %b %Y %H:%M} · confirmed arrivals",
                 styles["Normal"],

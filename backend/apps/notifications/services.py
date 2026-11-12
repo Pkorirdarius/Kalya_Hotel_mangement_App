@@ -7,6 +7,7 @@ from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 
 from apps.common.models import HotelSetting
+from apps.common.utils import hotel_display_name
 
 from .models import NotificationLog
 from .providers import get_sms_provider
@@ -127,11 +128,12 @@ def notify_booking_confirmed(booking, language: str | None = None) -> None:
             entity=booking,
         )
     if booking.phone:
+        hotel_name = hotel_display_name()
         message = (
-            f"West Premier Hotel: booking {booking.reference} confirmed. "
+            f"{hotel_name}: booking {booking.reference} confirmed. "
             f"Check-in {booking.checkin:%d %b %Y}."
             if language == "en"
-            else f"West Premier Hotel: nafasi {booking.reference} imethibitishwa. "
+            else f"{hotel_name}: nafasi {booking.reference} imethibitishwa. "
             f"Kuingia {booking.checkin:%d %b %Y}."
         )
         send_sms(
@@ -174,7 +176,7 @@ def notify_gym_pass(gym_pass) -> None:
         kind="gym_day_pass",
         recipient=gym_pass.phone,
         message=(
-            f"West Premier Hotel: gym day pass {gym_pass.reference} confirmed "
+            f"{hotel_display_name()}: gym day pass {gym_pass.reference} confirmed "
             f"for {gym_pass.date:%d %b %Y}. Show this reference at reception."
         ),
         entity=gym_pass,
@@ -194,6 +196,9 @@ def notify_escalation(item, *, label: str, detail: str) -> None:
     send_sms(
         kind="frontdesk_escalation",
         recipient=settings.MANAGER_EMAIL,
-        message=f"West Premier front desk overdue: {label} {getattr(item, 'reference', '')}",
+        message=(
+            f"{hotel_display_name()} front desk overdue: {label} "
+            f"{getattr(item, 'reference', '')}"
+        ),
         entity=item,
     )

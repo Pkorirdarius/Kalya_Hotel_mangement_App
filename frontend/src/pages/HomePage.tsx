@@ -3,8 +3,8 @@ import { Link } from 'react-router-dom';
 import { BookingSearchForm } from '../components/BookingSearchForm';
 import { NewsletterForm } from '../components/NewsletterForm';
 import { usePageMeta } from '../components/Page';
+import { whatsappHref } from '../config/hotel';
 import { useI18n } from '../i18n-context';
-import { WHATSAPP_NUMBER } from '../lib/constants';
 import { ROOMS } from '../types';
 
 const WHY_CARDS = [
@@ -35,7 +35,7 @@ const FACILITIES = [
   {
     to: '/dining?venue=restaurant',
     image: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&w=900&q=80',
-    alt: 'Tulia Restaurant dining room with warm lighting',
+    alt: 'home.facilities.restaurantAlt',
     icon: 'restaurant',
     name: 'facility.restaurant.name',
     description: 'facility.restaurant.description',
@@ -44,7 +44,7 @@ const FACILITIES = [
   {
     to: '/dining?venue=coffee',
     image: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=900&q=80',
-    alt: 'Jacaranda Café with a long communal table and espresso bar',
+    alt: 'home.facilities.coffeeAlt',
     icon: 'local_cafe',
     name: 'facility.coffee.name',
     description: 'facility.coffee.description',
@@ -53,7 +53,7 @@ const FACILITIES = [
   {
     to: '/conference',
     image: 'https://images.unsplash.com/photo-1505373877841-8d25f7d46678?auto=format&fit=crop&w=900&q=80',
-    alt: 'Kilele Hall set up for a workshop with rows of chairs',
+    alt: 'home.facilities.hallAlt',
     icon: 'co_present',
     name: 'facility.conference.name',
     description: 'facility.conference.description',
@@ -62,7 +62,7 @@ const FACILITIES = [
   {
     to: '/gym',
     image: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=900&q=80',
-    alt: 'West Premier Fitness gym with cardio machines and free weights',
+    alt: 'home.facilities.gymAlt',
     icon: 'fitness_center',
     name: 'facility.gym.name',
     description: 'facility.gym.description',
@@ -160,10 +160,7 @@ function Stars({ size = 15, className = '' }: { size?: number; className?: strin
 
 export function HomePage() {
   const { t, formatMoney } = useI18n();
-  usePageMeta(
-    'West Premier Hotel — A warm welcome in Westlands, Kapenguria',
-    'West Premier Hotel is a warm, independent hotel in Westlands, Kapenguria for NGO teams, business travellers and local residents. Book direct for the best rate, free cancellation and M-Pesa payment.',
-  );
+  usePageMeta(t('meta.home.title'), t('meta.home.description'));
 
   const carouselRef = useRef<HTMLDivElement>(null);
   const prevRef = useRef<HTMLButtonElement>(null);
@@ -402,7 +399,7 @@ export function HomePage() {
               >
                 <img
                   src={facility.image}
-                  alt={facility.alt}
+                  alt={t(facility.alt)}
                   className="aspect-[4/5] w-full object-cover opacity-85 transition duration-700 group-hover:scale-105 group-hover:opacity-100"
                   loading="lazy"
                 />
@@ -592,7 +589,7 @@ export function HomePage() {
                 {t('rooms.help.cta')}
               </Link>
               <a
-                href={`https://wa.me/${WHATSAPP_NUMBER}`}
+                href={whatsappHref()}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="btn-primary btn-sm"

@@ -1,5 +1,5 @@
 /**
- * Thin typed fetch wrapper around the West Premier REST API.
+ * Thin typed fetch wrapper around the hotel REST API.
  *
  * - Reads the base URL from `VITE_API_URL` (defaults to `/api/v1`).
  * - Sends the Django CSRF cookie as `X-CSRFToken` on unsafe requests.
@@ -20,14 +20,17 @@ export class ApiError extends Error {
   readonly code: string;
   readonly fields: Record<string, string[]> | null;
   readonly requestId: string | null;
+  /** Seconds the server asked us to wait (HTTP 429 Retry-After). */
+  readonly retryAfterSeconds: number | null;
 
-  constructor(status: number, body: ApiErrorBody) {
+  constructor(status: number, body: ApiErrorBody, retryAfterSeconds: number | null = null) {
     super(body.message);
     this.name = 'ApiError';
     this.status = status;
     this.code = body.code;
     this.fields = body.fields;
     this.requestId = body.request_id;
+    this.retryAfterSeconds = retryAfterSeconds;
   }
 }
 
@@ -74,7 +77,18 @@ function buildUrl(path: string, params?: Record<string, QueryValue>): string {
   return `${base}${base.includes('?') ? '&' : '?'}${query}`;
 }
 
-function normaliseError(status: number, payload: unknown): ApiError {
+function retryAfterSeconds(headers: Headers): number | null {
+  const raw = headers.get('retry-after');
+  if (!raw) return null;
+  const seconds = Number.parseInt(raw, 10);
+  return Number.isFinite(seconds) && seconds >= 0 ? seconds : null;
+}
+
+function normaliseError(
+  status: number,
+  payload: unknown,
+  retryAfter: number | null = null,
+): ApiError {
   const fallback: ApiErrorBody = {
     code: status === 404 ? 'not_found' : 'request_failed',
     message:
@@ -88,15 +102,19 @@ function normaliseError(status: number, payload: unknown): ApiError {
   if (payload && typeof payload === 'object') {
     const envelope = payload as { error?: Partial<ApiErrorBody> };
     if (envelope.error) {
-      return new ApiError(status, {
-        ...fallback,
-        ...envelope.error,
-        fields: (envelope.error.fields as Record<string, string[]> | null) ?? null,
-      });
+      return new ApiError(
+        status,
+        {
+          ...fallback,
+          ...envelope.error,
+          fields: (envelope.error.fields as Record<string, string[]> | null) ?? null,
+        },
+        retryAfter,
+      );
     }
     const detail = (payload as { detail?: unknown }).detail;
     if (typeof detail === 'string') {
-      return new ApiError(status, { ...fallback, message: detail });
+      return new ApiError(status, { ...fallback, message: detail }, retryAfter);
     }
     const plain: Record<string, string[]> = {};
     for (const [key, value] of Object.entries(payload as Record<string, unknown>)) {
@@ -104,11 +122,15 @@ function normaliseError(status: number, payload: unknown): ApiError {
       else if (typeof value === 'string') plain[key] = [value];
     }
     if (Object.keys(plain).length > 0) {
-      return new ApiError(status, { ...fallback, code: 'validation_error', fields: plain });
+      return new ApiError(
+        status,
+        { ...fallback, code: 'validation_error', fields: plain },
+        retryAfter,
+      );
     }
   }
 
-  return new ApiError(status, fallback);
+  return new ApiError(status, fallback, retryAfter);
 }
 
 export async function apiRequest<T>(path: string, options: RequestOptions = {}): Promise<T> {
@@ -127,13 +149,26 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
     if (token) headers['X-CSRFToken'] = token;
   }
 
-  const response = await fetch(buildUrl(path, options.params), {
-    method,
-    headers,
-    credentials: 'include',
-    signal: options.signal,
-    body: options.body === undefined ? undefined : JSON.stringify(options.body),
-  });
+  let response: Response;
+  try {
+    response = await fetch(buildUrl(path, options.params), {
+      method,
+      headers,
+      credentials: 'include',
+      signal: options.signal,
+      body: options.body === undefined ? undefined : JSON.stringify(options.body),
+    });
+  } catch (error) {
+    if (error instanceof DOMException && error.name === 'AbortError') {
+      throw error;
+    }
+    throw new ApiError(0, {
+      code: 'network_error',
+      message: 'We could not reach the hotel server. Check your connection and try again.',
+      fields: null,
+      request_id: null,
+    });
+  }
 
   if (response.status === 204) {
     return undefined as T;
@@ -145,7 +180,7 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
     : await response.text().catch(() => null);
 
   if (!response.ok) {
-    throw normaliseError(response.status, payload);
+    throw normaliseError(response.status, payload, retryAfterSeconds(response.headers));
   }
 
   return payload as T;

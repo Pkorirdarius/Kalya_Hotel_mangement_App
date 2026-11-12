@@ -50,10 +50,7 @@ export function GymPage() {
   const [errors, setErrors] = useState<Errors>({});
   const [sending, setSending] = useState(false);
 
-  usePageMeta(
-    'West Premier Fitness — West Premier Hotel, Kapenguria',
-    'West Premier Fitness in Westlands, Kapenguria. Day passes, monthly and annual memberships, cardio, weights and group classes. Open early and late for guests and residents.',
-  );
+  usePageMeta(t('meta.gym.title'), t('meta.gym.description'));
 
   const openDialog = () => {
     setErrors({});
@@ -128,7 +125,7 @@ export function GymPage() {
           </div>
           <img
             src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=1400&q=85"
-            alt="West Premier Fitness gym with cardio equipment and free weights"
+            alt={t('gym.heroAlt')}
             className="aspect-[5/4] w-full rounded-[28px] object-cover shadow-lift"
             fetchPriority="high"
           />

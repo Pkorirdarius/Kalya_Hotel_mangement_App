@@ -1,5 +1,5 @@
 /**
- * Typed endpoint functions for the West Premier public + staff API.
+ * Typed endpoint functions for the hotel public + staff API.
  *
  * Everything here is generated from `backend/openapi.yaml` via `npm run api:types`.
  * Pages and hooks call these functions; they never build URLs themselves.

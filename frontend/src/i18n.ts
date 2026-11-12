@@ -1,8 +1,9 @@
+import { brandTemplateVars } from './config/hotel';
 import type { Language, LanguageChangeDetail } from './types';
 
-const STORAGE_KEY = 'westside.language';
+const STORAGE_KEY = 'hotel.language';
 
-export const LANGUAGE_CHANGE_EVENT = 'westside:languagechange';
+export const LANGUAGE_CHANGE_EVENT = 'hotel:languagechange';
 
 interface Entry {
   en: string;
@@ -40,7 +41,7 @@ const entries: Record<string, Entry> = {
   'common.bookNow': { en: 'Book now', sw: 'Weka nafasi sasa' },
   'common.perPerson': { en: 'per person', sw: 'kwa mtu' },
   'common.openNow': { en: 'Open now', sw: 'Iko wazi sasa' },
-  'common.homeLabel': { en: 'Westside Hotel home', sw: 'Nyumbani Westside Hotel' },
+  'common.homeLabel': { en: '{name} home', sw: 'Nyumbani {name}' },
 
   'nav.home': { en: 'Home', sw: 'Nyumbani' },
   'nav.rooms': { en: 'Rooms', sw: 'Vyumba' },
@@ -53,12 +54,13 @@ const entries: Record<string, Entry> = {
   'nav.dashboard': { en: 'Front desk dashboard', sw: 'Dashibodi ya mapokezi' },
   'nav.menu': { en: 'Menu', sw: 'Menyu' },
 
-  'header.location': { en: 'Kapenguria, West Pokot', sw: 'Kapenguria, West Pokot' },
-  'header.phoneLabel': { en: 'Call +254 20 765 4321', sw: 'Piga +254 20 765 4321' },
+  'header.location': { en: '{town}, {county}', sw: '{town}, {county}' },
+  'header.phoneLabel': { en: 'Call {phone}', sw: 'Piga {phone}' },
   'header.language': { en: 'Language', sw: 'Lugha' },
   'header.openMenu': { en: 'Open navigation menu', sw: 'Fungua menyu' },
   'header.closeMenu': { en: 'Close navigation menu', sw: 'Funga menyu' },
   'header.book': { en: 'Book Direct', sw: 'Weka Nafasi' },
+  'header.bestRate': { en: 'Best rate direct', sw: 'Bei bora moja kwa moja' },
 
   'footer.about': {
     en: 'A warm, independent hotel in Kapenguria, West Pokot — built for people who travel with purpose.',
@@ -74,17 +76,18 @@ const entries: Record<string, Entry> = {
   'footer.terms': { en: 'Terms', sw: 'Masharti' },
   'footer.staff': { en: 'Staff login', sw: 'Kuingia kwa wafanyakazi' },
   'footer.newsletter': { en: 'Join our monthly note', sw: 'Jiunge na barua yetu ya mwezi' },
-  'footer.address': { en: '12 Jacaranda Lane, Kapenguria, West Pokot', sw: '12 Jacaranda Lane, Kapenguria, West Pokot' },
-  'footer.phone': { en: '+254 20 765 4321', sw: '+254 20 765 4321' },
-  'footer.email': { en: 'stay@westsidehotel.co.ke', sw: 'stay@westsidehotel.co.ke' },
-  'footer.whatsapp': { en: 'WhatsApp: +254 712 345 678', sw: 'WhatsApp: +254 712 345 678' },
+  'footer.address': { en: '{address}', sw: '{address}' },
+  'footer.phone': { en: '{phone}', sw: '{phone}' },
+  'footer.email': { en: '{email}', sw: '{email}' },
+  'footer.whatsapp': { en: 'WhatsApp: {whatsappDisplay}', sw: 'WhatsApp: {whatsappDisplay}' },
+  'footer.secure': { en: 'Secure booking', sw: 'Kuweka nafasi kwa usalama' },
   'footer.map': { en: 'View on map', sw: 'Tazama kwenye ramani' },
-  'footer.social': { en: 'Follow Westside', sw: 'Mfuate Westside' },
+  'footer.social': { en: 'Follow {shortName}', sw: 'Mfuate {shortName}' },
 
-  'whatsapp.label': { en: 'Chat with Westside on WhatsApp', sw: 'Zungumza na Westside kwenye WhatsApp' },
+  'whatsapp.label': { en: 'Chat with {shortName} on WhatsApp', sw: 'Zungumza na {shortName} kwenye WhatsApp' },
   'whatsapp.message': {
-    en: 'Hello Westside Hotel, I would like to ask about a stay.',
-    sw: 'Habari Westside Hotel, ningependa kuuliza kuhusu kukaa.',
+    en: 'Hello {name}, I would like to ask about a stay.',
+    sw: 'Habari {name}, ningependa kuuliza kuhusu kukaa.',
   },
 
   'booking.checkin': { en: 'Check-in', sw: 'Kuingia' },
@@ -100,19 +103,19 @@ const entries: Record<string, Entry> = {
   'booking.bestRate': { en: 'Best rate guaranteed', sw: 'Bei bora imehakikishiwa' },
   'booking.freeCancelShort': { en: 'Free cancellation up to 48 hours', sw: 'Kughairi bila malipo hadi saa 48' },
 
-  'home.hero.eyebrow': { en: 'Kapenguria, West Pokot · Since 2014', sw: 'Kapenguria, West Pokot · Tangu 2014' },
-  'home.hero.title': { en: 'A warm welcome in the heart of Kapenguria.', sw: 'Karibu sana katikati ya Kapenguria.' },
+  'home.hero.eyebrow': { en: '{town}, {county} · Since 2014', sw: '{town}, {county} · Tangu 2014' },
+  'home.hero.title': { en: 'A warm welcome in the heart of {town}.', sw: 'Karibu sana katikati ya {town}.' },
   'home.hero.text': {
-    en: 'Quiet rooms, honest food and a team that knows your name. Westside is a calm base for NGO teams, business travellers and neighbours from across West Pokot.',
-    sw: 'Vyumba vya utulivu, chakula cha kweli na timu inayojua jina lako. Westside ni kituo tulivu kwa timu za NGO, wasafiri wa biashara na majirani kote West Pokot.',
+    en: 'Quiet rooms, honest food and a team that knows your name. {shortName} is a calm base for NGO teams, business travellers and neighbours from across {county}.',
+    sw: 'Vyumba vya utulivu, chakula cha kweli na timu inayojua jina lako. {shortName} ni kituo tulivu kwa timu za NGO, wasafiri wa biashara na majirani kote {county}.',
   },
   'home.hero.rating': { en: '4.8 out of 5', sw: '4.8 kati ya 5' },
   'home.hero.ratingLabel': { en: '386 Google reviews', sw: 'Maoni 386 ya Google' },
   'home.hero.frontDesk': { en: '24/7 front desk', sw: 'Mapokezi saa 24' },
   'home.hero.parking': { en: 'Secure parking', sw: 'Maegesho salama' },
   'home.hero.imageAlt': {
-    en: 'Warm evening light over the pool terrace at Westside Hotel in Kapenguria',
-    sw: 'Mwangaza wa jioni kwenye eneo la bwawa la Westside Hotel Kapenguria',
+    en: 'Warm evening light over the pool terrace at {name} in {town}',
+    sw: 'Mwangaza wa jioni kwenye eneo la bwawa la {name} {town}',
   },
 
   'home.why.eyebrow': { en: 'Why book direct', sw: 'Kwa nini weka nafasi moja kwa moja' },
@@ -194,10 +197,26 @@ const entries: Record<string, Entry> = {
   'facility.conference.description': { en: 'A flexible hall for workshops, board meetings and small conferences.', sw: 'Ukumbi unaobadilika kwa warsha, mikutano ya bodi na makongamano madogo.' },
   'facility.conference.hours': { en: '6:00am – 9:00pm daily', sw: '6:00am – 9:00pm kila siku' },
   'facility.conference.capacity': { en: 'Up to 100 guests · Open to non-guests by booking', sw: 'Hadi wageni 100 · Wazi kwa wasio wageni kwa kuweka nafasi' },
-  'facility.gym.name': { en: 'Westside Fitness', sw: 'Westside Fitness' },
+  'facility.gym.name': { en: '{gymName}', sw: '{gymName}' },
   'facility.gym.description': { en: 'Cardio, weights and a trainer who knows your name.', sw: 'Mazoezi ya moyo, uzito na mkufunzi anayejua jina lako.' },
   'facility.gym.hours': { en: '5:00am – 9:00pm daily', sw: '5:00am – 9:00pm kila siku' },
   'facility.gym.capacity': { en: '20 at a time · Open to non-guests with a day pass', sw: 'Watu 20 kwa wakati mmoja · Wazi kwa wasio wageni kwa pasi ya siku' },
+
+  // Facility card image alts. Swahili is machine-translated; see the
+  // marketing-review note in docs/LAUNCH-CHECKLIST.md.
+  'home.facilities.restaurantAlt': { en: '{restaurantName} dining room with warm lighting', sw: 'Ukumbi wa kula wa {restaurantName} wenye mwanga wa utulivu' },
+  'home.facilities.coffeeAlt': { en: '{cafeName} with a long communal table and espresso bar', sw: '{cafeName} yenye meza ndefu ya pamoja na baa ya espresso' },
+  'home.facilities.hallAlt': { en: '{hallName} set up for a workshop with rows of chairs', sw: '{hallName} imepangwa kwa warsha na safu za viti' },
+  'home.facilities.gymAlt': { en: '{gymName} gym with cardio machines and free weights', sw: 'Chumba cha mazoezi cha {gymName} na vifaa vya moyo na uzito' },
+
+  'rooms.heroAlt': { en: 'Warm hotel lounge at {name} with natural textures and soft seating', sw: 'Sebule ya utulivu kwenye {name} yenye muundo wa asili na viti vilivyofaa' },
+
+  'facilities.heroAlt': { en: 'Warm shared lounge and restaurant at {name}', sw: 'Sebule na mgahawa wa pamoja wenye utulivu kwenye {name}' },
+  'facilities.gymCardAlt': { en: '{gymName} gym with cardio equipment and free weights', sw: 'Chumba cha mazoezi cha {gymName} na vifaa vya moyo na uzito' },
+  'conference.heroAlt': { en: '{hallName} set for a conference at {name}', sw: '{hallName} imeandaliwa kwa kongamano kwenye {name}' },
+  'gym.heroAlt': { en: '{gymName} gym with cardio equipment and free weights', sw: 'Chumba cha mazoezi cha {gymName} na vifaa vya moyo na uzito' },
+  'contact.heroAlt': { en: 'The warm lobby lounge at {name}', sw: 'Sebule ya ukarimu kwenye {name}' },
+  'offers.featuredAlt': { en: 'A calm Standard Executive room at {name}', sw: 'Chumba tulivu cha Standard Executive kwenye {name}' },
   'facility.explore': { en: 'Explore', sw: 'Chunguza' },
 
   'home.offers.eyebrow': { en: 'Current offers', sw: 'Ofa za sasa' },
@@ -347,7 +366,7 @@ const entries: Record<string, Entry> = {
   'field.requests': { en: 'Special requests', sw: 'Maombi maalum' },
   'field.requestsPlaceholder': { en: 'Quiet room, extra pillow, late check-in…', sw: 'Chumba tulivu, mto wa ziada, kuingia kwa kuchelewa…' },
   'field.terms': { en: 'I agree to the booking terms and cancellation policy.', sw: 'Nakubali masharti ya kuweka nafasi na sera ya kughairi.' },
-  'field.marketing': { en: 'Send me occasional offers from Westside (optional).', sw: 'Nitumie ofa za mara kwa mara kutoka Westside (si lazima).' },
+  'field.marketing': { en: 'Send me occasional offers from {shortName} (optional).', sw: 'Nitumie ofa za mara kwa mara kutoka {shortName} (si lazima).' },
   'arrival.afternoon': { en: 'Afternoon (12pm – 4pm)', sw: 'Mchana (12pm – 4pm)' },
   'arrival.evening': { en: 'Evening (4pm – 8pm)', sw: 'Jioni (4pm – 8pm)' },
   'arrival.late': { en: 'Late (after 8pm)', sw: 'Usiku (baada ya 8pm)' },
@@ -364,7 +383,7 @@ const entries: Record<string, Entry> = {
   'payment.mpesa': { en: 'M-Pesa', sw: 'M-Pesa' },
   'payment.mpesaText': { en: 'Enter the phone number registered to M-Pesa. We will send a payment prompt.', sw: 'Weka namba ya simu iliyosajiliwa kwa M-Pesa. Tutatuma ombi la malipo.' },
   'payment.mpesaPhone': { en: 'M-Pesa phone number', sw: 'Namba ya simu ya M-Pesa' },
-  'payment.mpesaHint': { en: 'You will receive an STK push from Westside Hotel. Approve it with your PIN.', sw: 'Utapokea ombi la malipo kutoka Westside Hotel. Lidhibitishe kwa PIN yako.' },
+  'payment.mpesaHint': { en: 'You will receive an STK push from {name}. Approve it with your PIN.', sw: 'Utapokea ombi la malipo kutoka {name}. Lidhibitishe kwa PIN yako.' },
   'payment.card': { en: 'Card', sw: 'Kadi' },
   'payment.cardText': { en: 'Visa, Mastercard and American Express are accepted.', sw: 'Visa, Mastercard na American Express zinakubaliwa.' },
   'payment.cardNumber': { en: 'Card number', sw: 'Namba ya kadi' },
@@ -454,7 +473,7 @@ const entries: Record<string, Entry> = {
     sw: 'Wakazi wa eneo wanaweza kuweka meza, kukodi ukumbi au kununua pasi ya mazoezi bila kuweka chumba.',
   },
 
-  'dining.eyebrow': { en: 'Dining at Westside', sw: 'Chakula Westside' },
+  'dining.eyebrow': { en: 'Dining at {shortName}', sw: 'Chakula {shortName}' },
   'dining.chooseRoom': { en: 'Choose a dining room', sw: 'Chagua chumba cha kulia' },
   'dining.title': { en: 'A table for every kind of day.', sw: 'Meza kwa kila aina ya siku.' },
   'dining.text': {
@@ -601,7 +620,7 @@ const entries: Record<string, Entry> = {
   'session.afternoon': { en: 'Afternoon (1pm – 5pm)', sw: 'Mchana (1pm – 5pm)' },
   'session.full': { en: 'Full day (8am – 5pm)', sw: 'Siku nzima (8am – 5pm)' },
 
-  'gym.eyebrow': { en: 'Westside Fitness', sw: 'Westside Fitness' },
+  'gym.eyebrow': { en: '{gymName}', sw: '{gymName}' },
   'gym.title': { en: 'Small gym. Serious habits.', sw: 'Mazoezi madogo. Tabia kubwa.' },
   'gym.text': {
     en: 'A calm, well-equipped space for hotel guests and Kapenguria residents — open early, open late, with a trainer who knows your name.',
@@ -800,7 +819,7 @@ const entries: Record<string, Entry> = {
   'contact.submit': { en: 'Send message', sw: 'Tuma ujumbe' },
   'contact.response': { en: 'We reply within one working day.', sw: 'Tunajibu ndani ya siku moja ya kazi.' },
   'contact.successTitle': { en: 'Message sent.', sw: 'Ujumbe umetumwa.' },
-  'contact.successText': { en: 'Thank you — the front desk will reply within one working day. For anything urgent, call +254 20 765 4321.', sw: 'Asante — mapokezi yatajibu ndani ya siku moja ya kazi. Kwa jambo la haraka, piga +254 20 765 4321.' },
+  'contact.successText': { en: 'Thank you — the front desk will reply within one working day. For anything urgent, call {phone}.', sw: 'Asante — mapokezi yatajibu ndani ya siku moja ya kazi. Kwa jambo la haraka, piga {phone}.' },
   'contact.topicLabel': { en: 'Topic', sw: 'Mada' },
   'contact.another': { en: 'Send another message', sw: 'Tuma ujumbe mwingine' },
   'contact.details.title': { en: 'Find us', sw: 'Tupate' },
@@ -812,13 +831,73 @@ const entries: Record<string, Entry> = {
   'contact.getting.text': { en: 'Five minutes from Kapenguria town centre, just off the Kitale–Lodwar road. Secure parking on site.', sw: 'Dakika tano kutoka katikati ya mji wa Kapenguria, kando ya barabara ya Kitale–Lodwar. Maegesho salama yapo.' },
   'contact.parking': { en: 'Secure parking', sw: 'Maegesho salama' },
   'contact.transfer': { en: 'Airport transfers', sw: 'Usafiri wa uwanja wa ndege' },
-  'contact.mapTitle': { en: 'Map of Westside Hotel in Kapenguria, West Pokot', sw: 'Ramani ya Westside Hotel Kapenguria, West Pokot' },
+  'contact.mapTitle': { en: 'Map of {name} in {town}, {county}', sw: 'Ramani ya {name} {town}, {county}' },
   'topic.general': { en: 'General enquiry', sw: 'Swali la jumla' },
   'topic.booking': { en: 'A booking', sw: 'Nafasi ya kukaa' },
   'topic.dining': { en: 'Restaurant or café', sw: 'Mgahawa au mkahawa' },
   'topic.conference': { en: 'Conference hall', sw: 'Ukumbi wa mikutano' },
   'topic.gym': { en: 'Gym & membership', sw: 'Mazoezi na uanachama' },
   'topic.group': { en: 'Group stay', sw: 'Kukaa kwa kikundi' },
+
+  // --- Page meta titles & descriptions -----------------------------------
+  // NOTE: the Swahili meta strings below are machine-translated and still
+  // need a marketing review before launch (see docs/LAUNCH-CHECKLIST.md).
+  'meta.home.title': { en: '{name} — A warm welcome in {town}, {county}', sw: '{name} — Karibu kwenye utulivu wa {town}, {county}' },
+  'meta.home.description': {
+    en: '{name} is a warm, independent hotel in {town}, {county} for NGO teams, business travellers and local residents. Book direct for the best rate, free cancellation and M-Pesa payment.',
+    sw: '{name} ni hoteli huru yenye ukarimu huko {town}, {county} kwa timu za NGO, wasafiri wa biashara na wakazi wa eneo. Weka nafasi moja kwa moja kwa bei bora, kughairi bure na malipo ya M-Pesa.',
+  },
+  'meta.rooms.title': { en: 'Rooms & Suites — {name}, {town}', sw: 'Vyumba na Suites — {name}, {town}' },
+  'meta.rooms.description': {
+    en: 'Three room types at {name} in {town}: Standard Executive, Deluxe Garden Suite and Mara Residence. Fast fibre Wi-Fi, free cancellation and direct-booking rates.',
+    sw: 'Aina tatu za vyumba kwenye {name} huko {town}: Standard Executive, Deluxe Garden Suite na Mara Residence. Wi-Fi ya fibre ya haraka, kughairi bure na bei za moja kwa moja.',
+  },
+  'meta.booking.title': { en: 'Book Direct — {name}, {town}', sw: 'Weka Nafasi Moja kwa Moja — {name}, {town}' },
+  'meta.booking.description': {
+    en: 'Book direct with {name} in {town}. Best rate guaranteed, free cancellation up to 48 hours and M-Pesa, card or bank payment.',
+    sw: 'Weka nafasi moja kwa moja na {name} huko {town}. Bei bora imehakikishiwa, kughairi bure hadi saa 48 na malipo ya M-Pesa, kadi au benki.',
+  },
+  'meta.facilities.title': { en: 'Facilities — {name}, {town}', sw: 'Huduma — {name}, {town}' },
+  'meta.facilities.description': {
+    en: 'Restaurant, coffee shop, conference hall and gym at {name} in {town}. Open to hotel guests and local residents.',
+    sw: 'Mgahawa, mkahawa, ukumbi wa mikutano na chumba cha mazoezi kwenye {name} huko {town}. Wazi kwa wageni wa hoteli na wakazi wa eneo.',
+  },
+  'meta.dining.title': { en: 'Dining — {name}, {town}', sw: 'Chakula — {name}, {town}' },
+  'meta.dining.description': {
+    en: '{restaurantName} and {cafeName} at {name} in {town}. All-day dining, Kenyan coffee and table reservations.',
+    sw: '{restaurantName} na {cafeName} kwenye {name} huko {town}. Chakula cha siku nzima, kahawa ya Kenya na uwekaji meza.',
+  },
+  'meta.conference.title': { en: 'Conference & Events — {name}, {town}', sw: 'Mikutano na Hafla — {name}, {town}' },
+  'meta.conference.description': {
+    en: 'Hire {hallName} at {name} in {town}. Flexible layouts for 8–120 guests, fibre Wi-Fi, projector, sound and catering. Check availability or request a quote.',
+    sw: 'Kodi {hallName} kwenye {name} huko {town}. Mpangilio unaobadilika kwa wageni 8–120, Wi-Fi ya fibre, projekta, sauti na huduma ya chakula. Angalia upatikanaji au ombi bei.',
+  },
+  'meta.gym.title': { en: '{gymName} — {name}, {town}', sw: '{gymName} — {name}, {town}' },
+  'meta.gym.description': {
+    en: '{gymName} in {town}. Day passes, monthly and annual memberships, cardio, weights and group classes. Open early and late for guests and residents.',
+    sw: '{gymName} huko {town}. Pasi za siku, uanachama wa mwezi na mwaka, mazoezi ya moyo, uzito na madarasa ya kikundi. Wazi asubuhi na jioni kwa wageni na wakazi.',
+  },
+  'meta.offers.title': { en: 'Offers & Journal — {name}, {town}', sw: 'Ofa na Jarida — {name}, {town}' },
+  'meta.offers.description': {
+    en: 'Direct-only rates, seasonal menus and notes from the neighbourhood at {name} in {town}.',
+    sw: 'Bei za moja kwa moja, menyu za msimu na maelezo kutoka kwa jirani kwenye {name} huko {town}.',
+  },
+  'meta.contact.title': { en: 'Contact — {name}, {town}', sw: 'Mawasiliano — {name}, {town}' },
+  'meta.contact.description': {
+    en: 'Contact {name} in {town}. Call, WhatsApp or email the 24-hour front desk for stays, dining, conferences and gym membership.',
+    sw: 'Wasiliana na {name} huko {town}. Piga simu, WhatsApp au barua pepe kwa mapokezi ya saa 24 kwa kukaa, chakula, mikutano na uanachama wa mazoezi.',
+  },
+  'meta.notFound.title': { en: 'Page not found — {name}, {town}', sw: 'Ukurasa haupatikani — {name}, {town}' },
+  'meta.dashboard.title': { en: 'Front Desk Dashboard — {name}', sw: 'Dashibodi ya Mapokezi — {name}' },
+
+  'notFound.title': { en: 'This page has checked out.', sw: 'Ukurasa huu umeondoka.' },
+  'notFound.text': {
+    en: 'The page you were looking for is not here. Head back to the lobby, or book a room for your next stay.',
+    sw: 'Ukurasa ulioudata hauko hapa. Rudi kwenye ukumbi, au weka nafasi ya chumba kwa kukaa kwako ijayo.',
+  },
+  'notFound.ctaHome': { en: 'Back to home', sw: 'Rudi nyumbani' },
+  'notFound.ctaRooms': { en: 'View rooms', sw: 'Tazama vyumba' },
+  'notFound.ctaContact': { en: 'Contact us', sw: 'Wasiliana nasi' },
 
   'validation.name': { en: 'Enter your name.', sw: 'Weka jina lako.' },
   'validation.date': { en: 'Choose a valid date.', sw: 'Chagua tarehe sahihi.' },
@@ -855,28 +934,34 @@ export function getCurrentLanguage(): Language {
   return currentLanguage;
 }
 
-export function t(key: string): string {
-  const entry = translations[key];
-  if (!entry) {
-    return key;
+/** Replace {token} placeholders using brand values plus per-call extras. */
+function interpolate(template: string, vars?: Record<string, string | number>): string {
+  if (!template.includes('{')) {
+    return template;
   }
-  return entry[currentLanguage] ?? entry.en;
+  const merged: Record<string, string | number> = { ...brandTemplateVars(), ...vars };
+  return template.replace(/\{(\w+)\}/g, (match, token: string) =>
+    token in merged ? String(merged[token]) : match,
+  );
+}
+
+export function t(key: string, vars?: Record<string, string | number>): string {
+  const entry = translations[key];
+  const template = entry ? entry[currentLanguage] ?? entry.en : key;
+  return interpolate(template, vars);
 }
 
 function translateElement(element: HTMLElement, language: Language): void {
   const key = element.dataset.i18n;
   if (key) {
-    const entry = translations[key];
-    if (entry) {
-      element.textContent = entry[language] ?? entry.en;
-    }
+    element.textContent = t(key);
   }
 
   const placeholderKey = element.dataset.i18nPlaceholder;
   if (placeholderKey) {
     const entry = translations[placeholderKey];
     if (entry && (element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement)) {
-      element.placeholder = entry[language] ?? entry.en;
+      element.placeholder = interpolate(entry[language] ?? entry.en);
     }
   }
 
@@ -884,7 +969,7 @@ function translateElement(element: HTMLElement, language: Language): void {
   if (ariaKey) {
     const entry = translations[ariaKey];
     if (entry) {
-      element.setAttribute('aria-label', entry[language] ?? entry.en);
+      element.setAttribute('aria-label', interpolate(entry[language] ?? entry.en));
     }
   }
 
@@ -892,7 +977,7 @@ function translateElement(element: HTMLElement, language: Language): void {
   if (titleKey) {
     const entry = translations[titleKey];
     if (entry) {
-      element.setAttribute('title', entry[language] ?? entry.en);
+      element.setAttribute('title', interpolate(entry[language] ?? entry.en));
     }
   }
 }

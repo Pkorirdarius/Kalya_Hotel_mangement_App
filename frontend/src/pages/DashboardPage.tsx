@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { usePageMeta } from '../components/Page';
 import { useToast } from '../components/ToastProvider';
+import { HOTEL } from '../config/hotel';
 import { useI18n } from '../i18n-context';
-import { PHONE_HREF } from '../lib/constants';
 
 type RequestStatus = 'open' | 'confirmed' | 'declined';
 
@@ -51,7 +51,7 @@ export function DashboardPage() {
     return Object.fromEntries(REQUESTS.map((item) => [item.id, started + item.minutes * 60_000]));
   });
 
-  usePageMeta('Front Desk Dashboard — West Premier Hotel');
+  usePageMeta(t('meta.dashboard.title'));
 
   useEffect(() => {
     const timer = window.setInterval(() => setNow(Date.now()), 1000);
@@ -81,10 +81,10 @@ export function DashboardPage() {
             <div className="flex items-center gap-6">
               <Link to="/" className="flex items-center gap-2.5" aria-label={t('common.homeLabel')}>
                 <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 ring-1 ring-white/20">
-                  <span className="font-serif text-xl text-gold">K</span>
+                  <span className="font-serif text-xl text-gold">{HOTEL.monogram}</span>
                 </span>
                 <span className="hidden flex-col leading-none sm:flex">
-                  <span className="font-serif text-[22px] text-white">West Premier</span>
+                  <span className="font-serif text-[22px] text-white">{HOTEL.shortName}</span>
                   <span className="mt-0.5 text-[8px] font-bold uppercase tracking-[0.28em] text-white/50">
                     {t('dash.frontDesk')}
                   </span>
@@ -261,7 +261,7 @@ export function DashboardPage() {
                             {t('dash.decline')}
                           </button>
                           <a
-                            href={PHONE_HREF}
+                            href={HOTEL.contact.phoneHref}
                             className="inline-flex min-h-[38px] items-center gap-1.5 rounded-full px-3 text-[12px] font-semibold text-forest transition hover:bg-forest-50"
                           >
                             <span className="material-symbols-outlined text-[16px]" aria-hidden="true">

@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Django management entrypoint for Kalya Hotel."""
+"""Django management entrypoint for the hotel backend."""
 
 import os
 import sys

@@ -2,26 +2,23 @@ import { useState, type FormEvent } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { usePageMeta } from '../components/Page';
 import { useToast } from '../components/ToastProvider';
-import { useI18n } from '../i18n-context';
 import {
-  ADDRESS,
-  EMAIL,
-  EMAIL_HREF,
-  MAP_LINK,
-  MAP_QUERY,
-  PHONE,
-  PHONE_HREF,
-  WHATSAPP_NUMBER,
-} from '../lib/constants';
+  HOTEL,
+  addressText,
+  mapLink,
+  whatsappDisplay,
+  whatsappHref,
+} from '../config/hotel';
+import { useI18n } from '../i18n-context';
 import { isValidEmail, isValidKenyanPhone } from '../utils';
 
 const TOPICS = ['general', 'booking', 'dining', 'conference', 'gym', 'group'];
 
 const CONTACT_CARDS = [
-  { key: 'contact.callUs', value: PHONE, href: PHONE_HREF, icon: 'call' },
-  { key: 'contact.whatsapp', value: '+254 712 345 678', href: `https://wa.me/${WHATSAPP_NUMBER}`, icon: 'chat', external: true },
-  { key: 'contact.emailLabel', value: EMAIL, href: EMAIL_HREF, icon: 'mail' },
-  { key: 'contact.visit', value: '12 Jacaranda Lane, Westlands', href: MAP_LINK, icon: 'location_on', external: true },
+  { key: 'contact.callUs', value: HOTEL.contact.phoneDisplay, href: HOTEL.contact.phoneHref, icon: 'call' },
+  { key: 'contact.whatsapp', value: whatsappDisplay(), href: whatsappHref(), icon: 'chat', external: true },
+  { key: 'contact.emailLabel', value: HOTEL.contact.email, href: `mailto:${HOTEL.contact.email}`, icon: 'mail' },
+  { key: 'contact.visit', value: addressText(), href: mapLink(), icon: 'location_on', external: true },
 ];
 
 const HOURS = [
@@ -54,10 +51,7 @@ export function ContactPage() {
   const [sending, setSending] = useState(false);
   const [summary, setSummary] = useState('');
 
-  usePageMeta(
-    'Contact — West Premier Hotel, Kapenguria',
-    'Contact West Premier Hotel in Westlands, Kapenguria. Call, WhatsApp or email the 24-hour front desk for stays, dining, conferences and gym membership.',
-  );
+  usePageMeta(t('meta.contact.title'), t('meta.contact.description'));
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -130,7 +124,7 @@ export function ContactPage() {
           </div>
           <img
             src="https://images.unsplash.com/photo-1445019980597-93fa8acb246c?auto=format&fit=crop&w=1400&q=85"
-            alt="The warm lobby lounge at West Premier Hotel"
+            alt={t('contact.heroAlt')}
             className="aspect-[5/4] w-full rounded-[28px] object-cover shadow-lift"
             fetchPriority="high"
           />
@@ -266,7 +260,7 @@ export function ContactPage() {
                     {t('contact.another')}
                   </button>
                   <a
-                    href={`https://wa.me/${WHATSAPP_NUMBER}`}
+                    href={whatsappHref()}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="btn-primary btn-sm"
@@ -281,7 +275,7 @@ export function ContactPage() {
           <div className="grid gap-5">
             <div className="overflow-hidden rounded-3xl border border-line bg-white shadow-soft">
               <iframe
-                src={`https://www.google.com/maps?q=${MAP_QUERY}&output=embed`}
+                src={`https://www.google.com/maps?q=${encodeURIComponent(HOTEL.location.mapQuery)}&output=embed`}
                 title={t('contact.mapTitle')}
                 className="h-64 w-full border-0"
                 loading="lazy"
@@ -291,10 +285,10 @@ export function ContactPage() {
               <div className="flex flex-col justify-between gap-3 p-5 sm:flex-row sm:items-center">
                 <div>
                   <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted">{t('contact.details.title')}</p>
-                  <p className="mt-1 text-[13px] font-bold text-forest">{ADDRESS}</p>
+                  <p className="mt-1 text-[13px] font-bold text-forest">{addressText()}</p>
                 </div>
                 <a
-                  href={MAP_LINK}
+                  href={mapLink()}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="btn-outline btn-sm shrink-0"

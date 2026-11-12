@@ -1,5 +1,6 @@
-"""Root URL configuration for the West Premier Hotel API."""
+"""Root URL configuration for the hotel API."""
 
+from django.conf import settings
 from django.contrib import admin
 from django.urls import include, path
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
@@ -7,8 +8,8 @@ from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from apps.accounts.views import CsrfTokenView
 from apps.common.views import HealthView
 
-admin.site.site_header = "West Premier Hotel administration"
-admin.site.site_title = "West Premier Hotel admin"
+admin.site.site_header = f"{settings.HOTEL['NAME']} administration"
+admin.site.site_title = f"{settings.HOTEL['NAME']} admin"
 admin.site.index_title = "Operations"
 
 urlpatterns = [

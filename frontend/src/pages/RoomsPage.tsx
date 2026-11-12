@@ -265,10 +265,7 @@ function RoomCard({ room, detail }: { room: RoomType; detail: RoomDetail }) {
 export function RoomsPage() {
   const { t } = useI18n();
   const { hash } = useLocation();
-  usePageMeta(
-    'Rooms & Suites — West Premier Hotel, Kapenguria',
-    'Three room types at West Premier Hotel in Westlands, Kapenguria: Standard Executive, Deluxe Garden Suite and Mara Residence. Fast fibre Wi-Fi, free cancellation and direct-booking rates.',
-  );
+  usePageMeta(t('meta.rooms.title'), t('meta.rooms.description'));
 
   useEffect(() => {
     if (!hash) return;
@@ -313,7 +310,7 @@ export function RoomsPage() {
             <div className="overflow-hidden rounded-[28px] shadow-lift">
               <img
                 src="https://images.unsplash.com/photo-1445019980597-93fa8acb246c?auto=format&fit=crop&w=1600&q=85"
-                alt="Warm hotel lounge at West Premier Hotel with natural textures and soft seating"
+                alt={t('rooms.heroAlt')}
                 className="aspect-[5/4] w-full object-cover"
               />
             </div>

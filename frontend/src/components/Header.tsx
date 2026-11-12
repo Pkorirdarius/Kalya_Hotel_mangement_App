@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { HOTEL } from '../config/hotel';
 import { useI18n } from '../i18n-context';
-import { PHONE, PHONE_HREF } from '../lib/constants';
 import type { PageId } from '../types';
 import { LanguageSwitch } from './LanguageSwitch';
 import { Logo } from './Logo';
@@ -91,9 +91,9 @@ export function Header() {
               <span className="material-symbols-outlined text-[14px] text-gold">location_on</span>
               <span>{t('header.location')}</span>
             </span>
-            <a className="inline-flex items-center gap-1.5 transition hover:text-white" href={PHONE_HREF}>
+            <a className="inline-flex items-center gap-1.5 transition hover:text-white" href={HOTEL.contact.phoneHref}>
               <span className="material-symbols-outlined text-[14px] text-gold">call</span>
-              <span>{PHONE}</span>
+              <span>{HOTEL.contact.phoneDisplay}</span>
             </a>
           </div>
           <div className="flex items-center gap-5">
@@ -103,7 +103,7 @@ export function Header() {
             </span>
             <span className="inline-flex items-center gap-1.5">
               <span className="material-symbols-outlined text-[14px] text-gold">verified_user</span>
-              <span>Best rate direct</span>
+              <span>{t('header.bestRate')}</span>
             </span>
           </div>
         </div>
@@ -227,11 +227,11 @@ export function Header() {
           <div className="mb-3 flex items-center justify-between gap-2">
             <LanguageSwitch />
             <a
-              href={PHONE_HREF}
+              href={HOTEL.contact.phoneHref}
               className="inline-flex min-h-[44px] items-center gap-1.5 text-xs font-semibold text-forest"
             >
               <span className="material-symbols-outlined text-[16px]">call</span>
-              {PHONE}
+              {HOTEL.contact.phoneDisplay}
             </a>
           </div>
           <Link to="/booking" onClick={() => setOpen(false)} className="btn-gold w-full">

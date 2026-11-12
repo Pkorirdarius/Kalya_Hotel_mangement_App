@@ -1,13 +1,13 @@
 import { Link } from 'react-router-dom';
 import { usePageMeta } from '../components/Page';
+import { whatsappHref } from '../config/hotel';
 import { useI18n } from '../i18n-context';
-import { WHATSAPP_NUMBER } from '../lib/constants';
 
 const FACILITIES = [
   {
     to: '/dining?venue=restaurant',
     image: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&w=1400&q=85',
-    alt: 'Tulia Restaurant dining room with warm lighting and set tables',
+    alt: 'home.facilities.restaurantAlt',
     pillClass: 'bg-cream/95 text-forest',
     pillIcon: 'dot',
     pillKey: 'common.openNow',
@@ -22,7 +22,7 @@ const FACILITIES = [
   {
     to: '/dining?venue=coffee',
     image: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=1400&q=85',
-    alt: 'Jacaranda Café with espresso bar and communal table',
+    alt: 'home.facilities.coffeeAlt',
     pillClass: 'bg-cream/95 text-forest',
     pillIcon: 'dot',
     pillKey: 'common.openNow',
@@ -37,7 +37,7 @@ const FACILITIES = [
   {
     to: '/conference',
     image: 'https://images.unsplash.com/photo-1505373877841-8d25f7d46678?auto=format&fit=crop&w=1400&q=85',
-    alt: 'Kilele Hall set for a conference with rows of chairs',
+    alt: 'home.facilities.hallAlt',
     pillClass: 'bg-gold text-forest-dark',
     pillIcon: 'co_present',
     pillKey: 'facilities.upTo120',
@@ -52,7 +52,7 @@ const FACILITIES = [
   {
     to: '/gym',
     image: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=1400&q=85',
-    alt: 'West Premier Fitness gym with cardio equipment and free weights',
+    alt: 'facilities.gymCardAlt',
     pillClass: 'bg-cream/95 text-forest',
     pillIcon: 'fitness_center',
     pillKey: 'facilities.dayPassFrom',
@@ -75,10 +75,7 @@ const EXTRAS = [
 
 export function FacilitiesPage() {
   const { t } = useI18n();
-  usePageMeta(
-    'Facilities — West Premier Hotel, Kapenguria',
-    'Restaurant, coffee shop, conference hall and gym at West Premier Hotel in Westlands, Kapenguria. Open to hotel guests and local residents.',
-  );
+  usePageMeta(t('meta.facilities.title'), t('meta.facilities.description'));
 
   return (
     <>
@@ -100,7 +97,7 @@ export function FacilitiesPage() {
           <div className="relative">
             <img
               src="https://images.unsplash.com/photo-1445019980597-93fa8acb246c?auto=format&fit=crop&w=1600&q=85"
-              alt="Warm shared lounge and restaurant at West Premier Hotel"
+              alt={t('facilities.heroAlt')}
               className="aspect-[5/4] w-full rounded-[28px] object-cover shadow-lift"
             />
             <span className="pill absolute bottom-4 left-4 bg-cream/95 text-forest">
@@ -124,7 +121,7 @@ export function FacilitiesPage() {
                 <div className="relative aspect-[16/10] overflow-hidden">
                   <img
                     src={facility.image}
-                    alt={facility.alt}
+                    alt={t(facility.alt)}
                     className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
                     loading="lazy"
                   />
@@ -225,7 +222,7 @@ export function FacilitiesPage() {
                 {t('nav.contact')}
               </Link>
               <a
-                href={`https://wa.me/${WHATSAPP_NUMBER}`}
+                href={whatsappHref()}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="btn-light btn-sm"

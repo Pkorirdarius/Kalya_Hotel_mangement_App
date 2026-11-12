@@ -2,8 +2,8 @@ import { useMemo, useRef, useState, type FormEvent } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { usePageMeta } from '../components/Page';
 import { useToast } from '../components/ToastProvider';
+import { HOTEL, addressText, whatsappHref } from '../config/hotel';
 import { useI18n } from '../i18n-context';
-import { EMAIL, PHONE, WHATSAPP_NUMBER } from '../lib/constants';
 import { MEAL_PLANS, ROOMS, type MealPlanId } from '../types';
 import { addDaysISO, isValidEmail, nightsBetween, todayISO } from '../utils';
 
@@ -84,10 +84,7 @@ export function BookingPage() {
   const { showToast } = useToast();
   const [searchParams] = useSearchParams();
   const formRef = useRef<HTMLFormElement>(null);
-  usePageMeta(
-    'Book Direct — West Premier Hotel, Kapenguria',
-    'Book direct with West Premier Hotel in Westlands, Kapenguria. Best rate guaranteed, free cancellation up to 48 hours and M-Pesa, card or bank payment.',
-  );
+  usePageMeta(t('meta.booking.title'), t('meta.booking.description'));
 
   const today = todayISO();
   const offer = searchParams.get('offer');
@@ -280,15 +277,15 @@ export function BookingPage() {
     const ics = [
       'BEGIN:VCALENDAR',
       'VERSION:2.0',
-      'PRODID:-//West Premier Hotel//Booking//EN',
+      `PRODID:-//${HOTEL.name}//Booking//EN`,
       'BEGIN:VEVENT',
-      `UID:${reference}@westpremierhotel.co.ke`,
+      `UID:${reference}@${HOTEL.domain}`,
       `DTSTAMP:${new Date().toISOString().replace(/[-:]/g, '').split('.')[0]}Z`,
       `DTSTART;VALUE=DATE:${start}`,
       `DTEND;VALUE=DATE:${end}`,
-      'SUMMARY:West Premier Hotel stay',
-      'LOCATION:12 Jacaranda Lane\\, Westlands\\, Kapenguria',
-      `DESCRIPTION:Booking reference ${reference}. Front desk ${PHONE}.`,
+      `SUMMARY:${HOTEL.name} stay`,
+      `LOCATION:${addressText().replace(/,/g, '\\,')}`,
+      `DESCRIPTION:Booking reference ${reference}. Front desk ${HOTEL.contact.phoneDisplay}.`,
       'END:VEVENT',
       'END:VCALENDAR',
     ].join('\r\n');
@@ -935,7 +932,7 @@ export function BookingPage() {
                         <dl className="mt-4 grid gap-2 rounded-xl bg-sand/60 p-4 text-[12px]">
                           {[
                             { label: t('payment.bankLabel'), value: 'Equity Bank Kenya' },
-                            { label: t('payment.accountName'), value: 'West Premier Hotel Ltd' },
+                            { label: t('payment.accountName'), value: HOTEL.legalName },
                             { label: t('payment.accountNumber'), value: '1234 5678 9012' },
                             { label: 'SWIFT', value: 'EQBLKENA' },
                           ].map((row) => (
@@ -1050,7 +1047,7 @@ export function BookingPage() {
                       {t('confirmation.backHome')}
                     </Link>
                     <a
-                      href={`https://wa.me/${WHATSAPP_NUMBER}`}
+                      href={whatsappHref()}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="btn-ghost"
@@ -1128,7 +1125,7 @@ export function BookingPage() {
                   <span>{t('summary.freeCancel')}</span>
                 </div>
                 <p className="mt-4 text-[11px] leading-relaxed text-muted">{t('summary.help')}</p>
-                <span className="sr-only">{EMAIL}</span>
+                <span className="sr-only">{HOTEL.contact.email}</span>
               </div>
             </div>
           </aside>

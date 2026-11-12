@@ -1,4 +1,4 @@
-"""Install the recurring West Premier background jobs.
+"""Install the recurring hotel background jobs.
 
 Run once after deploy:
 

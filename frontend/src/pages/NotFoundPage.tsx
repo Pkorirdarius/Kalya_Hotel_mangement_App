@@ -1,26 +1,26 @@
 import { Link } from 'react-router-dom';
 import { usePageMeta } from '../components/Page';
+import { useI18n } from '../i18n-context';
 
 export function NotFoundPage() {
-  usePageMeta('Page not found — West Premier Hotel, Kapenguria');
+  const { t } = useI18n();
+  usePageMeta(t('meta.notFound.title'));
 
   return (
     <section className="container-page section">
       <div className="mx-auto max-w-xl text-center">
         <p className="eyebrow">404</p>
-        <h1 className="display mt-4">This page has checked out.</h1>
-        <p className="lede mt-4">
-          The page you were looking for is not here. Head back to the lobby, or book a room for your next stay.
-        </p>
+        <h1 className="display mt-4">{t('notFound.title')}</h1>
+        <p className="lede mt-4">{t('notFound.text')}</p>
         <div className="mt-7 flex flex-wrap justify-center gap-3">
           <Link to="/" className="btn-primary">
-            Back to home
+            {t('notFound.ctaHome')}
           </Link>
           <Link to="/rooms" className="btn-outline">
-            View rooms
+            {t('notFound.ctaRooms')}
           </Link>
           <Link to="/contact" className="btn-ghost">
-            Contact us
+            {t('notFound.ctaContact')}
           </Link>
         </div>
       </div>

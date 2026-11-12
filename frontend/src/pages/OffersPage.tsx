@@ -124,10 +124,7 @@ export function OffersPage() {
   const [filter, setFilter] = useState<'all' | Category>('all');
   const [active, setActive] = useState<Article | null>(null);
 
-  usePageMeta(
-    'Offers & Journal — West Premier Hotel, Kapenguria',
-    'Direct-only rates, seasonal menus and notes from the neighbourhood at West Premier Hotel in Westlands, Kapenguria.',
-  );
+  usePageMeta(t('meta.offers.title'), t('meta.offers.description'));
 
   const visible = ARTICLES.filter((article) => filter === 'all' || article.category === filter);
 
@@ -172,7 +169,7 @@ export function OffersPage() {
           <div className="relative min-h-[280px] lg:min-h-full">
             <img
               src={FEATURED.image}
-              alt="A calm Standard Executive room at West Premier Hotel"
+              alt={t('offers.featuredAlt')}
               className="absolute inset-0 h-full w-full object-cover"
               fetchPriority="high"
             />
@@ -212,7 +209,7 @@ export function OffersPage() {
                     tagKey: FEATURED.tagKey,
                     bodyKey: FEATURED.bodyKey,
                     image: FEATURED.image,
-                    alt: 'A calm Standard Executive room at West Premier Hotel',
+                    alt: 'offers.featuredAlt',
                     date: '2026-11-01',
                     metaKey: 'offer.longStay.price',
                     excerptKey: 'offer.longStay.description',
@@ -267,7 +264,7 @@ export function OffersPage() {
               <div className="relative aspect-[16/10] overflow-hidden">
                 <img
                   src={article.image}
-                  alt={article.alt}
+                  alt={t(article.alt)}
                   className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
                   loading="lazy"
                 />

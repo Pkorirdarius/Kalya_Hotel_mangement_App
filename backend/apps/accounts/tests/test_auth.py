@@ -20,7 +20,7 @@ def clear_throttle_cache():
 def staff_user():
     return User.objects.create_user(
         username="frontdesk",
-        email="frontdesk@westpremierhotel.co.ke",
+        email="frontdesk@example.com",
         password="strong-test-password",
         first_name="Amina",
         last_name="Kip",
