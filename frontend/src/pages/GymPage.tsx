@@ -3,7 +3,18 @@ import { Link } from 'react-router-dom';
 import { usePageMeta } from '../components/Page';
 import { useToast } from '../components/ToastProvider';
 import { useI18n } from '../i18n-context';
-import { isValidKenyanPhone, todayISO } from '../utils';
+import type { GymDayPass } from '../lib/api/types';
+import { errorMessage, fieldErrors } from '../lib/query/errors';
+import {
+  useCreateGymDayPassMutation,
+  useGymAvailability,
+} from '../lib/query/hooks';
+import {
+  fieldErrorKeys,
+  gymDayPassSchema,
+  normaliseKenyanPhone,
+} from '../lib/validation';
+import { todayISO } from '../utils';
 
 const EQUIPMENT = [
   { key: 'cardio', icon: 'directions_run' },
@@ -38,8 +49,23 @@ interface Errors {
   date?: string;
 }
 
+/** Map API field names onto this form's field names. */
+function serverErrorFields(fields: Record<string, string[]>): Errors {
+  const next: Errors = {};
+  const map: Record<string, keyof Errors> = {
+    full_name: 'name',
+    phone: 'phone',
+    date: 'date',
+  };
+  for (const [field, messages] of Object.entries(fields)) {
+    const key = map[field];
+    if (key && messages[0] && !next[key]) next[key] = messages[0];
+  }
+  return next;
+}
+
 export function GymPage() {
-  const { t } = useI18n();
+  const { t, formatDate, formatMoney } = useI18n();
   const { showToast } = useToast();
   const today = todayISO();
   const dialogRef = useRef<HTMLDialogElement>(null);
@@ -48,12 +74,23 @@ export function GymPage() {
   const [phone, setPhone] = useState('');
   const [date, setDate] = useState(today);
   const [errors, setErrors] = useState<Errors>({});
-  const [sending, setSending] = useState(false);
+  const [submitError, setSubmitError] = useState('');
+  const [created, setCreated] = useState<GymDayPass | null>(null);
 
   usePageMeta(t('meta.gym.title'), t('meta.gym.description'));
 
+  const availabilityQuery = useGymAvailability(date);
+  const createDayPass = useCreateGymDayPassMutation();
+
+  const remaining = availabilityQuery.data?.remaining;
+  const dayPassPrice = availabilityQuery.data?.price;
+  const priceLabel = dayPassPrice !== undefined ? `KES ${formatMoney(dayPassPrice)}` : null;
+  const fullyBooked = remaining === 0;
+
   const openDialog = () => {
     setErrors({});
+    setSubmitError('');
+    setCreated(null);
     if (!date || date < today) setDate(today);
     dialogRef.current?.showModal();
     window.setTimeout(() => nameRef.current?.focus(), 80);
@@ -63,25 +100,42 @@ export function GymPage() {
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    const result = gymDayPassSchema(today).safeParse({
+      fullName: name,
+      phone,
+      date,
+    });
+
     const next: Errors = {};
-    if (name.trim().length < 2) next.name = t('validation.name');
-    if (!isValidKenyanPhone(phone.trim())) next.phone = t('validation.phone');
-    if (!date || date < today) next.date = t('validation.date');
+    for (const [field, key] of Object.entries(fieldErrorKeys(result))) {
+      const mapped = field === 'fullName' ? 'name' : field;
+      next[mapped as keyof Errors] = t(key);
+    }
     setErrors(next);
-    if (Object.keys(next).length > 0) {
+    if (!result.success) {
       const firstId = ['name', 'phone', 'date'].find((key) => next[key as keyof Errors]);
       if (firstId) document.getElementById(`gym-${firstId}`)?.focus();
       return;
     }
 
-    setSending(true);
-    await new Promise((resolve) => window.setTimeout(resolve, 700));
-    setSending(false);
-    closeDialog();
-    showToast(t('toast.dayPass'));
-    setName('');
-    setPhone('');
-    setDate(today);
+    setSubmitError('');
+    try {
+      const response = await createDayPass.mutateAsync({
+        date: result.data.date,
+        full_name: result.data.fullName,
+        phone: normaliseKenyanPhone(phone),
+        email: '',
+        payment_method: 'reception',
+      });
+      setCreated(response.day_pass);
+      setName('');
+      setPhone('');
+      setDate(today);
+      showToast(t('toast.dayPass'), 'success');
+    } catch (error) {
+      setErrors(serverErrorFields(fieldErrors(error)));
+      setSubmitError(errorMessage(error, t('gym.dialog.submitError')));
+    }
   };
 
   const fieldClass = (key: keyof Errors) =>
@@ -118,7 +172,11 @@ export function GymPage() {
                   <span className="material-symbols-outlined text-[14px] text-gold" aria-hidden="true">
                     {item.icon}
                   </span>
-                  <span>{t(item.key)}</span>
+                  <span>
+                    {item.key === 'gym.dayFrom' && priceLabel
+                      ? t('gym.dayFromValue', { price: priceLabel })
+                      : t(item.key)}
+                  </span>
                 </span>
               ))}
             </div>
@@ -177,7 +235,9 @@ export function GymPage() {
               >
                 {t(`plan.${plan.key}`)}
               </p>
-              <p className="mt-3 font-serif text-4xl text-forest-dark">{plan.price}</p>
+              <p className="mt-3 font-serif text-4xl text-forest-dark">
+                {plan.key === 'day' && priceLabel ? priceLabel : plan.price}
+              </p>
               <p className="mt-1 text-[11px] font-medium text-muted">{t(`plan.${plan.key}.period`)}</p>
               <p className="mt-4 text-[12px] leading-relaxed text-muted">{t(`plan.${plan.key}.desc`)}</p>
               <ul className="mt-4 space-y-2 text-[12px] text-ink">
@@ -206,12 +266,20 @@ export function GymPage() {
           ))}
         </div>
 
-        <p className="mt-5 flex items-center gap-2 text-[12px] text-muted">
-          <span className="material-symbols-outlined text-[17px] text-gold-deep" aria-hidden="true">
-            badge
-          </span>
-          <span>{t('gym.corporate')}</span>
-        </p>
+        <div className="mt-5 flex flex-col gap-2">
+          <p className="flex items-center gap-2 text-[12px] text-muted">
+            <span className="material-symbols-outlined text-[17px] text-gold-deep" aria-hidden="true">
+              badge
+            </span>
+            <span>{t('gym.corporate')}</span>
+          </p>
+          <p className="flex items-center gap-2 text-[11px] text-muted">
+            <span className="material-symbols-outlined text-[16px] text-gold-deep" aria-hidden="true">
+              info
+            </span>
+            <span>{t('gym.pricesPending')}</span>
+          </p>
+        </div>
       </section>
 
       <section className="bg-sand/70 py-14 md:py-16">
@@ -292,71 +360,124 @@ export function GymPage() {
             </span>
           </button>
         </div>
-        <form className="grid gap-4 p-5" noValidate onSubmit={handleSubmit}>
-          <p className="text-[13px] leading-relaxed text-muted">{t('gym.dialog.text')}</p>
-          <div>
-            <label className="field-label" htmlFor="gym-name">
-              {t('gym.dialog.name')}
-            </label>
-            <input
-              ref={nameRef}
-              id="gym-name"
-              type="text"
-              autoComplete="name"
-              required
-              value={name}
-              onChange={(event) => setName(event.target.value)}
-              className={fieldClass('name')}
-              aria-invalid={Boolean(errors.name)}
-            />
-            {errors.name ? <p className="mt-1.5 text-[12px] font-medium text-red-600">{errors.name}</p> : null}
-          </div>
-          <div>
-            <label className="field-label" htmlFor="gym-phone">
-              {t('gym.dialog.phone')}
-            </label>
-            <input
-              id="gym-phone"
-              type="tel"
-              autoComplete="tel"
-              required
-              placeholder="+254 712 345 678"
-              value={phone}
-              onChange={(event) => setPhone(event.target.value)}
-              className={fieldClass('phone')}
-              aria-invalid={Boolean(errors.phone)}
-            />
-            {errors.phone ? <p className="mt-1.5 text-[12px] font-medium text-red-600">{errors.phone}</p> : null}
-          </div>
-          <div>
-            <label className="field-label" htmlFor="gym-date">
-              {t('gym.dialog.date')}
-            </label>
-            <input
-              id="gym-date"
-              type="date"
-              required
-              min={today}
-              value={date}
-              onChange={(event) => setDate(event.target.value < today ? today : event.target.value)}
-              className={fieldClass('date')}
-              aria-invalid={Boolean(errors.date)}
-            />
-            {errors.date ? <p className="mt-1.5 text-[12px] font-medium text-red-600">{errors.date}</p> : null}
-          </div>
-          <button type="submit" disabled={sending} className="btn-gold w-full disabled:cursor-not-allowed disabled:opacity-70">
-            <span>{sending ? t('common.sending') : t('gym.dialog.submit')}</span>
-            <span className="material-symbols-outlined text-[18px]" aria-hidden="true">
-              arrow_forward
+
+        {created ? (
+          <div className="p-5" role="status">
+            <span className="flex h-14 w-14 items-center justify-center rounded-full bg-forest-50 text-forest">
+              <span className="material-symbols-outlined text-[30px]" aria-hidden="true">
+                check_circle
+              </span>
             </span>
-          </button>
-          <p className="flex items-start gap-2 text-[11px] leading-relaxed text-muted">
-            <span className="material-symbols-outlined text-[15px] text-forest" aria-hidden="true">
-              payments
-            </span>
-            <span>{t('gym.dialog.note')}</span>
-          </p>
-        </form>
+            <h3 className="heading-sm mt-4">{t('gym.dialog.successTitle')}</h3>
+            <p className="mt-2 text-sm leading-relaxed text-muted">{t('gym.dialog.successText')}</p>
+            <div className="mt-5 rounded-2xl bg-forest-50 p-4">
+              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-muted">{t('dining.reference')}</p>
+              <p className="mt-1 font-serif text-2xl text-forest-dark">{created.reference}</p>
+              <p className="mt-2 text-[12px] font-semibold text-forest">
+                {formatDate(created.date)} · KES {formatMoney(created.amount)}
+              </p>
+              <p className="mt-1 text-[11px] text-muted">{created.status_display}</p>
+            </div>
+            <button type="button" className="btn-outline mt-5 w-full" onClick={closeDialog}>
+              {t('gym.dialog.done')}
+            </button>
+          </div>
+        ) : (
+          <form className="grid gap-4 p-5" noValidate onSubmit={handleSubmit}>
+            <p className="text-[13px] leading-relaxed text-muted">{t('gym.dialog.text')}</p>
+            <div
+              className={`rounded-xl px-3 py-2 text-[12px] font-semibold ${
+                fullyBooked ? 'bg-red-50 text-red-700' : 'bg-forest-50 text-forest'
+              }`}
+            >
+              {availabilityQuery.isLoading
+                ? t('gym.dialog.checking')
+                : availabilityQuery.isError
+                  ? t('gym.dialog.availabilityError')
+                  : fullyBooked
+                    ? t('gym.dialog.full')
+                    : t('gym.dialog.remaining', { count: remaining ?? 0 })}
+              {priceLabel && !availabilityQuery.isError ? ` · ${priceLabel} ${t('common.perPerson')}` : ''}
+            </div>
+            <div>
+              <label className="field-label" htmlFor="gym-name">
+                {t('gym.dialog.name')}
+              </label>
+              <input
+                ref={nameRef}
+                id="gym-name"
+                type="text"
+                autoComplete="name"
+                required
+                value={name}
+                onChange={(event) => setName(event.target.value)}
+                className={fieldClass('name')}
+                aria-invalid={Boolean(errors.name)}
+              />
+              {errors.name ? <p className="mt-1.5 text-[12px] font-medium text-red-600">{errors.name}</p> : null}
+            </div>
+            <div>
+              <label className="field-label" htmlFor="gym-phone">
+                {t('gym.dialog.phone')}
+              </label>
+              <input
+                id="gym-phone"
+                type="tel"
+                autoComplete="tel"
+                required
+                placeholder="+254 712 345 678"
+                value={phone}
+                onChange={(event) => setPhone(event.target.value)}
+                className={fieldClass('phone')}
+                aria-invalid={Boolean(errors.phone)}
+              />
+              {errors.phone ? <p className="mt-1.5 text-[12px] font-medium text-red-600">{errors.phone}</p> : null}
+            </div>
+            <div>
+              <label className="field-label" htmlFor="gym-date">
+                {t('gym.dialog.date')}
+              </label>
+              <input
+                id="gym-date"
+                type="date"
+                required
+                min={today}
+                value={date}
+                onChange={(event) => setDate(event.target.value < today ? today : event.target.value)}
+                className={fieldClass('date')}
+                aria-invalid={Boolean(errors.date)}
+              />
+              {errors.date ? <p className="mt-1.5 text-[12px] font-medium text-red-600">{errors.date}</p> : null}
+            </div>
+
+            {submitError ? (
+              <p role="alert" className="rounded-xl bg-red-50 px-3 py-2 text-[12px] font-medium text-red-700">
+                {submitError}
+              </p>
+            ) : null}
+
+            <button
+              type="submit"
+              disabled={createDayPass.isPending || fullyBooked}
+              className="btn-gold w-full disabled:cursor-not-allowed disabled:opacity-70"
+            >
+              <span>{createDayPass.isPending ? t('common.sending') : t('gym.dialog.submit')}</span>
+              <span className="material-symbols-outlined text-[18px]" aria-hidden="true">
+                arrow_forward
+              </span>
+            </button>
+            <p className="flex items-start gap-2 text-[11px] leading-relaxed text-muted">
+              <span className="material-symbols-outlined text-[15px] text-forest" aria-hidden="true">
+                payments
+              </span>
+              <span>
+                {priceLabel
+                  ? t('gym.dialog.noteValue', { price: priceLabel })
+                  : t('gym.dialog.note')}
+              </span>
+            </p>
+          </form>
+        )}
       </dialog>
     </>
   );

@@ -88,6 +88,85 @@ export function stayDatesSchema(today: string) {
     });
 }
 
+/** Split a "Full name" field for APIs that require first/last names. */
+export function splitFullName(value: string): { firstName: string; lastName: string } {
+  const parts = value.trim().split(/\s+/).filter(Boolean);
+  return {
+    firstName: parts[0] ?? '',
+    lastName: parts.slice(1).join(' '),
+  };
+}
+
+/**
+ * Facility forms collect one "Full name" field, while the backend stores a
+ * first and last name. Require both parts so we never send an empty surname.
+ */
+export const fullNameSchema = z
+  .string()
+  .trim()
+  .min(1, { message: 'common.required' })
+  .refine((value) => splitFullName(value).lastName.length > 0, {
+    message: 'validation.fullName',
+  });
+
+function optionalEmailSchema() {
+  return z
+    .string()
+    .trim()
+    .refine((value) => value === '' || emailSchema.safeParse(value).success, {
+      message: 'validation.email',
+    });
+}
+
+function futureOrTodayDateSchema(today: string) {
+  return z
+    .string()
+    .min(1, { message: 'common.required' })
+    .refine((value) => value >= today, { message: 'validation.date' });
+}
+
+export const CONFERENCE_SESSIONS = ['breakfast', 'half_day', 'full_day'] as const;
+export const CONFERENCE_LAYOUTS = ['theatre', 'boardroom', 'ushape', 'classroom'] as const;
+
+export function tableBookingSchema(today: string) {
+  return z.object({
+    date: futureOrTodayDateSchema(today),
+    time: z.string().min(1, { message: 'validation.time' }),
+    partySize: z
+      .number()
+      .int({ message: 'validation.partySize' })
+      .min(1, { message: 'validation.partySize' })
+      .max(20, { message: 'validation.partySize' }),
+    fullName: fullNameSchema,
+    phone: kenyanPhoneSchema,
+    email: optionalEmailSchema(),
+  });
+}
+
+export function conferenceEnquirySchema(today: string) {
+  return z.object({
+    date: futureOrTodayDateSchema(today),
+    session: z.enum(CONFERENCE_SESSIONS),
+    layout: z.enum(CONFERENCE_LAYOUTS),
+    people: z
+      .number()
+      .int({ message: 'validation.guests' })
+      .min(4, { message: 'validation.guests' })
+      .max(120, { message: 'validation.guests' }),
+    fullName: fullNameSchema,
+    email: emailSchema,
+    phone: kenyanPhoneSchema,
+  });
+}
+
+export function gymDayPassSchema(today: string) {
+  return z.object({
+    fullName: z.string().trim().min(2, { message: 'validation.name' }),
+    phone: kenyanPhoneSchema,
+    date: futureOrTodayDateSchema(today),
+  });
+}
+
 export type BookingPaymentMethod = 'mpesa' | 'card' | 'bank';
 
 /**
