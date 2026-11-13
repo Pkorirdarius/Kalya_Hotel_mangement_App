@@ -27,6 +27,7 @@ from apps.payments.serializers import (
     payment_summary,
 )
 from apps.payments.services import (
+    InvalidCallback,
     PaymentError,
     complete_payment,
     initiate_booking_payment,
@@ -54,6 +55,14 @@ def _payment_or_404(reference: str) -> Payment:
     return payment
 
 
+def _simulation_enabled() -> bool:
+    """True only when both development switches are on."""
+
+    return bool(
+        settings.PAYMENTS_SANDBOX and settings.PAYMENT_SIMULATION_ALLOWED
+    )
+
+
 @extend_schema(tags=["payments"])
 class PaymentMethodsView(APIView):
     authentication_classes = []
@@ -69,7 +78,7 @@ class PaymentMethodsView(APIView):
                     {"code": "bank_transfer", "label": "Bank transfer", "enabled": True},
                 ],
                 "bank": BankTransferProvider().instructions(),
-                "sandbox": bool(settings.PAYMENTS_SANDBOX),
+                "sandbox": _simulation_enabled(),
             }
         )
 
@@ -113,7 +122,7 @@ class BookingPaymentInitiateView(APIView):
                 "payment": PaymentSerializer(payment).data,
                 "message": payment.failure_message
                 or payment_summary(payment)["instructions"].get("bank_name", ""),
-                "sandbox": bool(settings.PAYMENTS_SANDBOX),
+                "sandbox": _simulation_enabled(),
             },
             status=status.HTTP_201_CREATED,
         )
@@ -141,7 +150,12 @@ class SandboxCompleteView(APIView):
 
     @extend_schema(request=SandboxCompleteSerializer, responses=PaymentSerializer)
     def post(self, request, reference: str):
-        if not settings.PAYMENTS_SANDBOX:
+        # Two independent guards: the settings flag and the simulation switch.
+        # Production forces both off and refuses to start otherwise.
+        if not (
+            settings.PAYMENTS_SANDBOX
+            and settings.PAYMENT_SIMULATION_ALLOWED
+        ):
             raise NotFound("Not available.")
         payment = _payment_or_404(reference)
         serializer = SandboxCompleteSerializer(data=request.data)
@@ -182,7 +196,10 @@ class MpesaWebhookView(APIView):
             client_ip = request.META.get("REMOTE_ADDR", "")
             if client_ip not in allowed_ips:
                 raise PermissionDenied("Callback source is not allowed.")
-        process_mpesa_callback(request.data, signature_valid=True)
+        try:
+            process_mpesa_callback(request.data, signature_valid=True)
+        except InvalidCallback as exc:
+            raise ValidationError({"detail": str(exc)}) from exc
         return Response({"ResultCode": 0, "ResultDesc": "Accepted"})
 
 
@@ -254,7 +271,7 @@ class GymPaymentInitiateView(APIView):
             {
                 "payment": PaymentSerializer(payment).data,
                 "message": payment.failure_message,
-                "sandbox": bool(settings.PAYMENTS_SANDBOX),
+                "sandbox": _simulation_enabled(),
             },
             status=status.HTTP_201_CREATED,
         )

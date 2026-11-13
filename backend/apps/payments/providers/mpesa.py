@@ -32,7 +32,7 @@ class MpesaDarajaProvider(BaseProvider):
     def initiate(self, *, payment, phone: str = "") -> ProviderResult:
         amount = int(payment.amount)
         account_reference = settings.MPESA_ACCOUNT_REFERENCE or payment.reference
-        if settings.MPESA_SIMULATE or not settings.MPESA_CONSUMER_KEY:
+        if settings.MPESA_SIMULATE and settings.PAYMENT_SIMULATION_ALLOWED:
             checkout_id = f"SIM-{payment.reference}"
             return ProviderResult(
                 ok=True,
@@ -46,6 +46,16 @@ class MpesaDarajaProvider(BaseProvider):
                 raw_request={"simulated": True, "phone": phone, "amount": amount},
                 raw_response={"CheckoutRequestID": checkout_id},
                 sandbox=True,
+            )
+
+        if not (
+            settings.MPESA_CONSUMER_KEY
+            and settings.MPESA_CONSUMER_SECRET
+            and settings.MPESA_SHORTCODE
+            and settings.MPESA_PASSKEY
+        ):
+            raise PaymentProviderError(
+                "M-Pesa is not configured. Set the Daraja credentials."
             )
 
         timestamp = datetime.now(hotel_tz()).strftime("%Y%m%d%H%M%S")

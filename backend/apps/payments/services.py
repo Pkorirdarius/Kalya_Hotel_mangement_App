@@ -24,6 +24,10 @@ class PaymentError(ValueError):
     pass
 
 
+class InvalidCallback(ValueError):
+    """The provider payload is not shaped like the callback we expect."""
+
+
 PROVIDERS = {
     Payment.Provider.MPESA: MpesaDarajaProvider,
     Payment.Provider.CARD: StubCardProvider,
@@ -293,20 +297,51 @@ def _mark_for_review(payment: Payment, reason: str) -> Payment:
     return payment
 
 
+def _mpesa_amount_error(payment: Payment, raw_amount) -> str:
+    """Return a human-readable error when a callback's amount is not trusted."""
+
+    if raw_amount is None:
+        return "M-Pesa callback did not include the paid amount."
+    try:
+        amount = Decimal(str(raw_amount))
+    except (ArithmeticError, ValueError):
+        return "M-Pesa callback amount is not a number."
+    if amount != payment.amount:
+        return (
+            f"M-Pesa callback amount {amount} does not match the expected "
+            f"{payment.amount}."
+        )
+    return ""
+
+
 def process_mpesa_callback(payload: dict, *, signature_valid: bool = True) -> PaymentWebhookEvent:
     """Idempotent M-Pesa callback processing.
 
     Safaricom does not sign callbacks, so the view validates the shared secret
     and optional IP allowlist before calling this function. The event is stored
     with a unique key before processing so repeated callbacks are harmless.
+    The shape and amount are checked against the stored payment: a forged or
+    corrupted success callback can never mark a booking as paid.
     """
 
-    callback = (payload.get("Body") or {}).get("stkCallback") or {}
-    checkout_id = callback.get("CheckoutRequestID", "")
-    result_code = str(callback.get("ResultCode", ""))
+    if not isinstance(payload, dict):
+        raise InvalidCallback("Callback body must be a JSON object.")
+    body = payload.get("Body")
+    if not isinstance(body, dict):
+        raise InvalidCallback("Callback is missing the Body object.")
+    callback = body.get("stkCallback")
+    if not isinstance(callback, dict):
+        raise InvalidCallback("Callback is missing Body.stkCallback.")
+
+    checkout_id = callback.get("CheckoutRequestID")
+    if not isinstance(checkout_id, str) or not checkout_id.strip():
+        raise InvalidCallback("Callback is missing CheckoutRequestID.")
+    if "ResultCode" not in callback:
+        raise InvalidCallback("Callback is missing ResultCode.")
+
+    checkout_id = checkout_id.strip()
+    result_code = str(callback.get("ResultCode")).strip()
     event_id = f"{checkout_id}:{result_code}"
-    if not checkout_id:
-        event_id = f"unknown:{uuid.uuid4()}"
 
     try:
         event, created = PaymentWebhookEvent.objects.get_or_create(
@@ -340,6 +375,17 @@ def process_mpesa_callback(payload: dict, *, signature_valid: bool = True) -> Pa
     receipt = str(metadata.get("MpesaReceiptNumber") or "")
 
     if result_code == "0":
+        amount_error = _mpesa_amount_error(payment, metadata.get("Amount"))
+        if amount_error:
+            event.error = amount_error
+            event.processed = True
+            event.save(update_fields=("processed", "error"))
+            return event
+        if not receipt:
+            event.error = "M-Pesa callback did not include a receipt number."
+            event.processed = True
+            event.save(update_fields=("processed", "error"))
+            return event
         complete_payment(
             payment=payment,
             success=True,

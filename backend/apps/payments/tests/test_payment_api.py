@@ -90,7 +90,9 @@ def test_payment_initiation_is_idempotent(api, booking_payload):
     assert Payment.objects.count() == 1
 
 
-def _mpesa_payload(checkout_id: str, result_code: int = 0) -> dict:
+def _mpesa_payload(
+    checkout_id: str, result_code: int = 0, *, amount: int = 1, receipt: str = "TEST123456"
+) -> dict:
     callback = {
         "CheckoutRequestID": checkout_id,
         "ResultCode": result_code,
@@ -99,11 +101,19 @@ def _mpesa_payload(checkout_id: str, result_code: int = 0) -> dict:
     if result_code == 0:
         callback["CallbackMetadata"] = {
             "Item": [
-                {"Name": "MpesaReceiptNumber", "Value": "TEST123456"},
-                {"Name": "Amount", "Value": 1},
+                {"Name": "MpesaReceiptNumber", "Value": receipt},
+                {"Name": "Amount", "Value": amount},
             ]
         }
     return {"Body": {"stkCallback": callback}}
+
+
+def _payment_amount(initiated) -> int:
+    return int(
+        Payment.objects.get(
+            reference=initiated.json()["payment"]["reference"]
+        ).amount
+    )
 
 
 def test_mpesa_callback_success_is_idempotent(api, booking_payload):
@@ -119,7 +129,7 @@ def test_mpesa_callback_success_is_idempotent(api, booking_payload):
     checkout_id = initiated.json()["payment"]["checkout_request_id"]
     assert checkout_id
 
-    payload = _mpesa_payload(checkout_id)
+    payload = _mpesa_payload(checkout_id, amount=_payment_amount(initiated))
 
     first = api.post("/api/v1/payments/webhooks/mpesa/", payload, format="json")
     second = api.post("/api/v1/payments/webhooks/mpesa/", payload, format="json")
@@ -173,7 +183,9 @@ def test_mpesa_callback_requires_secret_when_configured(
         email="amina@example.com",
     )
     checkout_id = initiated.json()["payment"]["checkout_request_id"]
-    payload = _mpesa_payload(checkout_id)
+    payload = _mpesa_payload(
+        checkout_id, amount=_payment_amount(initiated)
+    )
 
     rejected = api.post(
         "/api/v1/payments/webhooks/mpesa/?secret=wrong", payload, format="json"
@@ -316,3 +328,93 @@ def test_successful_payment_can_complete_a_still_held_booking(api, booking_paylo
 
 def booking_status(reference: str) -> str:
     return Booking.objects.get(reference=reference).status
+
+
+def test_mpesa_callback_with_wrong_amount_cannot_complete_payment(api, booking_payload):
+    reference = _create_booking(api, booking_payload)
+    initiated = _initiate(
+        api,
+        reference,
+        method="mpesa",
+        phone="0712345678",
+        email="amina@example.com",
+    )
+    checkout_id = initiated.json()["payment"]["checkout_request_id"]
+    expected = _payment_amount(initiated)
+
+    response = api.post(
+        "/api/v1/payments/webhooks/mpesa/",
+        _mpesa_payload(checkout_id, amount=expected - 1),
+        format="json",
+    )
+
+    assert response.status_code == 200
+    payment = Payment.objects.get(reference=initiated.json()["payment"]["reference"])
+    assert payment.status == Payment.Status.PENDING
+    assert booking_status(reference) == BookingStatus.PENDING_PAYMENT
+    event = PaymentWebhookEvent.objects.get()
+    assert event.processed is True
+    assert "does not match" in event.error
+
+
+def test_mpesa_success_callback_without_amount_is_rejected(api, booking_payload):
+    reference = _create_booking(api, booking_payload)
+    initiated = _initiate(
+        api,
+        reference,
+        method="mpesa",
+        phone="0712345678",
+        email="amina@example.com",
+    )
+    checkout_id = initiated.json()["payment"]["checkout_request_id"]
+    payload = _mpesa_payload(checkout_id, amount=_payment_amount(initiated))
+    payload["Body"]["stkCallback"]["CallbackMetadata"]["Item"] = [
+        {"Name": "MpesaReceiptNumber", "Value": "TEST123456"}
+    ]
+
+    response = api.post(
+        "/api/v1/payments/webhooks/mpesa/", payload, format="json"
+    )
+
+    assert response.status_code == 200
+    payment = Payment.objects.get(reference=initiated.json()["payment"]["reference"])
+    assert payment.status == Payment.Status.PENDING
+    assert "did not include the paid amount" in PaymentWebhookEvent.objects.get().error
+
+
+def test_mpesa_malformed_callback_is_rejected(api):
+    for payload in ({}, {"Body": {}}, {"Body": {"stkCallback": {}}}, []):
+        response = api.post(
+            "/api/v1/payments/webhooks/mpesa/", payload, format="json"
+        )
+        assert response.status_code == 400, payload
+
+
+def test_sandbox_completion_is_impossible_without_both_flags(
+    api, booking_payload, settings
+):
+    reference = _create_booking(api, booking_payload)
+    initiated = _initiate(api, reference, method="card", email="amina@example.com")
+    payment_reference = initiated.json()["payment"]["reference"]
+
+    settings.PAYMENTS_SANDBOX = False
+    assert (
+        api.post(
+            f"/api/v1/payments/{payment_reference}/sandbox-complete/",
+            {"success": True},
+            format="json",
+        ).status_code
+        == 404
+    )
+
+    settings.PAYMENTS_SANDBOX = True
+    settings.PAYMENT_SIMULATION_ALLOWED = False
+    assert (
+        api.post(
+            f"/api/v1/payments/{payment_reference}/sandbox-complete/",
+            {"success": True},
+            format="json",
+        ).status_code
+        == 404
+    )
+    assert Payment.objects.get(reference=payment_reference).status != Payment.Status.SUCCEEDED

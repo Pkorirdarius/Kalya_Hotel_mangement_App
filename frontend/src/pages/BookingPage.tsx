@@ -18,13 +18,27 @@ import {
 import { MEAL_PLANS, ROOMS, type MealPlanId } from '../types';
 import {
   addDaysISO,
-  isValidEmail,
-  isValidKenyanPhone,
   newRequestId,
   nightsBetween,
   todayISO,
 } from '../utils';
-import { backendPaymentMethod, isPaymentFailed, isPaymentPending, isPaymentSucceeded, quoteKeyFor } from './bookingFlow';
+import {
+  fieldErrorKeys,
+  guestDetailsSchema,
+  normaliseKenyanPhone,
+  paymentDetailsSchema,
+  stayDatesSchema,
+} from '../lib/validation';
+import {
+  backendPaymentMethod,
+  formatCountdown,
+  isHoldExpired,
+  isPaymentFailed,
+  isPaymentPending,
+  isPaymentSucceeded,
+  quoteKeyFor,
+  secondsRemaining,
+} from './bookingFlow';
 
 type PaymentMethod = 'mpesa' | 'card' | 'bank';
 
@@ -230,15 +244,31 @@ export function BookingPage() {
     return rows;
   }, [availabilityQuery.data]);
 
+  const paymentStateSettled =
+    isPaymentSucceeded(paymentState?.status) || isPaymentFailed(paymentState?.status);
+
+  // Tick only while a hold is on screen; the poll stops when it runs out.
+  const [clock, setClock] = useState(() => Date.now());
+  useEffect(() => {
+    if (step !== 5) return;
+    const timer = window.setInterval(() => setClock(Date.now()), 1_000);
+    return () => window.clearInterval(timer);
+  }, [step]);
+
+  const holdExpiresAt = booking?.hold_expires_at ?? null;
+  const holdSeconds = secondsRemaining(holdExpiresAt, clock);
+  const holdExpired = isHoldExpired(holdExpiresAt, clock);
+
   const paymentQuery = usePayment(
     paymentState?.reference,
-    step === 5 && isPaymentPending(paymentState?.status),
+    step === 5 &&
+      isPaymentPending(paymentState?.status) &&
+      !paymentStateSettled &&
+      !holdExpired,
   );
   // Prefer the polled record while it matches the payment we initiated, so the
   // UI updates without copying query data into state inside an effect. A local
   // terminal result (sandbox completion) wins over a stale poll.
-  const paymentStateSettled =
-    isPaymentSucceeded(paymentState?.status) || isPaymentFailed(paymentState?.status);
   const payment =
     paymentQuery.data &&
     paymentState &&
@@ -326,59 +356,41 @@ export function BookingPage() {
     });
   };
 
-  const validateDates = (): boolean => {
+  const applyValidation = (keys: Record<string, string>) => {
     const next: Errors = {};
-    if (!form.checkin) {
-      next.checkin = t('common.required');
-    } else if (form.checkin < today) {
-      next.checkin = t('validation.dates');
-    }
-    if (!form.checkout) {
-      next.checkout = t('common.required');
-    } else if (nightsBetween(form.checkin, form.checkout) < 1) {
-      next.checkout = t('validation.dates');
+    for (const [field, key] of Object.entries(keys)) {
+      next[field as keyof BookingForm] = t(key);
     }
     setErrors(next);
     focusFirstError(next);
     return Object.keys(next).length === 0;
+  };
+
+  const validateDates = (): boolean => {
+    const result = stayDatesSchema(today).safeParse({
+      checkin: form.checkin,
+      checkout: form.checkout,
+    });
+    return applyValidation(fieldErrorKeys(result));
   };
 
   const validateGuestDetails = (): boolean => {
-    const next: Errors = {};
-    if (!form.firstName.trim()) next.firstName = t('common.required');
-    if (!form.lastName.trim()) next.lastName = t('common.required');
-
-    if (!form.email.trim()) {
-      next.email = t('common.required');
-    } else if (!isValidEmail(form.email)) {
-      next.email = t('validation.email');
-    }
-
-    if (!form.phone.trim()) {
-      next.phone = t('common.required');
-    } else if (!isValidKenyanPhone(form.phone)) {
-      next.phone = t('validation.phoneKe');
-    }
-
-    if (!form.terms) next.terms = t('validation.terms');
-
-    setErrors(next);
-    focusFirstError(next);
-    return Object.keys(next).length === 0;
+    const result = guestDetailsSchema.safeParse({
+      firstName: form.firstName,
+      lastName: form.lastName,
+      email: form.email,
+      phone: form.phone,
+      terms: form.terms,
+    });
+    return applyValidation(fieldErrorKeys(result));
   };
 
   const validatePayment = (): boolean => {
-    const next: Errors = {};
-    if (form.payment === 'mpesa') {
-      if (!form.mpesaPhone.trim()) {
-        next.mpesaPhone = t('validation.mpesa');
-      } else if (!isValidKenyanPhone(form.mpesaPhone)) {
-        next.mpesaPhone = t('validation.phoneKe');
-      }
-    }
-    setErrors(next);
-    focusFirstError(next);
-    return Object.keys(next).length === 0;
+    const result = paymentDetailsSchema.safeParse({
+      method: form.payment,
+      mpesaPhone: form.mpesaPhone,
+    });
+    return applyValidation(fieldErrorKeys(result));
   };
 
   const loadQuote = async (): Promise<Quote | null> => {
@@ -451,7 +463,10 @@ export function BookingPage() {
       body: {
         method,
         email: form.email.trim(),
-        phone: form.payment === 'mpesa' ? form.mpesaPhone.trim() : form.phone.trim(),
+        phone:
+          form.payment === 'mpesa'
+            ? normaliseKenyanPhone(form.mpesaPhone)
+            : normaliseKenyanPhone(form.phone) || form.phone.trim(),
         idempotency_key: `${target.reference}-${method}-${paymentAttempt.current}`,
       },
     });
@@ -502,7 +517,7 @@ export function BookingPage() {
           first_name: form.firstName.trim(),
           last_name: form.lastName.trim(),
           email: form.email.trim(),
-          phone: form.phone.trim(),
+          phone: normaliseKenyanPhone(form.phone) || form.phone.trim(),
           country: form.country,
           notes,
           language,
@@ -1417,6 +1432,20 @@ export function BookingPage() {
                       {paymentMessage ? (
                         <p className="mt-3 text-[12px] leading-relaxed text-muted">{paymentMessage}</p>
                       ) : null}
+                      {holdExpiresAt && !holdExpired ? (
+                        <p className="mt-3 flex flex-wrap items-center gap-2 text-[12px] text-muted">
+                          <span className="material-symbols-outlined text-[16px]" aria-hidden="true">
+                            timer
+                          </span>
+                          <span>{t('payment.timeLeft')}</span>
+                          <span
+                            className="font-mono text-[13px] font-bold tabular-nums text-forest"
+                            data-testid="payment-countdown"
+                          >
+                            {formatCountdown(holdSeconds)}
+                          </span>
+                        </p>
+                      ) : null}
                       {form.payment === 'bank' && bankRows.length > 0 ? (
                         <>
                           <dl className="mt-4 grid gap-2 rounded-xl bg-sand/60 p-4 text-[12px]">
@@ -1447,7 +1476,24 @@ export function BookingPage() {
                     </div>
                   ) : null}
 
-                  {paymentSandbox && isPaymentPending(payment?.status) ? (
+                  {holdExpired ? (
+                    <div
+                      role="alert"
+                      className="mt-5 rounded-2xl border border-red-200 bg-red-50 p-4 sm:p-5"
+                    >
+                      <p className="text-[13px] font-bold text-red-700">
+                        {t('payment.holdExpiredTitle')}
+                      </p>
+                      <p className="mt-1 text-[12px] leading-relaxed text-red-700/80">
+                        {t('payment.holdExpiredText')}
+                      </p>
+                      <a href={HOTEL.contact.phoneHref} className="btn-outline btn-sm mt-3">
+                        {t('payment.contactDesk')}
+                      </a>
+                    </div>
+                  ) : null}
+
+                  {paymentSandbox && isPaymentPending(payment?.status) && !holdExpired ? (
                     <div className="mt-5 rounded-2xl border border-dashed border-gold/60 bg-gold-pale p-4 sm:p-5">
                       <p className="inline-flex items-center gap-2 text-[12px] font-bold text-gold-deep">
                         <span className="material-symbols-outlined text-[16px]" aria-hidden="true">
@@ -1479,7 +1525,7 @@ export function BookingPage() {
                     </div>
                   ) : null}
 
-                  {!paymentSucceeded ? (
+                  {!paymentSucceeded && !holdExpired ? (
                     <div className="mt-5 flex flex-wrap gap-3">
                       {!payment || paymentFailed ? (
                         <button

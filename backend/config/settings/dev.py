@@ -31,6 +31,9 @@ Q_CLUSTER["sync"] = env.bool("Q_CLUSTER_SYNC", default=True)  # noqa: F405
 # Local development can complete M-Pesa/card payments without Safaricom keys
 # via the sandbox completion endpoint. Production must set these false.
 PAYMENTS_SANDBOX = env.bool("PAYMENTS_SANDBOX", default=True)  # noqa: F405
+PAYMENT_SIMULATION_ALLOWED = env.bool(  # noqa: F405
+    "PAYMENT_SIMULATION_ALLOWED", default=True
+)
 MPESA_SIMULATE = env.bool("MPESA_SIMULATE", default=True)  # noqa: F405
 
 SPECTACULAR_SETTINGS["SERVE_PERMISSIONS"] = [  # noqa: F405

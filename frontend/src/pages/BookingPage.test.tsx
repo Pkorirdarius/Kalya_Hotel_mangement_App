@@ -118,6 +118,7 @@ const bookingBody = {
   cancellation_cutoff_hours: 48,
   can_cancel: true,
   created_at: '2026-11-12T09:00:00Z',
+  hold_expires_at: new Date(Date.now() + 20 * 60_000).toISOString(),
   latest_payment: null,
 };
 
@@ -139,7 +140,7 @@ function paymentBody(status: 'pending' | 'succeeded' | 'failed') {
   };
 }
 
-function mockFetch(onQuote?: () => Response) {
+function mockFetch(onQuote?: () => Response, bookingOverrides: Record<string, unknown> = {}) {
   return vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input);
     const method = init?.method ?? 'GET';
@@ -161,7 +162,7 @@ function mockFetch(onQuote?: () => Response) {
       return onQuote ? onQuote() : jsonResponse(200, quoteBody());
     }
     if (url.endsWith('/bookings/') && method === 'POST') {
-      return jsonResponse(201, { booking: bookingBody });
+      return jsonResponse(201, { booking: { ...bookingBody, ...bookingOverrides } });
     }
     if (url.includes('/payments/bookings/') && method === 'POST') {
       return jsonResponse(200, {
@@ -220,6 +221,9 @@ describe('BookingPage', () => {
     await user.click(screen.getByRole('button', { name: /pay & confirm booking/i }));
 
     expect(await screen.findByText('WP-2026-0001')).toBeInTheDocument();
+    expect(await screen.findByTestId('payment-countdown')).toHaveTextContent(
+      /^\d{2}:\d{2}$/,
+    );
     expect(
       await screen.findByRole('button', { name: 'Simulate successful payment' }),
     ).toBeInTheDocument();
@@ -277,5 +281,29 @@ describe('BookingPage', () => {
     await waitFor(() =>
       expect(screen.getByRole('button', { name: 'Add guest details' })).toBeInTheDocument(),
     );
+  });
+
+  it('closes the payment window and hides simulation once the hold expires', async () => {
+    vi.stubGlobal(
+      'fetch',
+      mockFetch(undefined, { hold_expires_at: '2020-01-01T00:00:00Z' }),
+    );
+    const user = userEvent.setup();
+    renderBookingPage();
+
+    await reachStepTwo(user);
+    await reachStepFour(user);
+    await user.click(screen.getByRole('button', { name: /pay & confirm booking/i }));
+
+    expect(
+      await screen.findByText('The payment window has closed'),
+    ).toBeInTheDocument();
+    expect(screen.queryByTestId('payment-countdown')).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'Simulate successful payment' }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'Choose another method' }),
+    ).not.toBeInTheDocument();
   });
 });

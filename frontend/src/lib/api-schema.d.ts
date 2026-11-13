@@ -543,7 +543,13 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** @description Gateway-neutral card callback placeholder. */
+        /**
+         * @description Gateway-neutral card callback placeholder.
+         *
+         *     A real adapter (Pesapal/Flutterwave/DPO) validates its signature in the same
+         *     place this shared-secret check runs and then calls the same idempotent
+         *     service. Card details are never accepted by this endpoint.
+         */
         post: operations["v1_payments_webhooks_card_create"];
         delete?: never;
         options?: never;
@@ -1280,6 +1286,22 @@ export interface paths {
             cookie?: never;
         };
         get: operations["v1_staff_reports_overview_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/staff/reports/payments/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["v1_staff_reports_payments_retrieve"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2553,14 +2575,20 @@ export interface components {
         PatchedStaffHotelSettingRequest: {
             name?: string;
             tagline?: string;
+            /** @description Needs hotel confirmation: sources disagree (Nairobi vs Kapenguria). */
             address?: string;
+            /** @description Needs hotel confirmation: do not launch until checked. */
             town?: string;
+            /** @description Needs hotel confirmation: do not launch until checked. */
             county?: string;
             country?: string;
+            /** @description Needs hotel confirmation: replace with the hotel's real number. */
             phone?: string;
             phone_href?: string;
+            /** @description Needs hotel confirmation: replace with the hotel's real inbox. */
             email?: string;
             whatsapp?: string;
+            /** @description Needs hotel confirmation: pin the correct location on Google Maps. */
             map_query?: string;
             currency?: string;
             timezone?: string;
@@ -2649,6 +2677,10 @@ export interface components {
             checkout_request_id?: string;
             failure_code?: string;
             failure_message?: string;
+            redirect_url?: string;
+            /** @description Set when money arrived after the booking or day pass was no longer payable. */
+            requires_review?: boolean;
+            review_reason?: string;
             /** Format: date-time */
             paid_at?: string | null;
             /** Format: date-time */
@@ -2685,6 +2717,31 @@ export interface components {
             bank: unknown;
             sandbox: boolean;
         };
+        PaymentReportResponse: {
+            results: components["schemas"]["PaymentReportRow"][];
+            count: number;
+            total_amount: number;
+        };
+        PaymentReportRow: {
+            reference: string;
+            booking_reference: string;
+            gym_pass_reference: string;
+            purpose: string;
+            purpose_display: string;
+            provider: string;
+            provider_display: string;
+            status: string;
+            status_display: string;
+            amount: number;
+            currency: string;
+            phone: string;
+            provider_reference: string;
+            requires_review: boolean;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            paid_at: string | null;
+        };
         /**
          * @description * `initiated` - Initiated
          *     * `pending` - Pending
@@ -2703,6 +2760,8 @@ export interface components {
             amount: number;
             checkout_request_id: string;
             failure_message: string;
+            redirect_url?: string;
+            requires_review?: boolean;
             /** Format: date-time */
             paid_at: string | null;
             instructions?: unknown;
@@ -2723,14 +2782,20 @@ export interface components {
         PublicHotelSetting: {
             name?: string;
             tagline?: string;
+            /** @description Needs hotel confirmation: sources disagree (Nairobi vs Kapenguria). */
             address?: string;
+            /** @description Needs hotel confirmation: do not launch until checked. */
             town?: string;
+            /** @description Needs hotel confirmation: do not launch until checked. */
             county?: string;
             country?: string;
+            /** @description Needs hotel confirmation: replace with the hotel's real number. */
             phone?: string;
             phone_href?: string;
+            /** @description Needs hotel confirmation: replace with the hotel's real inbox. */
             email?: string;
             whatsapp?: string;
+            /** @description Needs hotel confirmation: pin the correct location on Google Maps. */
             map_query?: string;
             currency?: string;
             timezone?: string;
@@ -3198,14 +3263,20 @@ export interface components {
         StaffHotelSetting: {
             name?: string;
             tagline?: string;
+            /** @description Needs hotel confirmation: sources disagree (Nairobi vs Kapenguria). */
             address?: string;
+            /** @description Needs hotel confirmation: do not launch until checked. */
             town?: string;
+            /** @description Needs hotel confirmation: do not launch until checked. */
             county?: string;
             country?: string;
+            /** @description Needs hotel confirmation: replace with the hotel's real number. */
             phone?: string;
             phone_href?: string;
+            /** @description Needs hotel confirmation: replace with the hotel's real inbox. */
             email?: string;
             whatsapp?: string;
+            /** @description Needs hotel confirmation: pin the correct location on Google Maps. */
             map_query?: string;
             currency?: string;
             timezone?: string;
@@ -4167,7 +4238,9 @@ export interface operations {
     };
     v1_payments_webhooks_card_create: {
         parameters: {
-            query?: never;
+            query?: {
+                secret?: string;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -6522,6 +6595,32 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Overview"];
+                };
+            };
+        };
+    };
+    v1_staff_reports_payments_retrieve: {
+        parameters: {
+            query?: {
+                end?: string;
+                format?: string;
+                provider?: string;
+                start?: string;
+                status?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaymentReportResponse"];
+                    "text/csv": string;
                 };
             };
         };
