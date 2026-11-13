@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  bookingLookupSchema,
   emailSchema,
   fieldErrorKeys,
   guestDetailsSchema,
@@ -100,5 +101,45 @@ describe('shared form validation', () => {
     expect(
       paymentDetailsSchema.safeParse({ method: 'bank', mpesaPhone: 'nope' }).success,
     ).toBe(true);
+  });
+
+  it('requires a reference and one verified contact for booking lookup', () => {
+    expect(
+      bookingLookupSchema.safeParse({
+        reference: 'WP-2026-0001',
+        email: 'amina@example.com',
+        phone: '',
+      }).success,
+    ).toBe(true);
+    expect(
+      bookingLookupSchema.safeParse({
+        reference: 'WP-2026-0001',
+        email: '',
+        phone: '0712345678',
+      }).success,
+    ).toBe(true);
+
+    const noContact = bookingLookupSchema.safeParse({
+      reference: 'WP-2026-0001',
+      email: '',
+      phone: '',
+    });
+    expect(noContact.success).toBe(false);
+    if (!noContact.success) {
+      expect(fieldErrorKeys(noContact).email).toBe('validation.lookupContact');
+    }
+
+    const badContact = bookingLookupSchema.safeParse({
+      reference: '',
+      email: 'nope',
+      phone: '123',
+    });
+    expect(badContact.success).toBe(false);
+    if (!badContact.success) {
+      const errors = fieldErrorKeys(badContact);
+      expect(errors.reference).toBe('common.required');
+      expect(errors.email).toBe('validation.email');
+      expect(errors.phone).toBe('validation.phoneKe');
+    }
   });
 });

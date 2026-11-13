@@ -8,7 +8,7 @@ from apps.bookings.models import Booking, BookingStatus
 from apps.common.models import HotelSetting
 from apps.common.utils import hotel_today
 
-from .services import send_email
+from .services import manage_booking_url, send_email
 
 
 def send_arrival_reminders(days_ahead: int = 1) -> int:
@@ -39,6 +39,7 @@ def send_arrival_reminders(days_ahead: int = 1) -> int:
                 "site_url": settings.SITE_URL,
                 "booking": booking,
                 "guest_name": booking.guest_name,
+                "manage_url": manage_booking_url(booking),
             },
             entity=booking,
         )

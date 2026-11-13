@@ -90,6 +90,42 @@ export function stayDatesSchema(today: string) {
 
 export type BookingPaymentMethod = 'mpesa' | 'card' | 'bank';
 
+/**
+ * Guest booking lookup: a reference plus at least one verified contact detail.
+ * The backend returns a generic 404 when either piece is wrong, so the form
+ * only has to decide whether there is enough information to ask.
+ */
+export const bookingLookupSchema = z
+  .object({
+    reference: z.string().trim().min(1, { message: 'common.required' }),
+    email: z.string().trim(),
+    phone: z.string().trim(),
+  })
+  .superRefine((value, context) => {
+    if (!value.email && !value.phone) {
+      context.addIssue({
+        code: 'custom',
+        path: ['email'],
+        message: 'validation.lookupContact',
+      });
+      return;
+    }
+    if (value.email && !emailSchema.safeParse(value.email).success) {
+      context.addIssue({
+        code: 'custom',
+        path: ['email'],
+        message: 'validation.email',
+      });
+    }
+    if (value.phone && !kenyanPhoneSchema.safeParse(value.phone).success) {
+      context.addIssue({
+        code: 'custom',
+        path: ['phone'],
+        message: 'validation.phoneKe',
+      });
+    }
+  });
+
 export const paymentDetailsSchema = z
   .object({
     method: z.enum(['mpesa', 'card', 'bank']),

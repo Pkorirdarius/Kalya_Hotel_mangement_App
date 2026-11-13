@@ -81,6 +81,46 @@ def test_cancel_booking(api, booking_payload):
     assert lookup.hold_expires_at is None
 
 
+def test_confirmed_booking_cannot_be_cancelled_after_deadline(api, booking_payload):
+    from django.utils import timezone
+
+    reference = _create(api, booking_payload).json()["booking"]["reference"]
+    Booking.objects.filter(reference=reference).update(
+        status=BookingStatus.CONFIRMED,
+        free_cancellation_until=timezone.now() - timedelta(hours=1),
+    )
+
+    response = api.post(
+        f"/api/v1/bookings/{reference}/cancel/?email=amina@example.com",
+        {"reason": "Plans changed"},
+        format="json",
+    )
+
+    assert response.status_code == 409, response.content
+    assert "free cancellation deadline" in response.json()["error"]["message"].lower()
+    booking = Booking.objects.get(reference=reference)
+    assert booking.status == BookingStatus.CONFIRMED
+
+
+def test_confirmed_booking_can_be_cancelled_before_deadline(api, booking_payload):
+    from django.utils import timezone
+
+    reference = _create(api, booking_payload).json()["booking"]["reference"]
+    Booking.objects.filter(reference=reference).update(
+        status=BookingStatus.CONFIRMED,
+        free_cancellation_until=timezone.now() + timedelta(hours=24),
+    )
+
+    response = api.post(
+        f"/api/v1/bookings/{reference}/cancel/?email=amina@example.com",
+        {"reason": "Plans changed"},
+        format="json",
+    )
+
+    assert response.status_code == 200, response.content
+    assert response.json()["status"] == BookingStatus.CANCELLED
+
+
 def test_last_website_room_cannot_be_oversold(
     api, single_room_type, meal_plan, stay_dates
 ):

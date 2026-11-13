@@ -1394,6 +1394,17 @@ export function BookingPage() {
                         {t('payment.bookingHeld')}
                       </p>
                     ) : null}
+                    {reference ? (
+                      <Link
+                        to={`/booking/manage?reference=${encodeURIComponent(reference)}`}
+                        className="mt-4 inline-flex items-center gap-1.5 text-[12px] font-semibold text-forest transition hover:text-gold-deep"
+                      >
+                        <span className="material-symbols-outlined text-[16px]" aria-hidden="true">
+                          edit_calendar
+                        </span>
+                        <span>{t('confirmation.manage')}</span>
+                      </Link>
+                    ) : null}
                   </div>
 
                   {flowError ? (

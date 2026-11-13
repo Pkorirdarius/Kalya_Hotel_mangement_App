@@ -7,6 +7,9 @@ import { ScrollToTop } from './components/Page';
 const HomePage = lazy(() => import('./pages/HomePage').then((module) => ({ default: module.HomePage })));
 const RoomsPage = lazy(() => import('./pages/RoomsPage').then((module) => ({ default: module.RoomsPage })));
 const BookingPage = lazy(() => import('./pages/BookingPage').then((module) => ({ default: module.BookingPage })));
+const BookingManagePage = lazy(() =>
+  import('./pages/BookingManagePage').then((module) => ({ default: module.BookingManagePage })),
+);
 const FacilitiesPage = lazy(() =>
   import('./pages/FacilitiesPage').then((module) => ({ default: module.FacilitiesPage })),
 );
@@ -57,6 +60,7 @@ export function App() {
             <Route index element={<HomePage />} />
             <Route path="rooms" element={<RoomsPage />} />
             <Route path="booking" element={<BookingPage />} />
+            <Route path="booking/manage" element={<BookingManagePage />} />
             <Route path="facilities" element={<FacilitiesPage />} />
             <Route path="dining" element={<DiningPage />} />
             <Route path="conference" element={<ConferencePage />} />

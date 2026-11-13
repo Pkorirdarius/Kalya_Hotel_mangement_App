@@ -102,6 +102,12 @@ def notify_new_paid_booking(booking) -> None:
     )
 
 
+def manage_booking_url(booking) -> str:
+    """Public page where a guest can review or cancel their own booking."""
+
+    return f"{settings.SITE_URL}/booking/manage?reference={booking.reference}"
+
+
 def notify_booking_confirmed(booking, language: str | None = None) -> None:
     language = language or booking.language or "en"
     context = {
@@ -109,6 +115,7 @@ def notify_booking_confirmed(booking, language: str | None = None) -> None:
         "booking": booking,
         "guest_name": booking.guest_name,
         "language": language,
+        "manage_url": manage_booking_url(booking),
     }
     if booking.email:
         send_email(

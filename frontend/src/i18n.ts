@@ -52,6 +52,7 @@ const entries: Record<string, Entry> = {
   'nav.conference': { en: 'Conference hall', sw: 'Ukumbi wa mikutano' },
   'nav.gym': { en: 'Gym', sw: 'Mazoezi' },
   'nav.dashboard': { en: 'Front desk dashboard', sw: 'Dashibodi ya mapokezi' },
+  'nav.manageBooking': { en: 'Manage booking', sw: 'Simamia nafasi' },
   'nav.menu': { en: 'Menu', sw: 'Menyu' },
 
   'header.location': { en: '{town}, {county}', sw: '{town}, {county}' },
@@ -472,6 +473,116 @@ const entries: Record<string, Entry> = {
   'confirmation.roomTotal': { en: 'Room total', sw: 'Jumla ya chumba' },
   'confirmation.mealTotal': { en: 'Meals', sw: 'Chakula' },
   'confirmation.pending': { en: 'Payment instructions sent by email', sw: 'Maelekezo ya malipo yametumwa kwa barua pepe' },
+  'confirmation.manage': { en: 'Manage this booking', sw: 'Simamia nafasi hii' },
+
+  'manage.eyebrow': { en: 'Your reservation', sw: 'Nafasi yako' },
+  'manage.title': { en: 'Manage your booking', sw: 'Simamia nafasi yako' },
+  'manage.text': {
+    en: 'Look up your stay with your booking reference and the email or phone number you booked with. Review the details, check payment and cancel if your plans change.',
+    sw: 'Tafuta nafasi yako kwa kumbukumbu ya kuweka nafasi na barua pepe au namba ya simu uliyotumia. Kagua taarifa, angalia malipo na ughairi kama mipango yako imebadilika.',
+  },
+  'manage.formTitle': { en: 'Find your booking', sw: 'Tafuta nafasi yako' },
+  'manage.formText': {
+    en: 'Enter the reference from your confirmation email, plus one contact detail.',
+    sw: 'Weka kumbukumbu kutoka barua pepe ya uthibitisho, pamoja na taarifa moja ya mawasiliano.',
+  },
+  'manage.reference': { en: 'Booking reference', sw: 'Kumbukumbu ya nafasi' },
+  'manage.or': { en: 'or', sw: 'au' },
+  'manage.contactHint': {
+    en: 'We ask for only one contact detail — the email or phone number used for this booking.',
+    sw: 'Tunaomba taarifa moja tu ya mawasiliano — barua pepe au namba ya simu iliyotumika kuweka nafasi hii.',
+  },
+  'manage.submit': { en: 'Find booking', sw: 'Tafuta nafasi' },
+  'manage.searching': { en: 'Looking up your booking…', sw: 'Tunatafuta nafasi yako…' },
+  'manage.startOver': { en: 'Start over', sw: 'Anza tena' },
+  'manage.notFound': {
+    en: 'We could not find a booking with those details. Check the reference and contact detail, then try again.',
+    sw: 'Hatukuweza kupata nafasi kwa taarifa hizo. Angalia kumbukumbu na taarifa ya mawasiliano, kisha ujaribu tena.',
+  },
+  'manage.lookupError': {
+    en: 'We could not look up that booking. Please try again.',
+    sw: 'Hatukuweza kutafuta nafasi hiyo. Tafadhali jaribu tena.',
+  },
+  'manage.paymentStatus': { en: 'Payment', sw: 'Malipo' },
+  'manage.bookedOn': { en: 'Booked on', sw: 'Iliwekwa tarehe' },
+  'manage.noPayment': { en: 'No payment recorded', sw: 'Hakuna malipo yaliyorekodiwa' },
+  'manage.paymentRefunded': { en: 'Refunded', sw: 'Imerudishwa' },
+  'manage.cancelDeadline': {
+    en: 'Free cancellation until {date}.',
+    sw: 'Kughairi bila malipo hadi {date}.',
+  },
+  'manage.cancelDeadlinePassed': {
+    en: 'The free cancellation deadline was {date}. Contact the front desk to make changes.',
+    sw: 'Muda wa kughairi bila malipo uliisha {date}. Wasiliana na mapokezi kufanya mabadiliko.',
+  },
+  'manage.cancel': { en: 'Cancel this booking', sw: 'Ghairi nafasi hii' },
+  'manage.cancelConfirmTitle': { en: 'Cancel this booking?', sw: 'Ghairi nafasi hii?' },
+  'manage.cancelConfirmText': {
+    en: 'This releases your room. If you paid, the front desk will contact you about any refund that applies.',
+    sw: 'Hii itaachilia chumba chako. Kama ulilipa, mapokezi yatakuwasiliana kuhusu marejesho yanayostahili.',
+  },
+  'manage.cancelReason': { en: 'Reason (optional)', sw: 'Sababu (si lazima)' },
+  'manage.cancelReasonPlaceholder': {
+    en: 'Tell us why your plans changed',
+    sw: 'Tuambie kwa nini mipango yako imebadilika',
+  },
+  'manage.cancelConfirm': { en: 'Yes, cancel booking', sw: 'Ndiyo, ghairi nafasi' },
+  'manage.cancelKeep': { en: 'Keep booking', sw: 'Hifadhi nafasi' },
+  'manage.cancelClosed': {
+    en: 'This booking can no longer be cancelled online. Call the front desk and we will help.',
+    sw: 'Nafasi hii haiwezi kughairiwa mtandaoni tena. Tupigie mapokezi na tutakusaidia.',
+  },
+  'manage.callDesk': { en: 'Call the front desk', sw: 'Piga simu mapokezi' },
+  'manage.closed.cancelled': {
+    en: 'This booking has been cancelled.',
+    sw: 'Nafasi hii imeghairiwa.',
+  },
+  'manage.closed.declined': {
+    en: 'This booking was declined. Call the front desk if you need help.',
+    sw: 'Nafasi hii ilikataliwa. Piga simu mapokezi kama unahitaji msaada.',
+  },
+  'manage.closed.expired': {
+    en: 'This booking expired because payment was not completed in time.',
+    sw: 'Nafasi hii iliisha kwa sababu malipo hayakukamilika kwa wakati.',
+  },
+  'manage.cancelledTitle': { en: 'Booking cancelled', sw: 'Nafasi imeghairiwa' },
+  'manage.cancelledText': {
+    en: 'Your room has been released. A confirmation email is on its way.',
+    sw: 'Chumba chako kimeachiliwa. Barua pepe ya uthibitisho inakuja.',
+  },
+  'manage.cancelledToast': {
+    en: 'Booking cancelled. A confirmation email is on its way.',
+    sw: 'Nafasi imeghairiwa. Barua pepe ya uthibitisho inakuja.',
+  },
+  'manage.cancelError': {
+    en: 'We could not cancel this booking. Please call the front desk.',
+    sw: 'Hatukuweza kughairi nafasi hii. Tafadhali piga simu mapokezi.',
+  },
+  'manage.helpTitle': { en: 'What you can do here', sw: 'Unachoweza kufanya hapa' },
+  'manage.helpReview': {
+    en: 'Review your room, dates and guest details.',
+    sw: 'Kagua chumba, tarehe na taarifa za wageni.',
+  },
+  'manage.helpPayment': {
+    en: 'See the latest payment status.',
+    sw: 'Ona hali ya malipo ya hivi karibuni.',
+  },
+  'manage.helpCancel': {
+    en: 'Cancel before the free cancellation deadline.',
+    sw: 'Ghairi kabla ya muda wa kughairi bila malipo kuisha.',
+  },
+  'manage.needHelp': { en: 'Need help with this booking?', sw: 'Unahitaji msaada kuhusu nafasi hii?' },
+  'manage.deskHours': {
+    en: 'The front desk is open 24 hours, every day.',
+    sw: 'Dawati la mapokezi liko wazi saa 24, kila siku.',
+  },
+  'manage.status.held': { en: 'Held', sw: 'Imehifadhiwa' },
+  'manage.status.pending_payment': { en: 'Pending payment', sw: 'Inasubiri malipo' },
+  'manage.status.pending_confirmation': { en: 'Pending confirmation', sw: 'Inasubiri uthibitisho' },
+  'manage.status.confirmed': { en: 'Confirmed', sw: 'Imethibitishwa' },
+  'manage.status.declined': { en: 'Declined', sw: 'Imekataliwa' },
+  'manage.status.cancelled': { en: 'Cancelled', sw: 'Imeghairiwa' },
+  'manage.status.expired': { en: 'Expired', sw: 'Imeisha muda' },
   'validation.dates': { en: 'Check-out must be after check-in.', sw: 'Kutoka lazima iwe baada ya kuingia.' },
   'validation.email': { en: 'Enter a valid email address.', sw: 'Weka barua pepe sahihi.' },
   'validation.phone': { en: 'Enter a valid phone number.', sw: 'Weka namba sahihi ya simu.' },
@@ -481,6 +592,10 @@ const entries: Record<string, Entry> = {
   'validation.card': { en: 'Enter your card details.', sw: 'Weka taarifa za kadi yako.' },
   'validation.mpesa': { en: 'Enter the M-Pesa phone number.', sw: 'Weka namba ya simu ya M-Pesa.' },
   'validation.guestName': { en: 'Enter the guest name.', sw: 'Weka jina la mgeni.' },
+  'validation.lookupContact': {
+    en: 'Enter the email or phone number used for this booking.',
+    sw: 'Weka barua pepe au namba ya simu iliyotumika kuweka nafasi hii.',
+  },
   'toast.booking': { en: 'Payment received. Your room is confirmed.', sw: 'Malipo yamepokelewa. Chumba chako kimethibitishwa.' },
   'toast.newsletter': { en: 'You are on the list. Asante!', sw: 'Uko kwenye orodha. Asante!' },
   'toast.formSent': { en: 'Message sent. We will reply within one working day.', sw: 'Ujumbe umetumwa. Tutajibu ndani ya siku moja ya kazi.' },
@@ -904,6 +1019,11 @@ const entries: Record<string, Entry> = {
   'meta.booking.description': {
     en: 'Book direct with {name} in {town}. Best rate guaranteed, free cancellation up to 48 hours and M-Pesa, card or bank payment.',
     sw: 'Weka nafasi moja kwa moja na {name} huko {town}. Bei bora imehakikishiwa, kughairi bure hadi saa 48 na malipo ya M-Pesa, kadi au benki.',
+  },
+  'meta.manage.title': { en: 'Manage your booking — {name}', sw: 'Simamia nafasi yako — {name}' },
+  'meta.manage.description': {
+    en: 'Look up your booking at {name} with your reference and contact detail. Review your stay, check payment and cancel online.',
+    sw: 'Tafuta nafasi yako kwenye {name} kwa kumbukumbu na taarifa ya mawasiliano. Kagua kukaa kwako, angalia malipo na ughairi mtandaoni.',
   },
   'meta.facilities.title': { en: 'Facilities — {name}, {town}', sw: 'Huduma — {name}, {town}' },
   'meta.facilities.description': {
