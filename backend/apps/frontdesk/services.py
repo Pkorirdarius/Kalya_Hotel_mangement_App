@@ -15,6 +15,7 @@ from apps.facilities.models import (
     GymDayPass,
     TableBooking,
 )
+from apps.payments.models import Payment
 
 from .models import DeskAction
 
@@ -182,6 +183,14 @@ def _booking_confirm(booking: Booking, actor) -> tuple[str, str]:
             payment.paid_at = timezone.now()
             payment.failure_message = "Confirmed at front desk"
             payment.save(update_fields=("status", "paid_at", "failure_message", "updated_at"))
+        # The state machine treats "payment received" and "confirmed by the
+        # front desk" as separate steps, so walk through both explicitly.
+        transition_booking(
+            booking,
+            BookingStatus.PENDING_CONFIRMATION,
+            actor=actor,
+            reason="Payment confirmed at front desk",
+        )
     transition_booking(booking, BookingStatus.CONFIRMED, actor=actor, reason="Confirmed at front desk")
     return previous, booking.status
 
@@ -238,10 +247,36 @@ def apply_action(
         current = obj.status
         if entity_type == "booking":
             restore_booking_status(obj, previous, actor=actor, request_id=request_id)
+            if previous == BookingStatus.PENDING_PAYMENT:
+                # The confirmation may have marked a pending bank transfer as
+                # paid. Undo that too so a mistaken click cannot invent money.
+                payment = (
+                    obj.payments.filter(
+                        provider="bank_transfer",
+                        status=Payment.Status.SUCCEEDED,
+                        failure_message="Confirmed at front desk",
+                    )
+                    .order_by("-updated_at")
+                    .first()
+                )
+                if payment is not None:
+                    payment.status = Payment.Status.PENDING
+                    payment.paid_at = None
+                    payment.failure_message = ""
+                    payment.save(
+                        update_fields=(
+                            "status",
+                            "paid_at",
+                            "failure_message",
+                            "updated_at",
+                        )
+                    )
         else:
             obj.status = previous
             if entity_type == "gym_pass" and current == GymDayPass.Status.CONFIRMED:
                 obj.qr_token = None
+                if obj.payment_method == GymDayPass.PaymentMethod.RECEPTION:
+                    obj.paid_at = None
             obj.save()
         latest.undone_at = timezone.now()
         latest.save(update_fields=("undone_at",))
@@ -265,11 +300,18 @@ def apply_action(
 
     previous = obj.status
     if entity_type == "booking":
+        if obj.status not in (
+            BookingStatus.PENDING_PAYMENT,
+            BookingStatus.PENDING_CONFIRMATION,
+        ):
+            raise ActionError("This booking is no longer waiting for a decision.")
         if action == "confirm":
             previous, new = _booking_confirm(obj, actor)
         else:
             previous, new = _booking_decline(obj, actor)
     elif entity_type == "table_booking":
+        if obj.status != TableBooking.Status.PENDING:
+            raise ActionError("This table booking has already been handled.")
         new = (
             TableBooking.Status.CONFIRMED
             if action == "confirm"
@@ -278,6 +320,8 @@ def apply_action(
         obj.status = new
         obj.save(update_fields=("status", "updated_at"))
     elif entity_type == "conference_enquiry":
+        if obj.status != ConferenceEnquiry.Status.PENDING:
+            raise ActionError("This conference enquiry has already been handled.")
         new = (
             ConferenceEnquiry.Status.CONFIRMED
             if action == "confirm"
@@ -286,6 +330,8 @@ def apply_action(
         obj.status = new
         obj.save(update_fields=("status", "updated_at"))
     else:
+        if obj.status != GymDayPass.Status.PENDING_CONFIRMATION:
+            raise ActionError("This gym day pass is no longer waiting for confirmation.")
         if action == "confirm":
             from apps.facilities.services import confirm_gym_day_pass
 
