@@ -2,7 +2,7 @@ import { lazy, Suspense } from 'react';
 import { Outlet, Route, Routes } from 'react-router-dom';
 import { Footer } from './components/Footer';
 import { Header } from './components/Header';
-import { ScrollToTop } from './components/Page';
+import { ScrollToTop, RouteAnalytics } from './components/Page';
 
 const HomePage = lazy(() => import('./pages/HomePage').then((module) => ({ default: module.HomePage })));
 const RoomsPage = lazy(() => import('./pages/RoomsPage').then((module) => ({ default: module.RoomsPage })));
@@ -54,6 +54,7 @@ export function App() {
   return (
     <>
       <ScrollToTop />
+      <RouteAnalytics />
       <Suspense fallback={<RouteFallback />}>
         <Routes>
           <Route element={<SiteLayout />}>

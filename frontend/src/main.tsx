@@ -5,6 +5,7 @@ import { App } from './App';
 import { QueryProvider } from './components/QueryProvider';
 import { ToastProvider } from './components/ToastProvider';
 import { I18nProvider } from './i18n-context';
+import { initAnalytics } from './lib/analytics';
 import './styles/main.css';
 
 const container = document.getElementById('root');
@@ -12,6 +13,8 @@ const container = document.getElementById('root');
 if (!container) {
   throw new Error('Root element not found');
 }
+
+initAnalytics();
 
 createRoot(container).render(
   <StrictMode>

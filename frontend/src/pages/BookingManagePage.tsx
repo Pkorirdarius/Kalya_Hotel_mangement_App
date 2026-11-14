@@ -62,7 +62,7 @@ export function BookingManagePage() {
   const { language, t, formatDate, formatMoney } = useI18n();
   const { showToast } = useToast();
   const [searchParams] = useSearchParams();
-  usePageMeta(t('meta.manage.title'), t('meta.manage.description'));
+  usePageMeta(t('meta.manage.title'), t('meta.manage.description'), true);
 
   const [form, setForm] = useState<LookupForm>({
     reference: searchParams.get('reference') ?? '',

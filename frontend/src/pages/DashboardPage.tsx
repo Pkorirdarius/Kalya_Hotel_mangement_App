@@ -545,7 +545,7 @@ function ReportsPanel() {
 export function DashboardPage() {
   const { t } = useI18n();
   const staff = useStaffMe();
-  usePageMeta(t('meta.dashboard.title'));
+  usePageMeta(t('meta.dashboard.title'), undefined, true);
 
   if (staff.isPending) {
     return <LoadingScreen />;
