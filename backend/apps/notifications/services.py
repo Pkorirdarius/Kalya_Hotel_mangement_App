@@ -210,6 +210,70 @@ def notify_gym_pass(gym_pass) -> None:
     )
 
 
+def notify_table_booking(table) -> None:
+    """Tell a guest whether their restaurant table was confirmed or declined.
+
+    Table bookings do not currently store a language, so these messages are
+    sent in English. Marketing should review this once the form captures the
+    guest's language (see docs/LAUNCH-CHECKLIST.md).
+    """
+
+    confirmed = table.status == "confirmed"
+    context = {**_public_context(), "table": table, "confirmed": confirmed}
+    if table.email:
+        send_email(
+            kind="table_booking",
+            subject=(
+                f"Table confirmed · {table.reference}"
+                if confirmed
+                else f"Table booking update · {table.reference}"
+            ),
+            recipient=table.email,
+            template="table_booking_update_en",
+            context=context,
+            entity=table,
+        )
+    send_sms(
+        kind="table_booking",
+        recipient=table.phone,
+        message=(
+            f"{hotel_display_name()}: table {table.reference} "
+            f"{'confirmed' if confirmed else 'could not be confirmed'} for "
+            f"{table.date:%d %b %Y} at {table.time:%H:%M}."
+        ),
+        entity=table,
+    )
+
+
+def notify_conference_enquiry(enquiry) -> None:
+    """Tell an enquirer whether their conference request was confirmed."""
+
+    confirmed = enquiry.status == "confirmed"
+    context = {**_public_context(), "enquiry": enquiry, "confirmed": confirmed}
+    send_email(
+        kind="conference_enquiry",
+        subject=(
+            f"Conference confirmed · {enquiry.reference}"
+            if confirmed
+            else f"Conference enquiry update · {enquiry.reference}"
+        ),
+        recipient=enquiry.email,
+        template="conference_enquiry_update_en",
+        context=context,
+        entity=enquiry,
+    )
+    send_sms(
+        kind="conference_enquiry",
+        recipient=enquiry.phone,
+        message=(
+            f"{hotel_display_name()}: conference request {enquiry.reference} "
+            f"{'confirmed' if confirmed else 'could not be confirmed'} for "
+            f"{enquiry.date:%d %b %Y} ({enquiry.get_session_display()})."
+        ),
+        entity=enquiry,
+    )
+
+
 def notify_escalation(item, *, label: str, detail: str) -> None:
     context = {**_public_context(), "item": item, "label": label, "detail": detail}
     send_email(

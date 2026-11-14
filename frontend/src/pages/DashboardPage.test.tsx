@@ -19,7 +19,7 @@ function jsonResponse(status: number, body: unknown) {
   } as unknown as Response;
 }
 
-function staffBody() {
+function staffBody(exportGuestData = false) {
   return {
     user: {
       id: 3,
@@ -33,7 +33,7 @@ function staffBody() {
       is_staff: true,
       capabilities: {
         view_guest_data: true,
-        export_guest_data: false,
+        export_guest_data: exportGuestData,
         manage_bookings: true,
         manage_content: false,
         manage_system: false,
@@ -87,8 +87,11 @@ function actionBody(
   };
 }
 
-function mockFetch(options: { authenticated?: boolean } = {}) {
+function mockFetch(
+  options: { authenticated?: boolean; exportGuestData?: boolean } = {},
+) {
   let authenticated = options.authenticated ?? false;
+  const exportGuestData = options.exportGuestData ?? false;
   let queue: Array<Record<string, unknown>> = [
     queueItem(),
     queueItem({
@@ -115,7 +118,7 @@ function mockFetch(options: { authenticated?: boolean } = {}) {
     if (url.includes('/auth/csrf/')) return jsonResponse(200, {});
     if (url.includes('/staff/auth/me/')) {
       return authenticated
-        ? jsonResponse(200, staffBody())
+        ? jsonResponse(200, staffBody(exportGuestData))
         : jsonResponse(403, {
             error: {
               code: 'permission_denied',
@@ -127,7 +130,7 @@ function mockFetch(options: { authenticated?: boolean } = {}) {
     }
     if (url.includes('/staff/auth/login/') && method === 'POST') {
       authenticated = true;
-      return jsonResponse(200, staffBody());
+      return jsonResponse(200, staffBody(exportGuestData));
     }
     if (url.includes('/staff/auth/logout/') && method === 'POST') {
       authenticated = false;
@@ -155,6 +158,91 @@ function mockFetch(options: { authenticated?: boolean } = {}) {
             actor: 'Amina Kip',
             created_at: new Date(Date.now() - 5 * 60_000).toISOString(),
             undone_at: null,
+          },
+        ],
+      });
+    }
+    if (url.includes('/staff/reports/overview/') && method === 'GET') {
+      return jsonResponse(200, {
+        date: new Date().toISOString().slice(0, 10),
+        arrivals: 4,
+        departures: 3,
+        in_house_bookings: 6,
+        in_house_guests: 11,
+        total_rooms: 18,
+        occupancy_percent: 33.3,
+        revenue_today: 12400,
+        pending: {
+          room_bookings: 1,
+          table_bookings: 1,
+          conference_enquiries: 0,
+          gym_day_passes: 0,
+        },
+      });
+    }
+    if (url.includes('/staff/reports/occupancy/') && method === 'GET') {
+      return jsonResponse(200, {
+        results: [
+          {
+            date: new Date().toISOString().slice(0, 10),
+            in_house_bookings: 6,
+            in_house_guests: 11,
+            occupancy_percent: 33.3,
+            revenue_today: 12400,
+          },
+        ],
+      });
+    }
+    if (url.includes('/staff/reports/payments/') && method === 'GET') {
+      const csv = url.includes('format=csv');
+      if (csv) {
+        return {
+          ok: true,
+          status: 200,
+          headers: { get: () => 'text/csv' },
+          text: async () => 'Reference\nPAY-001',
+          json: async () => ({}),
+        } as unknown as Response;
+      }
+      return jsonResponse(200, {
+        count: 2,
+        total_amount: 21400,
+        results: [
+          {
+            reference: 'PAY-2026-0001',
+            booking_reference: 'WP-2026-0041',
+            gym_pass_reference: '',
+            purpose: 'booking',
+            purpose_display: 'Room booking',
+            provider: 'mpesa',
+            provider_display: 'M-Pesa',
+            status: 'succeeded',
+            status_display: 'Paid',
+            amount: 19400,
+            currency: 'KES',
+            phone: '254712345678',
+            provider_reference: 'QK123',
+            requires_review: false,
+            created_at: new Date().toISOString(),
+            paid_at: new Date().toISOString(),
+          },
+          {
+            reference: 'PAY-2026-0002',
+            booking_reference: '',
+            gym_pass_reference: 'GY-2026-0002',
+            purpose: 'gym',
+            purpose_display: 'Gym day pass',
+            provider: 'bank_transfer',
+            provider_display: 'Bank transfer',
+            status: 'pending',
+            status_display: 'Pending',
+            amount: 2000,
+            currency: 'KES',
+            phone: '254700000002',
+            provider_reference: '',
+            requires_review: true,
+            created_at: new Date().toISOString(),
+            paid_at: null,
           },
         ],
       });
@@ -244,6 +332,9 @@ describe('DashboardPage', () => {
       username: 'frontdesk',
       password: 'strong-test-password',
     });
+    expect(
+      screen.queryByRole('heading', { name: 'Today at a glance' }),
+    ).not.toBeInTheDocument();
   });
 
   it('confirms an item and undoes the action inside the window', async () => {
@@ -302,5 +393,27 @@ describe('DashboardPage', () => {
         String(input).includes('/staff/auth/logout/') && init?.method === 'POST',
     );
     expect(logoutCall).toBeTruthy();
+  });
+
+  it('shows live reports and a CSV export for staff who may export', async () => {
+    vi.stubGlobal(
+      'fetch',
+      mockFetch({ authenticated: true, exportGuestData: true }),
+    );
+    renderDashboard();
+
+    expect(
+      await screen.findByRole('heading', { name: 'Today at a glance' }),
+    ).toBeInTheDocument();
+    expect(await screen.findByText('PAY-2026-0001')).toBeInTheDocument();
+    expect(screen.getByText('21,400')).toBeInTheDocument();
+    expect(screen.getByText('33.3%')).toBeInTheDocument();
+
+    const download = screen.getByRole('link', { name: 'Download CSV' });
+    const href = download.getAttribute('href') ?? '';
+    expect(href).toContain('/staff/reports/payments/');
+    expect(href).toContain('format=csv');
+    expect(href).toContain('start=');
+    expect(href).toContain('end=');
   });
 });

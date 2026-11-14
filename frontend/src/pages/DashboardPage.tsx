@@ -6,6 +6,7 @@ import { useToast } from '../components/ToastProvider';
 import { HOTEL } from '../config/hotel';
 import { useI18n } from '../i18n-context';
 import { ApiError } from '../lib/api/client';
+import { paymentReportCsvUrl } from '../lib/api/endpoints';
 import type {
   ActivityRow,
   DeskAction,
@@ -18,10 +19,14 @@ import {
   useFrontDeskActionMutation,
   useFrontDeskActivity,
   useFrontDeskQueue,
+  useOccupancyReport,
+  usePaymentReport,
   useStaffLoginMutation,
   useStaffLogoutMutation,
   useStaffMe,
+  useStaffOverview,
 } from '../lib/query/hooks';
+import { addDaysISO, todayISO } from '../utils';
 
 interface RecentAction {
   action: DeskAction;
@@ -275,6 +280,265 @@ function LoginScreen() {
         {HOTEL.name}
       </footer>
     </div>
+  );
+}
+
+function ReportsPanel() {
+  const { t, language, formatMoney } = useI18n();
+  const today = todayISO();
+  const weekStart = addDaysISO(today, -6);
+  const [start, setStart] = useState(() => addDaysISO(today, -29));
+  const [end, setEnd] = useState(today);
+  const validRange = start <= end;
+
+  const overview = useStaffOverview(today);
+  const occupancy = useOccupancyReport(weekStart, today);
+  const payments = usePaymentReport(start, end, { enabled: validRange });
+
+  const pending =
+    (overview.data?.pending.room_bookings ?? 0) +
+    (overview.data?.pending.table_bookings ?? 0) +
+    (overview.data?.pending.conference_enquiries ?? 0) +
+    (overview.data?.pending.gym_day_passes ?? 0);
+
+  const stats = [
+    {
+      key: 'arrivals',
+      value: overview.data ? String(overview.data.arrivals) : '—',
+      note: overview.data
+        ? t('dash.reports.guests', { count: overview.data.in_house_guests })
+        : '',
+    },
+    {
+      key: 'departures',
+      value: overview.data ? String(overview.data.departures) : '—',
+      note: overview.data
+        ? t('dash.reports.rooms', { count: overview.data.in_house_bookings })
+        : '',
+    },
+    {
+      key: 'inHouse',
+      value: overview.data ? String(overview.data.in_house_guests) : '—',
+      note: overview.data
+        ? t('dash.reports.rooms', { count: overview.data.in_house_bookings })
+        : '',
+    },
+    {
+      key: 'occupancy',
+      value: overview.data ? `${overview.data.occupancy_percent}%` : '—',
+      note: overview.data
+        ? t('dash.reports.rooms', { count: overview.data.total_rooms })
+        : '',
+    },
+  ];
+
+  const retryAll = () => {
+    void overview.refetch();
+    void occupancy.refetch();
+    void payments.refetch();
+  };
+
+  const paymentStatus = (status: string) =>
+    t(PAYMENT_KEY[status] ?? 'dash.payment.pending');
+
+  return (
+    <section className="mt-8 rounded-3xl border border-white/10 bg-white/[0.04] p-5 lg:p-6">
+      <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
+        <div>
+          <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-gold">
+            {t('dash.reports.eyebrow')}
+          </p>
+          <h2 className="mt-1 font-serif text-2xl text-white">{t('dash.reports.title')}</h2>
+          <p className="mt-1 max-w-xl text-[11px] leading-relaxed text-white/40">
+            {t('dash.reports.text')}
+          </p>
+        </div>
+        <div className="text-[11px] text-white/50">
+          <span>{t('dash.reports.revenue')}: </span>
+          <strong className="text-gold">
+            {formatMoney(overview.data?.revenue_today ?? 0)}
+          </strong>
+          <span> · {t('dash.reports.pending', { count: pending })}</span>
+        </div>
+      </div>
+
+      {overview.isError || occupancy.isError || payments.isError ? (
+        <div className="mt-4 flex flex-wrap items-center gap-3 rounded-xl border border-red-300/20 bg-red-500/10 px-3 py-2 text-[12px] text-red-100">
+          <span>{t('dash.reports.error')}</span>
+          <button
+            type="button"
+            onClick={retryAll}
+            className="font-semibold underline"
+          >
+            {t('dash.reports.retry')}
+          </button>
+        </div>
+      ) : null}
+
+      <div className="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
+        {stats.map((stat) => (
+          <div key={stat.key} className="rounded-2xl border border-white/10 bg-white/[0.05] p-4">
+            <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-white/45">
+              {t(`dash.reports.${stat.key}`)}
+            </p>
+            <p className="mt-1 font-serif text-3xl text-white">{stat.value}</p>
+            {stat.note ? <p className="text-[10px] text-white/35">{stat.note}</p> : null}
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-5 grid gap-4 xl:grid-cols-[1.6fr_1fr]">
+        <div className="rounded-2xl border border-white/10 bg-white/[0.05] p-4">
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <h3 className="text-[15px] font-bold text-white">
+                {t('dash.reports.paymentsTitle')}
+              </h3>
+              <p className="mt-0.5 text-[10px] leading-relaxed text-white/40">
+                {t('dash.reports.paymentsText')}
+              </p>
+            </div>
+            <a
+              href={paymentReportCsvUrl({ start, end })}
+              className="inline-flex min-h-[38px] items-center gap-1.5 rounded-full border border-gold/40 px-3 text-[11px] font-bold text-gold transition hover:bg-gold/10"
+            >
+              <span className="material-symbols-outlined text-[16px]" aria-hidden="true">
+                download
+              </span>
+              <span>{t('dash.reports.download')}</span>
+            </a>
+          </div>
+
+          <div className="mt-3 flex flex-wrap items-end gap-3">
+            <label className="text-[10px] font-bold uppercase tracking-[0.12em] text-white/45">
+              <span className="mb-1 block">{t('dash.reports.start')}</span>
+              <input
+                type="date"
+                value={start}
+                max={end}
+                onChange={(event) => setStart(event.target.value)}
+                className="h-9 rounded-lg border border-white/15 bg-white/[0.08] px-2 text-[12px] text-white focus:border-gold focus:outline-none"
+              />
+            </label>
+            <label className="text-[10px] font-bold uppercase tracking-[0.12em] text-white/45">
+              <span className="mb-1 block">{t('dash.reports.end')}</span>
+              <input
+                type="date"
+                value={end}
+                min={start}
+                max={today}
+                onChange={(event) => setEnd(event.target.value)}
+                className="h-9 rounded-lg border border-white/15 bg-white/[0.08] px-2 text-[12px] text-white focus:border-gold focus:outline-none"
+              />
+            </label>
+          </div>
+
+          {payments.isPending ? (
+            <p className="mt-4 text-[12px] text-white/45" role="status">
+              {t('dash.reports.loading')}
+            </p>
+          ) : payments.isError ? (
+            <button
+              type="button"
+              onClick={() => void payments.refetch()}
+              className="mt-4 text-[12px] font-semibold text-gold underline"
+            >
+              {t('dash.reports.retry')}
+            </button>
+          ) : (payments.data?.results.length ?? 0) === 0 ? (
+            <p className="mt-4 text-[12px] text-white/45">{t('dash.reports.empty')}</p>
+          ) : (
+            <>
+              <p className="mt-3 text-[11px] text-white/50">
+                {t('dash.reports.count', { count: payments.data?.count ?? 0 })} ·{' '}
+                {t('dash.reports.total')}:{' '}
+                <strong className="text-white">
+                  {formatMoney(payments.data?.total_amount ?? 0)}
+                </strong>
+              </p>
+              <div className="mt-2 overflow-x-auto">
+                <table className="w-full min-w-[420px] text-left text-[11px]">
+                  <thead className="text-white/40">
+                    <tr>
+                      <th className="py-2 pr-3 font-semibold">{t('dash.reports.reference')}</th>
+                      <th className="py-2 pr-3 font-semibold">{t('dash.reports.provider')}</th>
+                      <th className="py-2 pr-3 font-semibold">{t('dash.reports.status')}</th>
+                      <th className="py-2 text-right font-semibold">{t('dash.reports.amount')}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {payments.data?.results.slice(0, 6).map((row) => (
+                      <tr key={row.reference} className="border-t border-white/10">
+                        <td className="py-2 pr-3 text-white/80">
+                          {row.reference}
+                          {row.requires_review ? (
+                            <span className="ml-2 rounded-full bg-gold/20 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-gold">
+                              {t('dash.reports.review')}
+                            </span>
+                          ) : null}
+                        </td>
+                        <td className="py-2 pr-3 text-white/55">{row.provider_display}</td>
+                        <td className="py-2 pr-3 text-white/55">
+                          {paymentStatus(row.status)}
+                        </td>
+                        <td className="py-2 text-right font-semibold text-white">
+                          {formatMoney(row.amount)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
+          )}
+        </div>
+
+        <div className="rounded-2xl border border-white/10 bg-white/[0.05] p-4">
+          <h3 className="text-[15px] font-bold text-white">
+            {t('dash.reports.occupancyTitle')}
+          </h3>
+          <p className="mt-0.5 text-[10px] leading-relaxed text-white/40">
+            {t('dash.reports.occupancyText')}
+          </p>
+
+          {occupancy.isPending ? (
+            <p className="mt-4 text-[12px] text-white/45" role="status">
+              {t('dash.reports.loading')}
+            </p>
+          ) : (occupancy.data?.results.length ?? 0) === 0 ? (
+            <p className="mt-4 text-[12px] text-white/45">
+              {t('dash.reports.noOccupancy')}
+            </p>
+          ) : (
+            <ul className="mt-3 space-y-2">
+              {occupancy.data?.results.map((row) => (
+                <li
+                  key={row.date}
+                  className="flex items-center justify-between gap-2 border-b border-white/10 pb-2 text-[11px] last:border-0 last:pb-0"
+                >
+                  <span className="text-white/60">
+                    {new Intl.DateTimeFormat(localeFor(language), {
+                      weekday: 'short',
+                      day: 'numeric',
+                      month: 'short',
+                    }).format(new Date(`${row.date}T12:00:00`))}
+                  </span>
+                  <span className="text-white/45">
+                    {t('dash.reports.nights', {
+                      percent: row.occupancy_percent,
+                      bookings: row.in_house_bookings,
+                    })}
+                  </span>
+                  <span className="font-semibold text-white">
+                    {formatMoney(row.revenue_today)}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </div>
+    </section>
   );
 }
 
@@ -817,6 +1081,8 @@ function FrontDeskBoard({ user }: { user: User }) {
               </section>
             </aside>
           </div>
+
+          {user.capabilities.export_guest_data ? <ReportsPanel /> : null}
 
           <p className="mt-6 flex items-center justify-center gap-2 text-center text-[10px] text-white/30">
             <span className="material-symbols-outlined text-[14px]" aria-hidden="true">

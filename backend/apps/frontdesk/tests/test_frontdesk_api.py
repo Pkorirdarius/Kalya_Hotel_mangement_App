@@ -288,6 +288,28 @@ def test_booking_confirm_marks_bank_transfer_paid_and_undo_reverses(
     assert DeskAction.objects.get(pk=response.data["id"]).undone_at is not None
 
 
+def test_table_confirmation_notifies_the_guest(api, staff_user, table_booking):
+    table_booking.email = "grace@example.com"
+    table_booking.save(update_fields=("email", "updated_at"))
+    api.force_login(staff_user)
+
+    response = api.post(
+        "/api/v1/staff/frontdesk/actions/",
+        {
+            "entity_type": "table_booking",
+            "entity_id": table_booking.pk,
+            "action": "confirm",
+        },
+        format="json",
+    )
+
+    assert response.status_code == 201
+    assert (
+        NotificationLog.objects.filter(kind="table_booking", status="sent").count()
+        == 2
+    )
+
+
 def test_undo_is_rejected_after_the_window_closes(api, staff_user, table_booking):
     api.force_login(staff_user)
     response = api.post(

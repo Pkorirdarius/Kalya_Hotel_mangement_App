@@ -319,6 +319,9 @@ def apply_action(
         )
         obj.status = new
         obj.save(update_fields=("status", "updated_at"))
+        from apps.notifications.services import notify_table_booking
+
+        notify_table_booking(obj)
     elif entity_type == "conference_enquiry":
         if obj.status != ConferenceEnquiry.Status.PENDING:
             raise ActionError("This conference enquiry has already been handled.")
@@ -329,6 +332,9 @@ def apply_action(
         )
         obj.status = new
         obj.save(update_fields=("status", "updated_at"))
+        from apps.notifications.services import notify_conference_enquiry
+
+        notify_conference_enquiry(obj)
     else:
         if obj.status != GymDayPass.Status.PENDING_CONFIRMATION:
             raise ActionError("This gym day pass is no longer waiting for confirmation.")

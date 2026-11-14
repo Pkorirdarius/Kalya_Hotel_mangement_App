@@ -32,4 +32,9 @@ export const queryKeys = {
   staffMe: ['staff', 'me'] as const,
   frontDeskQueue: ['frontdesk', 'queue'] as const,
   frontDeskActivity: (limit: number) => ['frontdesk', 'activity', limit] as const,
+  staffOverview: (date: string) => ['staff', 'reports', 'overview', date] as const,
+  occupancyReport: (start: string, end: string) =>
+    ['staff', 'reports', 'occupancy', start, end] as const,
+  paymentReport: (start: string, end: string) =>
+    ['staff', 'reports', 'payments', start, end] as const,
 } as const;
