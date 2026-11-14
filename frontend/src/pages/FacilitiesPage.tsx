@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { usePageMeta } from '../components/Page';
 import { whatsappHref } from '../config/hotel';
+import { GYM_DAY_PASS_PRICE } from '../config/prices';
 import { useI18n } from '../i18n-context';
 
 const FACILITIES = [
@@ -74,7 +75,7 @@ const EXTRAS = [
 ];
 
 export function FacilitiesPage() {
-  const { t } = useI18n();
+  const { t, formatMoney } = useI18n();
   usePageMeta(t('meta.facilities.title'), t('meta.facilities.description'));
 
   return (
@@ -133,7 +134,11 @@ export function FacilitiesPage() {
                         {facility.pillIcon}
                       </span>
                     )}
-                    <span>{t(facility.pillKey)}</span>
+                    <span>
+                      {t(facility.pillKey, {
+                        price: `KES ${formatMoney(GYM_DAY_PASS_PRICE)}`,
+                      })}
+                    </span>
                   </span>
                 </div>
                 <div className="p-6 sm:p-7">
