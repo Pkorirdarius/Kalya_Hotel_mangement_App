@@ -12,10 +12,11 @@ class PaymentAdmin(admin.ModelAdmin):
         "amount",
         "status",
         "booking",
+        "requires_review",
         "paid_at",
         "created_at",
     )
-    list_filter = ("provider", "status", "purpose")
+    list_filter = ("provider", "status", "purpose", "requires_review")
     search_fields = (
         "reference",
         "provider_reference",

@@ -1,0 +1,26 @@
+{% autoescape off %}Payment needs review
+
+Reason: {{ reason }}
+
+Payment reference: {{ payment.reference }}
+Provider: {{ payment.get_provider_display }}
+Amount: KES {{ payment.amount|floatformat:0 }}
+Provider reference: {{ payment.provider_reference|default:"-" }}
+Paid at: {{ payment.paid_at|date:"D d M Y H:i" }}
+
+{% if booking %}Booking: {{ booking.reference }} (status: {{ booking.get_status_display }})
+Guest: {{ booking.guest_name }}
+Phone: {{ booking.phone }}
+Email: {{ booking.email }}
+Check-in: {{ booking.checkin|date:"D d M Y" }}
+Check-out: {{ booking.checkout|date:"D d M Y" }}
+{% endif %}{% if gym_pass %}Gym day pass: {{ gym_pass.reference }} (status: {{ gym_pass.get_status_display }})
+Guest: {{ gym_pass.full_name }}
+Phone: {{ gym_pass.phone }}
+Date: {{ gym_pass.date|date:"D d M Y" }}
+{% endif %}
+Open the payments admin to reconcile or refund this payment.
+
+{{ hotel.name }}
+{{ hotel.phone }} · {{ hotel.email }}
+{% endautoescape %}

@@ -16,7 +16,10 @@ Address: {{ hotel.address }}
 Phone: {{ hotel.phone }}
 Email: {{ hotel.email }}
 
-Please keep your reference handy. To change or cancel, contact the front desk.
+Please keep your reference handy. To view or cancel this booking, visit:
+{{ manage_url }}
+
+You can also contact the front desk on {{ hotel.phone }}.
 
 {{ hotel.name }}
 {% endautoescape %}

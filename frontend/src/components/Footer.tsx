@@ -100,6 +100,7 @@ export function Footer() {
               {[
                 { to: '/rooms', label: t('nav.rooms') },
                 { to: '/booking', label: t('common.bookDirect') },
+                { to: '/booking/manage', label: t('nav.manageBooking') },
                 { to: '/offers', label: t('nav.offers') },
                 { to: '/contact', label: t('nav.contact') },
                 { to: '/dashboard', label: t('nav.dashboard') },

@@ -102,6 +102,12 @@ def notify_new_paid_booking(booking) -> None:
     )
 
 
+def manage_booking_url(booking) -> str:
+    """Public page where a guest can review or cancel their own booking."""
+
+    return f"{settings.SITE_URL}/booking/manage?reference={booking.reference}"
+
+
 def notify_booking_confirmed(booking, language: str | None = None) -> None:
     language = language or booking.language or "en"
     context = {
@@ -109,6 +115,7 @@ def notify_booking_confirmed(booking, language: str | None = None) -> None:
         "booking": booking,
         "guest_name": booking.guest_name,
         "language": language,
+        "manage_url": manage_booking_url(booking),
     }
     if booking.email:
         send_email(
@@ -142,6 +149,26 @@ def notify_booking_confirmed(booking, language: str | None = None) -> None:
             message=message,
             entity=booking,
         )
+
+
+def notify_payment_review(payment, *, reason: str) -> None:
+    """Alert staff when money arrives after a booking/pass stopped being payable."""
+
+    context = {
+        **_public_context(),
+        "payment": payment,
+        "booking": payment.booking if payment.booking_id else None,
+        "gym_pass": payment.gym_pass if payment.gym_pass_id else None,
+        "reason": reason,
+    }
+    send_email(
+        kind="staff_payment_review",
+        subject=f"Payment needs review · {payment.reference}",
+        recipient=settings.FRONT_DESK_EMAIL,
+        template="staff_payment_review",
+        context=context,
+        entity=payment,
+    )
 
 
 def notify_booking_cancelled(booking) -> None:

@@ -23,6 +23,8 @@ def payment_summary(payment: Payment) -> dict:
         "amount": int(payment.amount),
         "checkout_request_id": payment.checkout_request_id,
         "failure_message": payment.failure_message,
+        "redirect_url": payment.redirect_url,
+        "requires_review": payment.requires_review,
         "paid_at": payment.paid_at.isoformat() if payment.paid_at else None,
         "instructions": instructions,
     }
@@ -78,6 +80,9 @@ class PaymentSerializer(serializers.ModelSerializer):
             "checkout_request_id",
             "failure_code",
             "failure_message",
+            "redirect_url",
+            "requires_review",
+            "review_reason",
             "paid_at",
             "created_at",
             "instructions",

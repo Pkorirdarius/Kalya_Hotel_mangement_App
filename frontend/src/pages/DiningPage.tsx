@@ -4,7 +4,19 @@ import { usePageMeta } from '../components/Page';
 import { useToast } from '../components/ToastProvider';
 import { useI18n } from '../i18n-context';
 import { whatsappHref } from '../config/hotel';
-import { addDaysISO, isValidEmail, isValidKenyanPhone, todayISO } from '../utils';
+import type { TableBooking } from '../lib/api/types';
+import { errorMessage, fieldErrors } from '../lib/query/errors';
+import {
+  useCreateTableBookingMutation,
+  useRestaurantSlots,
+} from '../lib/query/hooks';
+import {
+  fieldErrorKeys,
+  normaliseKenyanPhone,
+  splitFullName,
+  tableBookingSchema,
+} from '../lib/validation';
+import { addDaysISO, todayISO } from '../utils';
 
 type Venue = 'restaurant' | 'coffee';
 
@@ -57,10 +69,34 @@ const OCCASIONS = ['meal', 'birthday', 'anniversary', 'business', 'family'];
 
 interface Errors {
   date?: string;
+  party?: string;
   time?: string;
   name?: string;
   phone?: string;
   email?: string;
+}
+
+/** Map API field names onto this form's field names. */
+function serverErrorFields(fields: Record<string, string[]>): Errors {
+  const next: Errors = {};
+  const map: Record<string, keyof Errors> = {
+    date: 'date',
+    time: 'time',
+    party_size: 'party',
+    first_name: 'name',
+    last_name: 'name',
+    phone: 'phone',
+    email: 'email',
+  };
+  for (const [field, messages] of Object.entries(fields)) {
+    const key = map[field];
+    if (key && messages[0] && !next[key]) next[key] = messages[0];
+  }
+  return next;
+}
+
+function displayTime(value: string | undefined): string {
+  return value ? value.slice(0, 5) : '';
 }
 
 export function DiningPage() {
@@ -78,13 +114,32 @@ export function DiningPage() {
   const [occasion, setOccasion] = useState('meal');
   const [notes, setNotes] = useState('');
   const [errors, setErrors] = useState<Errors>({});
-  const [sending, setSending] = useState(false);
-  const [reference, setReference] = useState('');
-  const [summary, setSummary] = useState('');
+  const [submitError, setSubmitError] = useState('');
+  const [booking, setBooking] = useState<TableBooking | null>(null);
+  const [bookedVenue, setBookedVenue] = useState<Venue>('restaurant');
 
   usePageMeta(t('meta.dining.title'), t('meta.dining.description'));
 
   const active = VENUES[venue];
+  const partySize = Number(party) || 1;
+  const slotsQuery = useRestaurantSlots(date);
+  const createTableBooking = useCreateTableBookingMutation();
+
+  const timeOptions = TIMES.map((slot) => {
+    const match = slotsQuery.data?.find((item) => item.time === slot);
+    return {
+      time: slot,
+      remaining: match?.remaining,
+      full: match ? match.remaining < partySize : false,
+    };
+  });
+
+  // A slot selected for a smaller party may no longer fit after the guest
+  // changes the party size. Derive the effective choice instead of syncing
+  // state in an effect.
+  const effectiveTime = timeOptions.find((option) => option.time === time && !option.full)
+    ? time
+    : '';
 
   const handleVenue = (next: Venue) => {
     setSearchParams(next === 'restaurant' ? {} : { venue: next }, { replace: true });
@@ -92,32 +147,54 @@ export function DiningPage() {
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    const result = tableBookingSchema(today).safeParse({
+      date,
+      time: effectiveTime,
+      partySize,
+      fullName: name,
+      phone,
+      email,
+    });
+
     const next: Errors = {};
-    if (!date || date < today) next.date = t('validation.date');
-    if (!time) next.time = t('validation.time');
-    if (name.trim().length < 2) next.name = t('validation.name');
-    if (!isValidKenyanPhone(phone.trim())) next.phone = t('validation.phone');
-    if (email.trim() && !isValidEmail(email.trim())) next.email = t('validation.email');
+    for (const [field, key] of Object.entries(fieldErrorKeys(result))) {
+      const mapped = field === 'partySize' ? 'party' : field === 'fullName' ? 'name' : field;
+      next[mapped as keyof Errors] = t(key);
+    }
     setErrors(next);
-    if (Object.keys(next).length > 0) {
-      const firstId = ['date', 'time', 'name', 'phone', 'email'].find((key) => next[key as keyof Errors]);
+    if (!result.success) {
+      const firstId = ['date', 'party', 'time', 'name', 'phone', 'email'].find(
+        (key) => next[key as keyof Errors],
+      );
       if (firstId) document.getElementById(`table-${firstId}`)?.focus();
       return;
     }
 
-    setSending(true);
-    await new Promise((resolve) => window.setTimeout(resolve, 900));
-    const ref = `TB-${Math.floor(1000 + Math.random() * 9000)}`;
-    const meal = occasion === 'meal' ? '' : ` · ${t(`occasion.${occasion}`)}`;
-    setReference(ref);
-    setSummary(`${t(active.labelKey)} · ${formatDate(date)} · ${time} · ${party} ${t('common.guests')}${meal}`);
-    setSending(false);
-    showToast(t('toast.tableBooked'));
+    setSubmitError('');
+    const { firstName, lastName } = splitFullName(name);
+    try {
+      const response = await createTableBooking.mutateAsync({
+        date,
+        time: effectiveTime,
+        party_size: partySize,
+        first_name: firstName,
+        last_name: lastName,
+        phone: normaliseKenyanPhone(phone),
+        email: email.trim(),
+        occasion,
+        notes: notes.trim(),
+      });
+      setBookedVenue(venue);
+      setBooking(response.booking);
+      showToast(t('toast.tableBooked'), 'success');
+    } catch (error) {
+      setErrors(serverErrorFields(fieldErrors(error)));
+      setSubmitError(errorMessage(error, t('dining.submitError')));
+    }
   };
 
   const handleAgain = () => {
-    setReference('');
-    setSummary('');
+    setBooking(null);
     setDate(addDaysISO(today, 1));
     setParty('2');
     setTime('');
@@ -127,10 +204,19 @@ export function DiningPage() {
     setOccasion('meal');
     setNotes('');
     setErrors({});
+    setSubmitError('');
   };
 
   const fieldClass = (key: keyof Errors) =>
     `field${errors[key] ? ' border-red-500 focus:border-red-500 focus:ring-red-500/15' : ''}`;
+
+  const bookingSummary = booking
+    ? `${t(VENUES[bookedVenue].labelKey)} · ${formatDate(booking.date)} · ${displayTime(booking.time)} · ${
+        booking.party_size
+      } ${t('common.guests')}${
+        booking.occasion && booking.occasion !== 'meal' ? ` · ${t(`occasion.${booking.occasion}`)}` : ''
+      }`
+    : '';
 
   return (
     <>
@@ -234,6 +320,12 @@ export function DiningPage() {
                     </div>
                   ))}
                 </div>
+                <p className="mt-3 flex items-start gap-2 rounded-xl bg-forest-50 px-3 py-2 text-[11px] font-semibold text-forest">
+                  <span className="material-symbols-outlined text-[16px]" aria-hidden="true">
+                    info
+                  </span>
+                  <span>{t('common.pricesPending')}</span>
+                </p>
                 <p className="mt-3 flex items-center gap-2 rounded-xl bg-forest-50 px-3 py-2 text-[11px] font-semibold text-forest">
                   <span className="material-symbols-outlined text-[16px]" aria-hidden="true">
                     {active.noteIcon}
@@ -245,7 +337,7 @@ export function DiningPage() {
           </div>
 
           <div className="rounded-3xl border border-line bg-white p-5 shadow-soft sm:p-7 lg:sticky lg:top-28">
-            {!reference ? (
+            {!booking ? (
               <>
                 <p className="eyebrow">{t('dining.bookEyebrow')}</p>
                 <h2 className="heading-sm mt-2">{t('dining.bookTitle')}</h2>
@@ -280,32 +372,54 @@ export function DiningPage() {
                           </option>
                         ))}
                       </select>
+                      {errors.party ? <p className="mt-1.5 text-[12px] font-medium text-red-600">{errors.party}</p> : null}
                     </div>
                   </div>
 
                   <fieldset>
                     <legend className="field-label">{t('dining.time')}</legend>
                     <div className="grid grid-cols-4 gap-2">
-                      {TIMES.map((slot) => (
-                        <label key={slot} className="cursor-pointer">
+                      {timeOptions.map((slot) => (
+                        <label key={slot.time} className={slot.full ? 'cursor-not-allowed' : 'cursor-pointer'}>
                           <input
                             type="radio"
                             name="time"
-                            value={slot}
-                            checked={time === slot}
+                            value={slot.time}
+                            disabled={slot.full}
+                            checked={effectiveTime === slot.time}
                             onChange={() => {
-                              setTime(slot);
+                              setTime(slot.time);
                               setErrors((current) => ({ ...current, time: undefined }));
                             }}
                             className="peer sr-only"
                           />
-                          <span className="flex min-h-[44px] items-center justify-center rounded-xl border border-line bg-white text-[12px] font-semibold text-muted transition peer-checked:border-forest peer-checked:bg-forest peer-checked:text-white">
-                            {slot}
+                          <span
+                            className={`flex min-h-[44px] flex-col items-center justify-center rounded-xl border border-line bg-white text-[12px] font-semibold text-muted transition peer-checked:border-forest peer-checked:bg-forest peer-checked:text-white ${
+                              slot.full ? 'opacity-45' : ''
+                            }`}
+                          >
+                            <span>{slot.time}</span>
+                            {slot.full ? (
+                              <span className="text-[9px] font-bold uppercase tracking-wide">{t('dining.slotFull')}</span>
+                            ) : null}
                           </span>
                         </label>
                       ))}
                     </div>
                     {errors.time ? <p className="mt-1.5 text-[12px] font-medium text-red-600">{errors.time}</p> : null}
+                    {slotsQuery.isLoading ? (
+                      <p className="mt-2 text-[11px] text-muted">{t('dining.checking')}</p>
+                    ) : null}
+                    {slotsQuery.isError ? (
+                      <p className="mt-2 text-[11px] leading-relaxed text-muted">{t('dining.availabilityError')}</p>
+                    ) : null}
+                    {effectiveTime && !slotsQuery.isLoading ? (
+                      <p className="mt-2 text-[11px] font-semibold text-forest">
+                        {t('dining.seatsLeft', {
+                          count: slotsQuery.data?.find((item) => item.time === effectiveTime)?.remaining ?? 0,
+                        })}
+                      </p>
+                    ) : null}
                   </fieldset>
 
                   <div className="grid gap-4 sm:grid-cols-2">
@@ -388,8 +502,18 @@ export function DiningPage() {
                     />
                   </div>
 
-                  <button type="submit" disabled={sending} className="btn-gold w-full disabled:cursor-not-allowed disabled:opacity-70">
-                    <span>{sending ? t('common.sending') : t('dining.submit')}</span>
+                  {submitError ? (
+                    <p role="alert" className="rounded-xl bg-red-50 px-3 py-2 text-[12px] font-medium text-red-700">
+                      {submitError}
+                    </p>
+                  ) : null}
+
+                  <button
+                    type="submit"
+                    disabled={createTableBooking.isPending}
+                    className="btn-gold w-full disabled:cursor-not-allowed disabled:opacity-70"
+                  >
+                    <span>{createTableBooking.isPending ? t('common.sending') : t('dining.submit')}</span>
                     <span className="material-symbols-outlined text-[18px]" aria-hidden="true">
                       arrow_forward
                     </span>
@@ -413,8 +537,9 @@ export function DiningPage() {
                 <p className="mt-2 text-sm leading-relaxed text-muted">{t('dining.successText')}</p>
                 <div className="mt-5 rounded-2xl bg-forest-50 p-4">
                   <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-muted">{t('dining.reference')}</p>
-                  <p className="mt-1 font-serif text-2xl text-forest-dark">{reference}</p>
-                  <p className="mt-2 text-[12px] font-semibold text-forest">{summary}</p>
+                  <p className="mt-1 font-serif text-2xl text-forest-dark">{booking.reference}</p>
+                  <p className="mt-2 text-[12px] font-semibold text-forest">{bookingSummary}</p>
+                  <p className="mt-1 text-[11px] text-muted">{booking.status_display}</p>
                 </div>
                 <div className="mt-5 flex flex-wrap gap-2">
                   <button type="button" className="btn-outline btn-sm" onClick={handleAgain}>

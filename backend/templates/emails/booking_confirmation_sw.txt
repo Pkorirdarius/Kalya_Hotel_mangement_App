@@ -16,7 +16,10 @@ Anwani: {{ hotel.address }}
 Simu: {{ hotel.phone }}
 Barua pepe: {{ hotel.email }}
 
-Tafadhali hifadhi kumbukumbu yako. Kwa mabadiliko au kughairi, wasiliana na mapokezi.
+Tafadhali hifadhi kumbukumbu yako. Kutazama au kughairi nafasi hii, tembelea:
+{{ manage_url }}
+
+Unaweza pia kuwasiliana na mapokezi kwa {{ hotel.phone }}.
 
 {{ hotel.name }}
 {% endautoescape %}

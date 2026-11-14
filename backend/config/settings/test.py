@@ -18,6 +18,7 @@ PASSWORD_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]
 EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
 Q_CLUSTER["sync"] = True  # noqa: F405
 PAYMENTS_SANDBOX = True
+PAYMENT_SIMULATION_ALLOWED = True
 MPESA_SIMULATE = True
 
 CORS_ALLOWED_ORIGINS = ["http://localhost:5173"]

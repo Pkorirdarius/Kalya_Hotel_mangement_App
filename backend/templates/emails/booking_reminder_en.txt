@@ -9,7 +9,7 @@ Check-in: {{ booking.checkin|date:"D d M Y" }} from 2:00 PM
 Room: {{ booking.room_type.name_en }}
 Address: {{ hotel.address }}
 
-If your plans have changed, contact the front desk on {{ hotel.phone }}.
+If your plans have changed, visit {{ manage_url }} or contact the front desk on {{ hotel.phone }}.
 
 {{ hotel.name }}
 {% endautoescape %}

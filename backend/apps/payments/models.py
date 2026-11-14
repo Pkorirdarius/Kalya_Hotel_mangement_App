@@ -56,6 +56,12 @@ class Payment(TimeStampedModel):
     failure_message = models.CharField(max_length=255, blank=True)
     raw_request = models.JSONField(default=dict, blank=True)
     raw_response = models.JSONField(default=dict, blank=True)
+    redirect_url = models.URLField(max_length=500, blank=True)
+    requires_review = models.BooleanField(
+        default=False,
+        help_text="Set when money arrived after the booking or day pass was no longer payable.",
+    )
+    review_reason = models.CharField(max_length=255, blank=True)
     paid_at = models.DateTimeField(null=True, blank=True)
     refunded_at = models.DateTimeField(null=True, blank=True)
 

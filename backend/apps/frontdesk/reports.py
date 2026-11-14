@@ -83,3 +83,66 @@ def occupancy_report(start: date, end: date) -> list[dict]:
         )
         day = day + timedelta(days=1)
     return rows
+
+
+def _mask_phone(value: str) -> str:
+    if not value:
+        return ""
+    if len(value) <= 6:
+        return "***"
+    return f"{value[:4]}***{value[-2:]}"
+
+
+def payment_report(
+    start: date,
+    end: date,
+    *,
+    provider: str = "",
+    status: str = "",
+) -> list[dict]:
+    """Payments created in a date range, ready for reconciliation.
+
+    The report includes failed and pending attempts as well as successful
+    payments, so staff can match gateway settlements against every attempt.
+    Phone numbers are masked because this file leaves the staff application.
+    """
+
+    start_at, _ = _day_range(start)
+    _, end_at = _day_range(end)
+    queryset = (
+        Payment.objects.select_related("booking", "gym_pass")
+        .filter(created_at__gte=start_at, created_at__lte=end_at)
+        .order_by("created_at", "reference")
+    )
+    if provider:
+        queryset = queryset.filter(provider=provider)
+    if status:
+        queryset = queryset.filter(status=status)
+
+    rows = []
+    for payment in queryset:
+        rows.append(
+            {
+                "reference": payment.reference,
+                "booking_reference": payment.booking.reference
+                if payment.booking_id
+                else "",
+                "gym_pass_reference": payment.gym_pass.reference
+                if payment.gym_pass_id
+                else "",
+                "purpose": payment.purpose,
+                "purpose_display": payment.get_purpose_display(),
+                "provider": payment.provider,
+                "provider_display": payment.get_provider_display(),
+                "status": payment.status,
+                "status_display": payment.get_status_display(),
+                "amount": int(payment.amount),
+                "currency": payment.currency,
+                "phone": _mask_phone(payment.phone),
+                "provider_reference": payment.provider_reference,
+                "requires_review": payment.requires_review,
+                "created_at": payment.created_at.isoformat(),
+                "paid_at": payment.paid_at.isoformat() if payment.paid_at else None,
+            }
+        )
+    return rows

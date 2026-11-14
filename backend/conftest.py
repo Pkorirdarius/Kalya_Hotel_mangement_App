@@ -4,12 +4,27 @@ from datetime import timedelta
 from decimal import Decimal
 
 import pytest
+from django.core.cache import cache
 from rest_framework.test import APIClient
 
 from apps.common.models import HotelSetting
 from apps.common.utils import hotel_today
 from apps.rates.models import MealPlan, RatePlan
 from apps.rooms.models import RoomType
+
+
+@pytest.fixture(autouse=True)
+def clear_throttle_cache():
+    """Keep throttle counters from leaking between tests.
+
+    DRF stores throttle history in the configured cache, which is process-wide
+    and survives the per-test database transaction. Clearing it here keeps every
+    test isolated without weakening the throttles themselves.
+    """
+
+    cache.clear()
+    yield
+    cache.clear()
 
 
 @pytest.fixture

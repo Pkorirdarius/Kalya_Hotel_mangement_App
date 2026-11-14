@@ -9,6 +9,7 @@
     "preview": "vite preview",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
+    "api:types": "openapi-typescript ../backend/openapi.yaml -o src/lib/api-schema.d.ts",
     "check:brand": "python ../scripts/check_brand.py",
     "check": "npm run typecheck && npm run lint && npm test && npm run check:brand",
     "test": "vitest run",

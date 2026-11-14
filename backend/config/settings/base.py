@@ -257,6 +257,9 @@ REST_FRAMEWORK = {
     },
     "EXCEPTION_HANDLER": "apps.common.exceptions.api_exception_handler",
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    # Reports use ?format=csv|json for their own output format; without this,
+    # DRF treats the same parameter as a renderer override and returns 404.
+    "URL_FORMAT_OVERRIDE": None,
 }
 
 SPECTACULAR_SETTINGS = {
@@ -310,7 +313,12 @@ MANAGER_EMAIL = env("MANAGER_EMAIL", default=_email_on_hotel_domain("manager"))
 # ---------------------------------------------------------------------------
 # Payments and integrations
 # ---------------------------------------------------------------------------
-PAYMENTS_SANDBOX = env.bool("PAYMENTS_SANDBOX", default=DEBUG)
+PAYMENTS_SANDBOX = env.bool("PAYMENTS_SANDBOX", default=False)
+# Separate flag for anything that can mark a payment paid without a gateway.
+# Development and test enable it; production forces it off and refuses to start.
+PAYMENT_SIMULATION_ALLOWED = env.bool(
+    "PAYMENT_SIMULATION_ALLOWED", default=False
+)
 
 MPESA_ENV = env("MPESA_ENV", default="sandbox")
 MPESA_BASE_URL = env(

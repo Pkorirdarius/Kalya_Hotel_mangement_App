@@ -3,7 +3,19 @@ import { usePageMeta } from '../components/Page';
 import { useToast } from '../components/ToastProvider';
 import { useI18n } from '../i18n-context';
 import { whatsappHref } from '../config/hotel';
-import { addDaysISO, isValidEmail, isValidKenyanPhone, todayISO } from '../utils';
+import type { ConferenceEnquiry } from '../lib/api/types';
+import { errorMessage, fieldErrors } from '../lib/query/errors';
+import {
+  useConferenceAvailability,
+  useCreateConferenceEnquiryMutation,
+} from '../lib/query/hooks';
+import {
+  conferenceEnquirySchema,
+  fieldErrorKeys,
+  normaliseKenyanPhone,
+  splitFullName,
+} from '../lib/validation';
+import { addDaysISO, todayISO } from '../utils';
 
 type Mode = 'instant' | 'quote';
 type Availability = 'available' | 'limited' | 'full';
@@ -20,12 +32,27 @@ const STATUS_DOT: Record<Availability, string> = {
   full: 'bg-red-400',
 };
 
+const SESSIONS = [
+  { value: 'breakfast', labelKey: 'session.morning' },
+  { value: 'half_day', labelKey: 'session.halfDay' },
+  { value: 'full_day', labelKey: 'session.full' },
+] as const;
+
+const SESSION_LABELS: Record<string, string> = {
+  breakfast: 'session.morning',
+  half_day: 'session.halfDay',
+  full_day: 'session.full',
+  morning: 'session.morning',
+  afternoon: 'session.afternoon',
+  full: 'session.full',
+};
+
 const LAYOUTS = [
   { key: 'theatre', icon: 'event_seat' },
   { key: 'boardroom', icon: 'table_restaurant' },
   { key: 'ushape', icon: 'group_work' },
   { key: 'classroom', icon: 'school' },
-];
+] as const;
 
 const EQUIPMENT = ['projector', 'sound', 'wifi', 'flipchart', 'water', 'host'];
 const EQUIPMENT_ICONS: Record<string, string> = {
@@ -43,17 +70,9 @@ const CATERING = [
   { key: 'full', price: 'KES 2,800' },
 ];
 
-const SESSIONS = ['morning', 'afternoon', 'full'];
-
-function dayNumber(iso: string): number {
-  return Number(iso.slice(8, 10));
-}
-
-function availabilityFor(iso: string): Availability {
-  const day = dayNumber(iso);
-  if (day % 7 === 0) return 'full';
-  if (day % 3 === 0) return 'limited';
-  return 'available';
+function toAvailability(value: string | undefined): Availability | null {
+  if (value === 'available' || value === 'limited' || value === 'full') return value;
+  return null;
 }
 
 interface Errors {
@@ -64,78 +83,154 @@ interface Errors {
   phone?: string;
 }
 
+/** Map API field names onto this form's field names. */
+function serverErrorFields(fields: Record<string, string[]>): Errors {
+  const next: Errors = {};
+  const map: Record<string, keyof Errors> = {
+    date: 'date',
+    people: 'guests',
+    first_name: 'name',
+    last_name: 'name',
+    email: 'email',
+    phone: 'phone',
+  };
+  for (const [field, messages] of Object.entries(fields)) {
+    const key = map[field];
+    if (key && messages[0] && !next[key]) next[key] = messages[0];
+  }
+  return next;
+}
+
 export function ConferencePage() {
   const { t, formatDate, language } = useI18n();
   const { showToast } = useToast();
   const today = todayISO();
   const [mode, setMode] = useState<Mode>('instant');
   const [date, setDate] = useState(addDaysISO(today, 1));
-  const [session, setSession] = useState('morning');
-  const [layout, setLayout] = useState('theatre');
+  const [session, setSession] = useState<string>('breakfast');
+  const [layout, setLayout] = useState<string>('theatre');
   const [guests, setGuests] = useState('20');
   const [name, setName] = useState('');
   const [company, setCompany] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
+  const [catering, setCatering] = useState<string[]>([]);
   const [notes, setNotes] = useState('');
   const [errors, setErrors] = useState<Errors>({});
-  const [sending, setSending] = useState(false);
-  const [reference, setReference] = useState('');
-  const [summary, setSummary] = useState('');
+  const [submitError, setSubmitError] = useState('');
+  const [enquiry, setEnquiry] = useState<ConferenceEnquiry | null>(null);
 
   usePageMeta(t('meta.conference.title'), t('meta.conference.description'));
+
+  const availabilityQuery = useConferenceAvailability({ session });
+  const createEnquiry = useCreateConferenceEnquiryMutation();
+
+  const availabilityByDate = new Map(
+    (availabilityQuery.data ?? []).map((row) => [row.date, toAvailability(row.status)]),
+  );
 
   const days = Array.from({ length: 10 }, (_, index) => {
     const iso = addDaysISO(today, index);
     const value = new Date(`${iso}T12:00:00`);
     const weekday = new Intl.DateTimeFormat(language === 'sw' ? 'sw-KE' : 'en-GB', { weekday: 'short' }).format(value);
-    return { iso, weekday, day: value.getDate(), status: availabilityFor(iso) };
+    return { iso, weekday, day: value.getDate(), status: availabilityByDate.get(iso) ?? null };
   });
+
+  const selectedStatus = availabilityByDate.get(date) ?? null;
+  const dateUnavailable = selectedStatus === 'full';
+
+  const toggleCatering = (key: string) => {
+    setCatering((current) =>
+      current.includes(key) ? current.filter((item) => item !== key) : [...current, key],
+    );
+  };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    const result = conferenceEnquirySchema(today).safeParse({
+      date,
+      session,
+      layout,
+      people: Number(guests),
+      fullName: name,
+      email,
+      phone,
+    });
+
     const next: Errors = {};
-    const guestCount = Number(guests);
-    if (!date || date < today) next.date = t('validation.date');
-    if (!Number.isFinite(guestCount) || guestCount < 4 || guestCount > 120) next.guests = t('validation.guests');
-    if (name.trim().length < 2) next.name = t('validation.name');
-    if (!isValidEmail(email.trim())) next.email = t('validation.email');
-    if (!isValidKenyanPhone(phone.trim())) next.phone = t('validation.phone');
+    for (const [field, key] of Object.entries(fieldErrorKeys(result))) {
+      const mapped = field === 'people' ? 'guests' : field === 'fullName' ? 'name' : field;
+      next[mapped as keyof Errors] = t(key);
+    }
     setErrors(next);
-    if (Object.keys(next).length > 0) {
-      const firstId = ['date', 'guests', 'name', 'email', 'phone'].find((key) => next[key as keyof Errors]);
+    if (!result.success) {
+      const firstId = ['date', 'guests', 'name', 'email', 'phone'].find(
+        (key) => next[key as keyof Errors],
+      );
       if (firstId) document.getElementById(`conf-${firstId}`)?.focus();
       return;
     }
+    if (dateUnavailable) {
+      setErrors({ date: t('conference.dateUnavailable') });
+      document.getElementById('conf-date')?.focus();
+      return;
+    }
 
-    setSending(true);
-    await new Promise((resolve) => window.setTimeout(resolve, 1000));
-    const ref = `${mode === 'quote' ? 'KQ' : 'KH'}-${Math.floor(1000 + Math.random() * 9000)}`;
-    setReference(ref);
-    setSummary(
-      `${formatDate(date)} · ${t(`session.${session}`)} · ${t(`layout.${layout}`)} · ${guests} ${t('common.guests')}`,
-    );
-    setSending(false);
-    showToast(t(mode === 'quote' ? 'toast.quoteSent' : 'toast.hallBooked'));
+    setSubmitError('');
+    const { firstName, lastName } = splitFullName(name);
+    try {
+      const response = await createEnquiry.mutateAsync({
+        date: result.data.date,
+        session: result.data.session,
+        people: result.data.people,
+        layout: result.data.layout,
+        catering,
+        first_name: firstName,
+        last_name: lastName,
+        company: company.trim(),
+        email: email.trim(),
+        phone: normaliseKenyanPhone(phone),
+        notes: notes.trim(),
+      });
+      setEnquiry(response.enquiry);
+      showToast(t(mode === 'quote' ? 'toast.quoteSent' : 'toast.hallBooked'), 'success');
+    } catch (error) {
+      setErrors(serverErrorFields(fieldErrors(error)));
+      setSubmitError(errorMessage(error, t('conference.submitError')));
+    }
   };
 
   const handleAgain = () => {
-    setReference('');
-    setSummary('');
+    setEnquiry(null);
     setDate(addDaysISO(today, 1));
-    setSession('morning');
+    setSession('breakfast');
     setLayout('theatre');
     setGuests('20');
     setName('');
     setCompany('');
     setEmail('');
     setPhone('');
+    setCatering([]);
     setNotes('');
     setErrors({});
+    setSubmitError('');
   };
 
   const fieldClass = (key: keyof Errors) =>
     `field${errors[key] ? ' border-red-500 focus:border-red-500 focus:ring-red-500/15' : ''}`;
+
+  const enquiryCatering = Array.isArray(enquiry?.catering)
+    ? enquiry.catering.filter((item): item is string => typeof item === 'string')
+    : [];
+  const enquirySummary = enquiry
+    ? `${formatDate(enquiry.date)} · ${t(SESSION_LABELS[enquiry.session] ?? 'session.full')} · ${t(
+        `layout.${enquiry.layout}`,
+      )} · ${enquiry.people} ${t('common.guests')}${
+        enquiryCatering.length > 0
+          ? ` · ${enquiryCatering.map((item) => t(`catering.${item}`)).join(', ')}`
+          : ''
+      }`
+    : '';
 
   return (
     <>
@@ -242,6 +337,12 @@ export function ConferencePage() {
               </span>
               <span>{t('catering.note')}</span>
             </p>
+            <p className="mt-2 flex items-start gap-2 text-[11px] leading-relaxed text-gold/80">
+              <span className="material-symbols-outlined text-[15px] text-gold" aria-hidden="true">
+                verified
+              </span>
+              <span>{t('common.pricesPending')}</span>
+            </p>
           </div>
         </div>
       </section>
@@ -274,7 +375,9 @@ export function ConferencePage() {
                       key={day.iso}
                       type="button"
                       disabled={full}
-                      aria-label={`${day.weekday} ${day.day} — ${t(STATUS_KEY[day.status])}`}
+                      aria-label={`${day.weekday} ${day.day} — ${
+                        day.status ? t(STATUS_KEY[day.status]) : t('availability.checking')
+                      }`}
                       onClick={() => {
                         setDate(day.iso);
                         setErrors((current) => ({ ...current, date: undefined }));
@@ -285,7 +388,11 @@ export function ConferencePage() {
                     >
                       <span className="text-[9px] font-bold uppercase tracking-wide opacity-70">{day.weekday}</span>
                       <span className="mt-0.5 text-[16px] font-extrabold">{day.day}</span>
-                      <span className={`mt-1 h-1.5 w-1.5 rounded-full ${selected ? 'bg-white' : STATUS_DOT[day.status]}`} />
+                      <span
+                        className={`mt-1 h-1.5 w-1.5 rounded-full ${
+                          selected ? 'bg-white' : day.status ? STATUS_DOT[day.status] : 'bg-line'
+                        }`}
+                      />
                     </button>
                   );
                 })}
@@ -296,6 +403,9 @@ export function ConferencePage() {
                 </span>
                 <span>{t('conference.calendarNote')}</span>
               </p>
+              {availabilityQuery.isError ? (
+                <p className="mt-2 text-[11px] leading-relaxed text-muted">{t('conference.availabilityError')}</p>
+              ) : null}
             </div>
 
             <div className="mt-5 rounded-3xl bg-gold-soft p-5">
@@ -309,7 +419,7 @@ export function ConferencePage() {
           </div>
 
           <div className="rounded-3xl border border-line bg-white p-5 shadow-soft sm:p-7">
-            {!reference ? (
+            {!enquiry ? (
               <>
                 <div className="inline-flex rounded-full bg-sand p-1" role="tablist" aria-label={t('conference.bookingType')}>
                   {(['instant', 'quote'] as Mode[]).map((key) => (
@@ -340,20 +450,26 @@ export function ConferencePage() {
                         required
                         min={today}
                         value={date}
-                        onChange={(event) => setDate(event.target.value < today ? addDaysISO(today, 1) : event.target.value)}
+                        onChange={(event) => setDate(event.target.value < today ? today : event.target.value)}
                         className={fieldClass('date')}
-                        aria-invalid={Boolean(errors.date)}
+                        aria-invalid={Boolean(errors.date) || dateUnavailable}
                       />
-                      {errors.date ? <p className="mt-1.5 text-[12px] font-medium text-red-600">{errors.date}</p> : null}
+                      {errors.date ? (
+                        <p className="mt-1.5 text-[12px] font-medium text-red-600">{errors.date}</p>
+                      ) : dateUnavailable ? (
+                        <p className="mt-1.5 text-[12px] font-medium text-red-600">
+                          {t('conference.dateUnavailable')}
+                        </p>
+                      ) : null}
                     </div>
                     <div>
                       <label className="field-label" htmlFor="conf-session">
                         {t('conference.session')}
                       </label>
                       <select id="conf-session" value={session} onChange={(event) => setSession(event.target.value)} className="field field-select">
-                        {SESSIONS.map((key) => (
-                          <option key={key} value={key}>
-                            {t(`session.${key}`)}
+                        {SESSIONS.map((item) => (
+                          <option key={item.value} value={item.value}>
+                            {t(item.labelKey)}
                           </option>
                         ))}
                       </select>
@@ -460,6 +576,33 @@ export function ConferencePage() {
                     </div>
                   </div>
 
+                  <fieldset>
+                    <legend className="field-label">{t('conference.cateringLabel')}</legend>
+                    <div className="grid gap-2 sm:grid-cols-3">
+                      {CATERING.map((item) => {
+                        const checked = catering.includes(item.key);
+                        return (
+                          <label
+                            key={item.key}
+                            className={`flex cursor-pointer items-center gap-2 rounded-xl border px-3 py-2 text-[12px] transition ${
+                              checked
+                                ? 'border-forest bg-forest-50 font-semibold text-forest'
+                                : 'border-line bg-white text-muted'
+                            }`}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={checked}
+                              onChange={() => toggleCatering(item.key)}
+                              className="h-4 w-4 accent-forest"
+                            />
+                            <span>{t(`catering.${item.key}`)}</span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  </fieldset>
+
                   {mode === 'quote' ? (
                     <div>
                       <label className="field-label" htmlFor="conf-notes">
@@ -476,9 +619,19 @@ export function ConferencePage() {
                     </div>
                   ) : null}
 
-                  <button type="submit" disabled={sending} className="btn-gold w-full disabled:cursor-not-allowed disabled:opacity-70">
+                  {submitError ? (
+                    <p role="alert" className="rounded-xl bg-red-50 px-3 py-2 text-[12px] font-medium text-red-700">
+                      {submitError}
+                    </p>
+                  ) : null}
+
+                  <button
+                    type="submit"
+                    disabled={createEnquiry.isPending || dateUnavailable}
+                    className="btn-gold w-full disabled:cursor-not-allowed disabled:opacity-70"
+                  >
                     <span>
-                      {sending
+                      {createEnquiry.isPending
                         ? t('common.sending')
                         : t(mode === 'quote' ? 'conference.quoteSubmit' : 'conference.instantSubmit')}
                     </span>
@@ -505,8 +658,9 @@ export function ConferencePage() {
                 <p className="mt-2 text-sm leading-relaxed text-muted">{t('conference.successText')}</p>
                 <div className="mt-5 rounded-2xl bg-forest-50 p-4">
                   <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-muted">{t('dining.reference')}</p>
-                  <p className="mt-1 font-serif text-2xl text-forest-dark">{reference}</p>
-                  <p className="mt-2 text-[12px] font-semibold text-forest">{summary}</p>
+                  <p className="mt-1 font-serif text-2xl text-forest-dark">{enquiry.reference}</p>
+                  <p className="mt-2 text-[12px] font-semibold text-forest">{enquirySummary}</p>
+                  <p className="mt-1 text-[11px] text-muted">{enquiry.status_display}</p>
                 </div>
                 <div className="mt-5 flex flex-wrap gap-2">
                   <button type="button" className="btn-outline btn-sm" onClick={handleAgain}>

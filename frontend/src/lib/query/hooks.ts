@@ -317,7 +317,10 @@ export function useStaffLoginMutation() {
   const client = useQueryClient();
   return useMutation({
     mutationFn: staffLogin,
-    onSuccess: () => {
+    onSuccess: (data) => {
+      // The login response is the current user, so seed the session query
+      // before refetching to avoid a flash of the sign-in screen.
+      client.setQueryData(queryKeys.staffMe, data);
       void client.invalidateQueries({ queryKey: queryKeys.staffMe });
     },
   });
@@ -328,7 +331,11 @@ export function useStaffLogoutMutation() {
   return useMutation({
     mutationFn: staffLogout,
     onSuccess: () => {
-      client.removeQueries({ queryKey: ['staff'] });
+      // Reset (rather than remove) the session query: resetting notifies the
+      // mounted observers, so the dashboard immediately drops the signed-in
+      // user and re-renders its sign-in gate. Removing an active query leaves
+      // the observer holding its previous data.
+      void client.resetQueries({ queryKey: queryKeys.staffMe });
       client.removeQueries({ queryKey: ['frontdesk'] });
     },
   });

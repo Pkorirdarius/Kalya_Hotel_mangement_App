@@ -96,6 +96,8 @@ class PaymentSummarySerializer(serializers.Serializer):
     amount = serializers.IntegerField()
     checkout_request_id = serializers.CharField(allow_blank=True)
     failure_message = serializers.CharField(allow_blank=True)
+    redirect_url = serializers.CharField(allow_blank=True, required=False)
+    requires_review = serializers.BooleanField(required=False)
     paid_at = serializers.DateTimeField(allow_null=True)
     instructions = serializers.JSONField(required=False)
 

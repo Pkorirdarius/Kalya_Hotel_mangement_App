@@ -1,6 +1,8 @@
 from __future__ import annotations
 
-from datetime import date
+import csv
+from datetime import date, timedelta
+from io import StringIO
 
 from django.http import HttpResponse
 from drf_spectacular.types import OpenApiTypes
@@ -12,8 +14,9 @@ from rest_framework.views import APIView
 
 from apps.accounts.permissions import CanExportGuestData
 from apps.common.utils import hotel_today
-from apps.frontdesk.reports import occupancy_report, overview
+from apps.frontdesk.reports import occupancy_report, overview, payment_report
 from apps.integrations.hotelplus import get_adapter
+from apps.payments.models import Payment
 
 
 class PendingSerializer(serializers.Serializer):
@@ -45,6 +48,31 @@ class OccupancyRowSerializer(serializers.Serializer):
 
 class OccupancyResponseSerializer(serializers.Serializer):
     results = OccupancyRowSerializer(many=True)
+
+
+class PaymentReportRowSerializer(serializers.Serializer):
+    reference = serializers.CharField()
+    booking_reference = serializers.CharField(allow_blank=True)
+    gym_pass_reference = serializers.CharField(allow_blank=True)
+    purpose = serializers.CharField()
+    purpose_display = serializers.CharField()
+    provider = serializers.CharField()
+    provider_display = serializers.CharField()
+    status = serializers.CharField()
+    status_display = serializers.CharField()
+    amount = serializers.IntegerField()
+    currency = serializers.CharField()
+    phone = serializers.CharField(allow_blank=True)
+    provider_reference = serializers.CharField(allow_blank=True)
+    requires_review = serializers.BooleanField()
+    created_at = serializers.DateTimeField()
+    paid_at = serializers.DateTimeField(allow_null=True)
+
+
+class PaymentReportResponseSerializer(serializers.Serializer):
+    results = PaymentReportRowSerializer(many=True)
+    count = serializers.IntegerField()
+    total_amount = serializers.IntegerField()
 
 
 def _parse_day(raw: str | None, default=None) -> date:
@@ -88,6 +116,139 @@ class OccupancyReportView(APIView):
         if (end - start).days > 366:
             raise ValidationError({"end": "Choose a range of at most one year."})
         return Response({"results": occupancy_report(start, end)})
+
+
+@extend_schema(tags=["staff reports"])
+class PaymentReportView(APIView):
+    permission_classes = [CanExportGuestData]
+
+    @extend_schema(
+        parameters=[
+            OpenApiParameter("start", str, required=False),
+            OpenApiParameter("end", str, required=False),
+            OpenApiParameter("provider", str, required=False),
+            OpenApiParameter("status", str, required=False),
+            OpenApiParameter("format", str, required=False),
+        ],
+        responses={
+            200: PaymentReportResponseSerializer,
+            (200, "text/csv"): OpenApiTypes.BINARY,
+        },
+    )
+    def get(self, request):
+        end = _parse_day(request.query_params.get("end"))
+        start = _parse_day(
+            request.query_params.get("start"), default=end - timedelta(days=29)
+        )
+        if end < start:
+            raise ValidationError({"end": "End date must not be before start."})
+        if (end - start).days > 366:
+            raise ValidationError({"end": "Choose a range of at most one year."})
+
+        provider = (request.query_params.get("provider") or "").strip()
+        if provider and provider not in Payment.Provider.values:
+            raise ValidationError({"provider": "Choose a supported payment method."})
+        payment_status = (request.query_params.get("status") or "").strip()
+        if payment_status and payment_status not in Payment.Status.values:
+            raise ValidationError({"status": "Choose a supported payment status."})
+
+        fmt = (request.query_params.get("format") or "csv").lower()
+        if fmt not in ("csv", "json"):
+            raise ValidationError({"format": "Choose csv or json."})
+
+        rows = payment_report(
+            start,
+            end,
+            provider=provider,
+            status=payment_status,
+        )
+        total_amount = sum(
+            row["amount"]
+            for row in rows
+            if row["status"] == Payment.Status.SUCCEEDED
+        )
+
+        if fmt == "json":
+            return Response(
+                {
+                    "results": rows,
+                    "count": len(rows),
+                    "total_amount": total_amount,
+                }
+            )
+
+        buffer = StringIO()
+        writer = csv.writer(buffer)
+        writer.writerow(
+            [
+                "Reference",
+                "Booking",
+                "Gym pass",
+                "Purpose",
+                "Provider",
+                "Status",
+                "Amount (KES)",
+                "Currency",
+                "Phone",
+                "Provider reference",
+                "Needs review",
+                "Created at",
+                "Paid at",
+            ]
+        )
+        for row in rows:
+            writer.writerow(
+                [
+                    _csv_safe(row["reference"]),
+                    _csv_safe(row["booking_reference"]),
+                    _csv_safe(row["gym_pass_reference"]),
+                    _csv_safe(row["purpose_display"]),
+                    _csv_safe(row["provider_display"]),
+                    _csv_safe(row["status_display"]),
+                    row["amount"],
+                    _csv_safe(row["currency"]),
+                    _csv_safe(row["phone"]),
+                    _csv_safe(row["provider_reference"]),
+                    "yes" if row["requires_review"] else "no",
+                    _csv_safe(row["created_at"]),
+                    _csv_safe(row["paid_at"]),
+                ]
+            )
+        writer.writerow([])
+        writer.writerow(
+            [
+                "TOTAL (succeeded)",
+                "",
+                "",
+                "",
+                "",
+                "",
+                total_amount,
+                "KES",
+                "",
+                "",
+                "",
+                "",
+                "",
+            ]
+        )
+        response = HttpResponse(
+            "\ufeff" + buffer.getvalue(),
+            content_type="text/csv; charset=utf-8",
+        )
+        response["Content-Disposition"] = (
+            f'attachment; filename="payments-{start.isoformat()}-to-{end.isoformat()}.csv"'
+        )
+        return response
+
+
+def _csv_safe(value) -> str:
+    """Keep spreadsheet apps from evaluating exported cells as formulas."""
+
+    text = "" if value is None else str(value)
+    if text.startswith(("=", "+", "-", "@", "\t", "\r")):
+        return "'" + text
+    return text
 
 
 @extend_schema(tags=["staff reports"])

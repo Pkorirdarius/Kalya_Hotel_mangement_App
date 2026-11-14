@@ -791,7 +791,17 @@ paths:
   /api/v1/payments/webhooks/card/:
     post:
       operationId: v1_payments_webhooks_card_create
-      description: Gateway-neutral card callback placeholder.
+      description: |-
+        Gateway-neutral card callback placeholder.
+
+        A real adapter (Pesapal/Flutterwave/DPO) validates its signature in the same
+        place this shared-secret check runs and then calls the same idempotent
+        service. Card details are never accepted by this endpoint.
+      parameters:
+      - in: query
+        name: secret
+        schema:
+          type: string
       tags:
       - v1
       security:
@@ -3380,6 +3390,45 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Overview'
+          description: ''
+  /api/v1/staff/reports/payments/:
+    get:
+      operationId: v1_staff_reports_payments_retrieve
+      parameters:
+      - in: query
+        name: end
+        schema:
+          type: string
+      - in: query
+        name: format
+        schema:
+          type: string
+      - in: query
+        name: provider
+        schema:
+          type: string
+      - in: query
+        name: start
+        schema:
+          type: string
+      - in: query
+        name: status
+        schema:
+          type: string
+      tags:
+      - staff reports
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentReportResponse'
+            text/csv:
+              schema:
+                type: string
+                format: binary
           description: ''
   /api/v1/staff/rooms/room-blocks/:
     get:
@@ -6810,6 +6859,20 @@ components:
         failure_message:
           type: string
           maxLength: 255
+        redirect_url:
+          oneOf:
+          - type: string
+            format: uri
+            maxLength: 500
+          - type: string
+            maxLength: 0
+        requires_review:
+          type: boolean
+          description: Set when money arrived after the booking or day pass was no
+            longer payable.
+        review_reason:
+          type: string
+          maxLength: 255
         paid_at:
           type: string
           format: date-time
@@ -6900,6 +6963,76 @@ components:
       - bank
       - methods
       - sandbox
+    PaymentReportResponse:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/PaymentReportRow'
+        count:
+          type: integer
+        total_amount:
+          type: integer
+      required:
+      - count
+      - results
+      - total_amount
+    PaymentReportRow:
+      type: object
+      properties:
+        reference:
+          type: string
+        booking_reference:
+          type: string
+        gym_pass_reference:
+          type: string
+        purpose:
+          type: string
+        purpose_display:
+          type: string
+        provider:
+          type: string
+        provider_display:
+          type: string
+        status:
+          type: string
+        status_display:
+          type: string
+        amount:
+          type: integer
+        currency:
+          type: string
+        phone:
+          type: string
+        provider_reference:
+          type: string
+        requires_review:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+        paid_at:
+          type: string
+          format: date-time
+          nullable: true
+      required:
+      - amount
+      - booking_reference
+      - created_at
+      - currency
+      - gym_pass_reference
+      - paid_at
+      - phone
+      - provider
+      - provider_display
+      - provider_reference
+      - purpose
+      - purpose_display
+      - reference
+      - requires_review
+      - status
+      - status_display
     PaymentStatusEnum:
       enum:
       - initiated
@@ -6933,6 +7066,10 @@ components:
           type: string
         failure_message:
           type: string
+        redirect_url:
+          type: string
+        requires_review:
+          type: boolean
         paid_at:
           type: string
           format: date-time
