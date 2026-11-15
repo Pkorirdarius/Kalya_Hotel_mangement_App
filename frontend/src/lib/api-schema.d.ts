@@ -2644,6 +2644,8 @@ export interface components {
         };
         PatchedTableBookingStaffRequest: {
             reference?: string;
+            venue?: components["schemas"]["VenueEnum"];
+            venue_display?: string;
             /** Format: date */
             date?: string;
             /** Format: time */
@@ -3367,6 +3369,8 @@ export interface components {
         StatusF4cEnum: "held" | "pending_payment" | "pending_confirmation" | "confirmed" | "declined" | "cancelled" | "expired";
         TableBooking: {
             reference: string;
+            venue?: components["schemas"]["VenueEnum"];
+            venue_display: string;
             /** Format: date */
             date: string;
             /** Format: time */
@@ -3386,6 +3390,8 @@ export interface components {
             readonly created_at: string;
         };
         TableBookingCreateRequest: {
+            /** @default restaurant */
+            venue: components["schemas"]["VenueEnum"];
             /** Format: date */
             date: string;
             time: string;
@@ -3402,6 +3408,8 @@ export interface components {
         };
         TableBookingStaff: {
             reference: string;
+            venue?: components["schemas"]["VenueEnum"];
+            venue_display: string;
             /** Format: date */
             date: string;
             /** Format: time */

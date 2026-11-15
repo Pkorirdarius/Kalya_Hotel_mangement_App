@@ -6770,6 +6770,11 @@ components:
           type: string
           minLength: 1
           maxLength: 20
+        venue:
+          $ref: '#/components/schemas/VenueEnum'
+        venue_display:
+          type: string
+          minLength: 1
         date:
           type: string
           format: date
@@ -8582,6 +8587,10 @@ components:
         reference:
           type: string
           maxLength: 20
+        venue:
+          $ref: '#/components/schemas/VenueEnum'
+        venue_display:
+          type: string
         date:
           type: string
           format: date
@@ -8635,9 +8644,14 @@ components:
       - reference
       - status_display
       - time
+      - venue_display
     TableBookingCreateRequest:
       type: object
       properties:
+        venue:
+          allOf:
+          - $ref: '#/components/schemas/VenueEnum'
+          default: restaurant
         date:
           type: string
           format: date
@@ -8693,6 +8707,10 @@ components:
         reference:
           type: string
           maxLength: 20
+        venue:
+          $ref: '#/components/schemas/VenueEnum'
+        venue_display:
+          type: string
         date:
           type: string
           format: date
@@ -8750,6 +8768,7 @@ components:
       - reference
       - status_display
       - time
+      - venue_display
     User:
       type: object
       properties:

@@ -685,6 +685,17 @@ const entries: Record<string, Entry> = {
   },
   'dining.reference': { en: 'Reference', sw: 'Kumbukumbu' },
   'dining.another': { en: 'Book another table', sw: 'Weka meza nyingine' },
+  'dining.coffeeEyebrow': { en: 'Coffee shop', sw: 'Duka la kahawa' },
+  'dining.coffeeTitle': { en: 'No booking needed.', sw: 'Hakuna haja ya kuweka nafasi.' },
+  'dining.coffeeText': {
+    en: 'Jacaranda Café is walk-in only. Come in, find a seat and order at the counter.',
+    sw: 'Jacaranda Café inapokea wageni bila miadi. Ingia, tafuta kiti na uagize kaunta.',
+  },
+  'dining.coffeeWalkIn': { en: 'Walk-ins only, all day', sw: 'Bila miadi, siku nzima' },
+  'dining.coffeeNote': {
+    en: 'Planning a group of eight or more? Call ext. 3 and we will set aside space for you.',
+    sw: 'Unapanga kikundi cha watu wanane au zaidi? Piga ext. 3 na tutakutafutia nafasi.',
+  },
   'occasion.meal': { en: 'Just a meal', sw: 'Chakula tu' },
   'occasion.birthday': { en: 'Birthday', sw: 'Siku ya kuzaliwa' },
   'occasion.anniversary': { en: 'Anniversary', sw: 'Kumbukumbu ya ndoa' },

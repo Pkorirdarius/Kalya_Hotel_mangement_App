@@ -122,7 +122,7 @@ export function DiningPage() {
 
   const active = VENUES[venue];
   const partySize = Number(party) || 1;
-  const slotsQuery = useRestaurantSlots(date);
+  const slotsQuery = useRestaurantSlots(venue === 'restaurant' ? date : undefined);
   const createTableBooking = useCreateTableBookingMutation();
 
   const timeOptions = TIMES.map((slot) => {
@@ -142,6 +142,12 @@ export function DiningPage() {
     : '';
 
   const handleVenue = (next: Venue) => {
+    // The booking form and its confirmation belong to one venue. Reset them
+    // when the guest switches so a restaurant confirmation cannot appear under
+    // the read-only coffee shop panel.
+    setBooking(null);
+    setErrors({});
+    setSubmitError('');
     setSearchParams(next === 'restaurant' ? {} : { venue: next }, { replace: true });
   };
 
@@ -174,6 +180,7 @@ export function DiningPage() {
     const { firstName, lastName } = splitFullName(name);
     try {
       const response = await createTableBooking.mutateAsync({
+        venue,
         date,
         time: effectiveTime,
         party_size: partySize,
@@ -337,7 +344,42 @@ export function DiningPage() {
           </div>
 
           <div className="rounded-3xl border border-line bg-white p-5 shadow-soft sm:p-7 lg:sticky lg:top-28">
-            {!booking ? (
+            {venue === 'coffee' ? (
+              <div>
+                <p className="eyebrow">{t('dining.coffeeEyebrow')}</p>
+                <h2 className="heading-sm mt-2">{t('dining.coffeeTitle')}</h2>
+                <p className="mt-2 text-sm leading-relaxed text-muted">{t('dining.coffeeText')}</p>
+                <div className="mt-5 grid gap-3 rounded-2xl bg-forest-50 p-4 text-[12px] font-semibold text-forest">
+                  <p className="flex items-center gap-2">
+                    <span className="material-symbols-outlined text-[17px] text-gold-deep" aria-hidden="true">
+                      schedule
+                    </span>
+                    <span>{t('facility.coffee.hours')}</span>
+                  </p>
+                  <p className="flex items-center gap-2">
+                    <span className="material-symbols-outlined text-[17px] text-gold-deep" aria-hidden="true">
+                      directions_walk
+                    </span>
+                    <span>{t('dining.coffeeWalkIn')}</span>
+                  </p>
+                  <p className="flex items-center gap-2">
+                    <span className="material-symbols-outlined text-[17px] text-gold-deep" aria-hidden="true">
+                      call
+                    </span>
+                    <span>+254 20 765 4321 · ext. 3</span>
+                  </p>
+                </div>
+                <p className="mt-4 text-[11px] leading-relaxed text-muted">{t('dining.coffeeNote')}</p>
+                <a
+                  href={whatsappHref()}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn-outline btn-sm mt-5"
+                >
+                  {t('common.whatsapp')}
+                </a>
+              </div>
+            ) : !booking ? (
               <>
                 <p className="eyebrow">{t('dining.bookEyebrow')}</p>
                 <h2 className="heading-sm mt-2">{t('dining.bookTitle')}</h2>

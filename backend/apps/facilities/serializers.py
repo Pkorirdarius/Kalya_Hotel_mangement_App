@@ -16,6 +16,11 @@ from .models import (
 
 
 class TableBookingCreateSerializer(serializers.Serializer):
+    venue = serializers.ChoiceField(
+        choices=TableBooking.Venue.choices,
+        default=TableBooking.Venue.RESTAURANT,
+        required=False,
+    )
     date = serializers.DateField()
     time = serializers.CharField(max_length=5)
     party_size = serializers.IntegerField(min_value=1, max_value=20)
@@ -32,15 +37,25 @@ class TableBookingCreateSerializer(serializers.Serializer):
         except ValueError as exc:
             raise serializers.ValidationError(str(exc)) from exc
 
+    def validate_venue(self, value):
+        if value == TableBooking.Venue.COFFEE:
+            raise serializers.ValidationError(
+                "The coffee shop is walk-in only and cannot be booked."
+            )
+        return value
+
 
 class TableBookingSerializer(serializers.ModelSerializer):
     guest_name = serializers.CharField()
     status_display = serializers.CharField(source="get_status_display")
+    venue_display = serializers.CharField(source="get_venue_display")
 
     class Meta:
         model = TableBooking
         fields = (
             "reference",
+            "venue",
+            "venue_display",
             "date",
             "time",
             "party_size",

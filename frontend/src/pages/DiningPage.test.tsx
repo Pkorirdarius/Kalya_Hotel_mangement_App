@@ -22,6 +22,8 @@ function jsonResponse(status: number, body: unknown) {
 function tableBookingBody(request: Record<string, unknown>) {
   return {
     reference: 'TB-4821',
+    venue: request.venue ?? 'restaurant',
+    venue_display: 'Restaurant',
     date: request.date,
     time: `${String(request.time)}:00`,
     party_size: request.party_size,
@@ -38,7 +40,7 @@ function tableBookingBody(request: Record<string, unknown>) {
   };
 }
 
-function renderDiningPage() {
+function renderDiningPage(path = '/dining') {
   const client = createQueryClient();
   client.setDefaultOptions({
     queries: { retry: false },
@@ -48,7 +50,7 @@ function renderDiningPage() {
     <QueryClientProvider client={client}>
       <I18nProvider>
         <ToastProvider>
-          <MemoryRouter initialEntries={['/dining']}>
+          <MemoryRouter initialEntries={[path]}>
             <DiningPage />
           </MemoryRouter>
         </ToastProvider>
@@ -119,12 +121,44 @@ describe('DiningPage', () => {
     );
     expect(createCall).toBeTruthy();
     expect(JSON.parse(String(createCall?.[1]?.body))).toMatchObject({
+      venue: 'restaurant',
       time: '19:00',
       party_size: 2,
       first_name: 'Amina',
       last_name: 'Otieno',
       phone: '254712345678',
     });
+  });
+
+  it('shows the coffee shop as walk-in only, without the booking form', async () => {
+    const fetchMock = mockFetch();
+    vi.stubGlobal('fetch', fetchMock);
+    renderDiningPage('/dining?venue=coffee');
+
+    expect(await screen.findByText('No booking needed.')).toBeInTheDocument();
+    expect(screen.getByText('Walk-ins only, all day')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Request table' })).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('Date')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('Full name')).not.toBeInTheDocument();
+
+    // No table availability request is needed for a walk-in venue.
+    expect(
+      fetchMock.mock.calls.some(([input]) =>
+        String(input).includes('/facilities/restaurant/slots/'),
+      ),
+    ).toBe(false);
+  });
+
+  it('restores the restaurant form after switching back from the coffee shop', async () => {
+    vi.stubGlobal('fetch', mockFetch());
+    const user = userEvent.setup();
+    renderDiningPage('/dining?venue=coffee');
+
+    expect(await screen.findByText('No booking needed.')).toBeInTheDocument();
+    await user.click(screen.getByRole('tab', { name: 'Tulia Restaurant' }));
+
+    expect(await screen.findByRole('button', { name: 'Request table' })).toBeInTheDocument();
+    expect(screen.queryByText('No booking needed.')).not.toBeInTheDocument();
   });
 
   it('marks slots that no longer fit the party size as full', async () => {

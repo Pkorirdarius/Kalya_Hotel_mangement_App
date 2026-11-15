@@ -21,10 +21,10 @@ All commands were run from the repository root unless stated. Backend commands r
 | # | Command | Result |
 | --- | --- | --- |
 | 1 | `git status --short` | Clean tree (no output). Tip `230e6a9`, branch `feat/finish-frontend`, tracking `origin/feat/finish-frontend`. |
-| 2 | `..\.venv\Scripts\python.exe -m pytest -q` | **72 passed, 1 skipped** in 8.45s. Skip: `apps/bookings/tests/test_concurrency.py:29 — Row-lock concurrency needs Postgres`. |
+| 2 | `..\.venv\Scripts\python.exe -m pytest -q` | **81 passed, 1 skipped** in 6.09s (after A1 gym price and A2 coffee-shop work). Skip: `apps/bookings/tests/test_concurrency.py:29 — Row-lock concurrency needs Postgres`. |
 | 3 | `npm run typecheck` | Passed (`tsc --noEmit`, no output). |
 | 4 | `npm run lint` | Passed (`eslint .`, no output). |
-| 5 | `npm test` | **67 passed** across **15 test files** in 33.30s. |
+| 5 | `npm test` | **69 passed** across **15 test files** in 27.71s (after the A2 coffee-shop tests). |
 | 6 | `npm run build` | Passed. Vite 6.4.5 built 217 modules and emitted `dist/robots.txt` and `dist/sitemap.xml`. |
 | 7 | `npm run check:brand` | `Brand check passed: no hard-coded brand strings in code or tests.` |
 
@@ -53,7 +53,7 @@ All commands were run from the repository root unless stated. Backend commands r
 | Requirement | Status | Evidence | Action |
 | --- | --- | --- | --- |
 | Restaurant table booking with live availability | **Done** | `backend/apps/facilities/views.py`, `services.py`; `frontend/src/pages/DiningPage.tsx:125-188`; `DiningPage.test.tsx`; `test_facility_emails.py::test_table_confirmation_emails_and_texts_the_guest`. | None. |
-| Coffee shop has **no** booking | **Missing** | `/dining?venue=coffee` renders the same table-booking form (`DiningPage.tsx:102-120`, `339-460`); only copy/menu changes per venue. | Hide/replace the form for `coffee` (information + opening hours only). |
+| Coffee shop has **no** booking | **Done** | `/dining?venue=coffee` renders a read-only panel (hours, walk-in policy, contact, WhatsApp) with no form (`DiningPage.tsx`); the slots query is disabled for that venue; the form state resets when switching venues. Backend rejects `venue=coffee` in `TableBookingCreateSerializer.validate_venue` and `create_table_booking`, persists `TableBooking.venue` (migration `0002_tablebooking_venue`), and excludes non-restaurant rows from seat capacity. `backend/apps/facilities/tests/test_table_booking_venue.py` (5 tests) and `DiningPage.test.tsx` (6 tests) cover both sides. | None. |
 | Conference is enquiry-only | **Done** | `ConferenceEnquiry` has `PENDING` default (`facilities/models.py:87-107`); `ConferencePage.tsx`; `ConferencePage.test.tsx`; front desk confirms/declines in `frontdesk/services.py`. | Confirm the half-day/full-day prices (flagged below). |
 | Gym day pass with QR token | **Done** | `GymDayPass.qr_token` (`facilities/models.py:183`); QR issuance in `facilities/services.py:246-247` and `payments/services.py:276-277`; public QR endpoint `facilities/views.py:299-306`; `test_frontdesk_api.py::test_gym_confirmation_issues_qr_and_undo_clears_reception_payment`. | None. |
 | One gym day-pass price, KES 500 | **Done** | `HotelSetting.gym_day_pass_price` default and seed are 500; `frontend/src/config/prices.ts` exports `GYM_DAY_PASS_PRICE = 500`; Gym/Facilities pages read the live API price and fall back to 500; translations contain no `1,000`; `backend/apps/common/tests/test_gym_price.py` has 4 passing checks against backend, seed, frontend config and i18n. Price remains editable in admin and flagged for hotel confirmation. | Hotel must confirm the amount before launch. |
@@ -120,13 +120,12 @@ All commands were run from the repository root unless stated. Backend commands r
 1. No Postgres concurrency proof (the only real two-guest test is skipped).
 2. No `/sw/` routing, hreflang, per-language canonicals or sitemap.
 3. No prerendering, no blog index, no privacy/terms pages.
-4. Gym price mismatch (KES 500 vs KES 1,000).
-5. Coffee shop still accepts table bookings; menus are not read from the CMS.
-6. No consent records with text version.
-7. No CSP, axe tests, reduced-motion test or Lighthouse evidence.
-8. No Playwright, CI, staging stack, backup/restore, monitoring or content-confirmation page.
-9. Missing table/conference guest language fields.
-10. No UAT script, changelog, PR or tag.
+4. Menus are still hard-coded in `DiningPage.tsx` instead of read from the CMS.
+5. No consent records with text version.
+6. No CSP, axe tests, reduced-motion test or Lighthouse evidence.
+7. No Playwright, CI, staging stack, backup/restore, monitoring or content-confirmation page.
+8. Missing table/conference guest language fields.
+9. No UAT script, changelog, PR or tag.
 
 ## 4. Hotel decisions that remain unresolved (not decided by engineering)
 

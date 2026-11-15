@@ -91,6 +91,7 @@ class TableBookingCreateView(APIView):
                 email=data.get("email", ""),
                 occasion=data.get("occasion", ""),
                 notes=data.get("notes", ""),
+                venue=data.get("venue", TableBooking.Venue.RESTAURANT),
             )
         except FacilityError as exc:
             _raise_facility_error(exc)
