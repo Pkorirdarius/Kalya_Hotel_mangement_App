@@ -33,6 +33,7 @@ import type {
   Payment,
   PaymentInitiate,
   PaymentInitiateResponse,
+  PolicyPage,
   PaymentMethodsResponse,
   PaymentReportResponse,
   QueueResponse,
@@ -65,6 +66,9 @@ export const getPosts = () => apiRequest<BlogPost[]>('/content/posts/');
 export const getPost = (slug: string) => apiRequest<BlogPost>(`/content/posts/${slug}/`);
 
 export const getReviews = () => apiRequest<ReviewList>('/content/reviews/');
+
+export const getPolicy = (slug: string) =>
+  apiRequest<PolicyPage>(`/content/policies/${slug}/`);
 
 export const getMenu = (params?: { venue?: string; category?: string }) =>
   apiRequest<MenuItem[]>('/facilities/menu/', { params });

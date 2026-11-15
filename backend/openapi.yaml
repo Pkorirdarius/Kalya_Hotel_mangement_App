@@ -226,6 +226,26 @@ paths:
                 items:
                   $ref: '#/components/schemas/Offer'
           description: ''
+  /api/v1/content/policies/{slug}/:
+    get:
+      operationId: v1_content_policies_retrieve
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - content
+      security:
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PolicyPage'
+          description: ''
   /api/v1/content/posts/:
     get:
       operationId: v1_content_posts_list
@@ -7105,6 +7125,37 @@ components:
       - gym_day_passes
       - room_bookings
       - table_bookings
+    PolicyPage:
+      type: object
+      properties:
+        slug:
+          type: string
+          maxLength: 40
+          pattern: ^[-a-zA-Z0-9_]+$
+        title_en:
+          type: string
+          maxLength: 200
+        title_sw:
+          type: string
+          maxLength: 200
+        body_en:
+          type: string
+        body_sw:
+          type: string
+        version:
+          type: string
+          maxLength: 40
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        needs_confirmation:
+          type: boolean
+          description: Legal wording still needs hotel/legal review.
+      required:
+      - slug
+      - title_en
+      - updated_at
     ProviderEnum:
       enum:
       - mpesa

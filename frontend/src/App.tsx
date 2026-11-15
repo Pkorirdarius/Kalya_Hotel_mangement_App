@@ -20,6 +20,9 @@ const ConferencePage = lazy(() =>
 const GymPage = lazy(() => import('./pages/GymPage').then((module) => ({ default: module.GymPage })));
 const OffersPage = lazy(() => import('./pages/OffersPage').then((module) => ({ default: module.OffersPage })));
 const ContactPage = lazy(() => import('./pages/ContactPage').then((module) => ({ default: module.ContactPage })));
+const PolicyPage = lazy(() =>
+  import('./pages/PolicyPage').then((module) => ({ default: module.PolicyPage })),
+);
 const DashboardPage = lazy(() =>
   import('./pages/DashboardPage').then((module) => ({ default: module.DashboardPage })),
 );
@@ -68,6 +71,8 @@ export function App() {
             <Route path="gym" element={<GymPage />} />
             <Route path="offers" element={<OffersPage />} />
             <Route path="contact" element={<ContactPage />} />
+            <Route path="privacy" element={<PolicyPage slug="privacy" />} />
+            <Route path="terms" element={<PolicyPage slug="terms" />} />
             <Route path="*" element={<NotFoundPage />} />
           </Route>
           <Route path="dashboard" element={<DashboardPage />} />

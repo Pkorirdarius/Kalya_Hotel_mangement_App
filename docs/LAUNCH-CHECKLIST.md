@@ -94,6 +94,12 @@ field before promising bilingual facility emails.
       guest pages do not show placeholder copy.
 - [ ] Coffee shop copy is confirmed as walk-in only; no table-booking form is
       shown and the API rejects `venue=coffee`.
+- [ ] Hotel/legal review the seeded `/privacy` and `/terms` drafts, edit them in
+      Django admin, bump `HotelSetting.privacy_notice_version`, and clear
+      `needs_confirmation` before launch.
+- [ ] Confirm consent records are being written for bookings, booking marketing
+      opt-ins and newsletter signups, and that the retention period matches the
+      hotel's policy.
 
 ## 6. Accessibility and QA
 

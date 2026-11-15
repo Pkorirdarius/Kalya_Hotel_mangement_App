@@ -21,6 +21,7 @@ export const queryKeys = {
   post: (slug: string) => ['posts', slug] as const,
   reviews: ['reviews'] as const,
   menu: (params?: { venue?: string; category?: string }) => ['menu', params ?? {}] as const,
+  policy: (slug: string) => ['policy', slug] as const,
   availability: (params: AvailabilityParams) => ['availability', params] as const,
   booking: (reference: string, contact: Contact) => ['booking', reference, contact] as const,
   restaurantSlots: (date: string) => ['restaurant-slots', date] as const,

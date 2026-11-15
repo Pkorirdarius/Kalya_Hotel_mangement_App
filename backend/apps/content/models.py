@@ -50,6 +50,25 @@ class Offer(TimeStampedModel):
         return self.title_en
 
 
+class PolicyPage(TimeStampedModel):
+    slug = models.SlugField(max_length=40, unique=True)
+    title_en = models.CharField(max_length=200)
+    title_sw = models.CharField(max_length=200, blank=True)
+    body_en = models.TextField(blank=True)
+    body_sw = models.TextField(blank=True)
+    version = models.CharField(max_length=40, blank=True)
+    active = models.BooleanField(default=True)
+    needs_confirmation = models.BooleanField(
+        default=True, help_text="Legal wording still needs hotel/legal review."
+    )
+
+    class Meta:
+        ordering = ("slug",)
+
+    def __str__(self) -> str:
+        return self.title_en
+
+
 class Review(TimeStampedModel):
     author = models.CharField(max_length=120)
     rating = models.PositiveSmallIntegerField(default=5)

@@ -29,6 +29,7 @@ import {
   getPaymentMethods,
   getOccupancyReport,
   getPaymentReport,
+  getPolicy,
   getPost,
   getPosts,
   getQuote,
@@ -121,6 +122,14 @@ export function useMenu(params?: { venue?: string; category?: string }) {
   return useQuery({
     queryKey: queryKeys.menu(params),
     queryFn: () => getMenu(params),
+  });
+}
+
+export function usePolicy(slug: string) {
+  return useQuery({
+    queryKey: queryKeys.policy(slug),
+    queryFn: () => getPolicy(slug),
+    enabled: Boolean(slug),
   });
 }
 

@@ -1142,6 +1142,15 @@ export function BookingPage() {
                         {t('field.terms')}
                       </span>
                     </label>
+                    <p className="ml-8 mt-1 text-[12px] text-muted">
+                      <Link className="underline transition hover:text-forest" to="/privacy">
+                        {t('footer.privacy')}
+                      </Link>
+                      {' · '}
+                      <Link className="underline transition hover:text-forest" to="/terms">
+                        {t('footer.terms')}
+                      </Link>
+                    </p>
                     <FieldError message={errors.terms} />
                     <label className="mt-3 flex cursor-pointer items-start gap-3">
                       <input

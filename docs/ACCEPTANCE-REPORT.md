@@ -21,11 +21,11 @@ All commands were run from the repository root unless stated. Backend commands r
 | # | Command | Result |
 | --- | --- | --- |
 | 1 | `git status --short` | Clean tree (no output). Tip `230e6a9`, branch `feat/finish-frontend`, tracking `origin/feat/finish-frontend`. |
-| 2 | `..\.venv\Scripts\python.exe -m pytest -q` | **81 passed, 1 skipped** in 7.14s (after A1 gym price and A2 coffee-shop work). Skip: `apps/bookings/tests/test_concurrency.py:29 — Row-lock concurrency needs Postgres`. |
+| 2 | `..\.venv\Scripts\python.exe -m pytest -q` | **87 passed, 1 skipped** in 6.43s (after A1–A3 and B4). Skip: `apps/bookings/tests/test_concurrency.py:29 — Row-lock concurrency needs Postgres`. |
 | 3 | `npm run typecheck` | Passed (`tsc --noEmit`, no output). |
 | 4 | `npm run lint` | Passed (`eslint .`, no output). |
-| 5 | `npm test` | **71 passed** across **15 test files** in 25.92s (after the A2 coffee-shop and A3 CMS-menu tests). |
-| 6 | `npm run build` | Passed. Vite 6.4.5 built 217 modules and emitted `dist/robots.txt` and `dist/sitemap.xml`. |
+| 5 | `npm test` | **76 passed** across **17 test files** in 27.98s (after A2, A3 and B4). |
+| 6 | `npm run build` | Passed. Vite 6.4.5 built 219 modules and emitted `dist/robots.txt` and `dist/sitemap.xml`. |
 | 7 | `npm run check:brand` | `Brand check passed: no hard-coded brand strings in code or tests.` |
 
 **Not run (therefore unverified):** Postgres-backed backend suite, Docker/Compose stack, Playwright browser suite, Lighthouse, `manage.py check --deploy`, live M-Pesa/card/SMTP calls, backup/restore drill.
@@ -85,8 +85,8 @@ All commands were run from the repository root unless stated. Backend commands r
 | Unique title/description/OG per page | **Done** | `Page.tsx:6-42`; `usePageMeta` on every page; brand injection and JSON-LD in `vite.config.ts:1-49`. | Prerender the tags for crawlers (Step 2.5). |
 | Prerendered marketing pages | **Missing** | SPA with `vercel.json` rewrite to `index.html`; no SSG/prerender dependency or config. | Add `vite-react-ssg` (or equivalent) for Home, Rooms, Facilities, Dining, Conference, Gym, Offers, Blog index, Contact, Privacy, Terms in EN and SW. |
 | Blog index and post pages | **Missing** | API exists (`content/urls.py:11-12`), but no frontend `/blog` route, page or `useBlog` hook. | Add the routes/pages required for prerendering the blog index. |
-| Privacy policy and Terms pages, CMS-editable EN/SW, seeded placeholders | **Missing** | Footer links both point to `/contact` (`Footer.tsx:187-192`); seeded `privacy_notice_url = "/privacy"` has no route (`seed_hotel.py:249`); no policy models. | Add CMS content + routes in both languages, link footer and consent labels. |
-| Consent records (what, when, text version) | **Partial** | Booking stores only `consent_privacy` boolean (`bookings/models.py:70`); newsletter stores `consent`/`language` but not the text version; `HotelSetting.privacy_notice_version` exists but is not written per consent. | Add consent records with timestamp, scope, language and policy version for booking, newsletter and enquiries. |
+| Privacy policy and Terms pages, CMS-editable EN/SW, seeded placeholders | **Done** | New `PolicyPage` model (`content/models.py`), Django admin, public `GET /api/v1/content/policies/<slug>/` (`content/views.py`, `urls.py`); seed creates `/privacy` and `/terms` drafts in EN/SW and sets `privacy_notice_version = 2026-11-draft` (`seed_hotel.py`). Frontend `PolicyPage.tsx` renders CMS text by language, shows a draft badge, and is routed at `/privacy` and `/terms`; footer and the booking consent label link to both. `PolicyPage.test.tsx` covers EN, SW and API failure. Wording is still a draft pending hotel/legal review. | Hotel/legal must approve the wording and clear `needs_confirmation`. |
+| Consent records (what, when, text version) | **Done** | New immutable `ConsentRecord` (`common/models.py`, migration `0005_consentrecord`) stores scope, subject, reference, language, `policy_version`, `policy_url`, optional `text_hash` and `created_at`; read-only in Django admin. `common/consent.py` snapshots the live `HotelSetting` version. Room bookings write `booking_privacy` plus `newsletter` when marketing consent is ticked; newsletter subscribe writes `newsletter`; the frontend newsletter form now calls the API instead of faking success. `test_consent.py` (3 tests) proves the records and the no-consent rejection. | Consent wording/version must be finalised before launch; `text_hash` stays empty until the full policy text is passed to the helper. |
 | Localized dates, numbers and KES | **Done** | `i18n.ts:1370-1390` (`Intl.DateTimeFormat` switches `sw-KE`/`en-GB`, `Intl.NumberFormat('en-KE')`); `formatClock` in `DashboardPage.tsx:75`; tests cover both languages. | Number locale is fixed to `en-KE`; acceptable because Kenyan digit grouping is identical, but review with marketing. |
 | Analytics is opt-in and does not double count | **Done** | `frontend/src/lib/analytics.ts` (loads only with `VITE_ANALYTICS_DOMAIN`, manual pageviews queued); `analytics.test.ts`; `RouteAnalytics` in `Page.tsx:54-59`. | None. |
 | Production CSP | **Missing** | No `Content-Security-Policy` in settings, proxy config or `vercel.json`; no CSP package in requirements. | Define API/analytics/fonts/maps policy; ship report-only, test, document enforcement (Step 2.6). |
@@ -119,12 +119,11 @@ All commands were run from the repository root unless stated. Backend commands r
 
 1. No Postgres concurrency proof (the only real two-guest test is skipped).
 2. No `/sw/` routing, hreflang, per-language canonicals or sitemap.
-3. No prerendering, no blog index, no privacy/terms pages.
-4. No consent records with text version.
-5. No CSP, axe tests, reduced-motion test or Lighthouse evidence.
-6. No Playwright, CI, staging stack, backup/restore, monitoring or content-confirmation page.
-7. Missing table/conference guest language fields.
-8. No UAT script, changelog, PR or tag.
+3. No prerendering, no blog index.
+4. No CSP, axe tests, reduced-motion test or Lighthouse evidence.
+5. No Playwright, CI, staging stack, backup/restore, monitoring or content-confirmation page.
+6. Missing table/conference guest language fields.
+7. No UAT script, changelog, PR or tag.
 
 ## 4. Hotel decisions that remain unresolved (not decided by engineering)
 

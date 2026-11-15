@@ -7,6 +7,8 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from apps.common.consent import record_consent
+from apps.common.models import ConsentRecord
 from apps.common.utils import unique_reference
 
 from .models import ContactMessage, NewsletterSubscriber
@@ -50,6 +52,11 @@ class NewsletterSubscribeView(APIView):
             subscriber.save(
                 update_fields=("consent", "language", "unsubscribed_at", "updated_at")
             )
+        record_consent(
+            scope=ConsentRecord.Scope.NEWSLETTER,
+            subject=email,
+            language=data["language"],
+        )
         return Response(
             {"subscribed": True, "already_subscribed": not created},
             status=status.HTTP_201_CREATED,

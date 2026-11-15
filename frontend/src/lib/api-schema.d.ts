@@ -149,6 +149,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/content/policies/{slug}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["v1_content_policies_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/content/posts/": {
         parameters: {
             query?: never;
@@ -2774,6 +2790,18 @@ export interface components {
             conference_enquiries: number;
             gym_day_passes: number;
         };
+        PolicyPage: {
+            slug: string;
+            title_en: string;
+            title_sw?: string;
+            body_en?: string;
+            body_sw?: string;
+            version?: string;
+            /** Format: date-time */
+            readonly updated_at: string;
+            /** @description Legal wording still needs hotel/legal review. */
+            needs_confirmation?: boolean;
+        };
         /**
          * @description * `mpesa` - M-Pesa
          *     * `card` - Card
@@ -3686,6 +3714,27 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Offer"][];
+                };
+            };
+        };
+    };
+    v1_content_policies_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PolicyPage"];
                 };
             };
         };

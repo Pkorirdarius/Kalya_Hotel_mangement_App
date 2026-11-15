@@ -1,5 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { useI18n } from '../i18n-context';
+import { errorMessage } from '../lib/query/errors';
+import { useSubscribeNewsletterMutation } from '../lib/query/hooks';
 import { isValidEmail } from '../utils';
 import { useToast } from './ToastProvider';
 
@@ -8,25 +10,38 @@ interface NewsletterFormProps {
 }
 
 export function NewsletterForm({ showSuccess = true }: NewsletterFormProps) {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const { showToast } = useToast();
+  const subscribe = useSubscribeNewsletterMutation();
   const [email, setEmail] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!isValidEmail(email)) {
       setError(t('validation.email'));
       return;
     }
     setError(null);
-    if (showSuccess) {
-      setSuccess(true);
-    } else {
-      showToast(t('toast.newsletter'));
+    try {
+      // The API stores a consent record with the policy version shown at this
+      // moment, so a bare frontend-only success would not be auditable.
+      await subscribe.mutateAsync({
+        email: email.trim(),
+        consent: true,
+        language,
+        source: 'website',
+      });
+      if (showSuccess) {
+        setSuccess(true);
+      } else {
+        showToast(t('toast.newsletter'));
+      }
+      setEmail('');
+    } catch (submitError) {
+      setError(errorMessage(submitError, t('newsletter.error')));
     }
-    setEmail('');
   };
 
   return (
@@ -61,8 +76,12 @@ export function NewsletterForm({ showSuccess = true }: NewsletterFormProps) {
           />
           {error ? <p className="mt-2 text-[12px] font-medium text-red-300">{error}</p> : null}
         </div>
-        <button type="submit" className="btn-gold h-14 sm:px-7">
-          {t('newsletter.button')}
+        <button
+          type="submit"
+          disabled={subscribe.isPending}
+          className="btn-gold h-14 disabled:cursor-not-allowed disabled:opacity-70 sm:px-7"
+        >
+          {subscribe.isPending ? t('common.sending') : t('newsletter.button')}
         </button>
       </div>
       {success ? (

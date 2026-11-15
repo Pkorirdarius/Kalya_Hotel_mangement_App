@@ -15,6 +15,8 @@ const entries: Record<string, Entry> = {
   'common.checkAvailability': { en: 'Check availability', sw: 'Angalia nafasi' },
   'common.viewRooms': { en: 'View rooms', sw: 'Tazama vyumba' },
   'common.learnMore': { en: 'Learn more', sw: 'Jifunze zaidi' },
+  'common.loading': { en: 'Loading…', sw: 'Inapakia…' },
+  'common.contactUs': { en: 'Contact us', sw: 'Wasiliana nasi' },
   'common.from': { en: 'From', sw: 'Kuanzia' },
   'common.perNight': { en: 'per night', sw: 'kwa usiku' },
   'common.freeCancellation': { en: 'Free cancellation', sw: 'Kughairi bila malipo' },
@@ -79,6 +81,7 @@ const entries: Record<string, Entry> = {
   'footer.rights': { en: 'All rights reserved.', sw: 'Haki zote zimehifadhiwa.' },
   'footer.privacy': { en: 'Privacy', sw: 'Faragha' },
   'footer.terms': { en: 'Terms', sw: 'Masharti' },
+  'footer.legal': { en: 'Legal', sw: 'Kisheria' },
   'footer.staff': { en: 'Staff login', sw: 'Kuingia kwa wafanyakazi' },
   'footer.newsletter': { en: 'Join our monthly note', sw: 'Jiunge na barua yetu ya mwezi' },
   'footer.address': { en: '{address}', sw: '{address}' },
@@ -277,6 +280,10 @@ const entries: Record<string, Entry> = {
   'newsletter.placeholder': { en: 'Your email address', sw: 'Barua pepe yako' },
   'newsletter.button': { en: 'Subscribe', sw: 'Jisajili' },
   'newsletter.success': { en: 'Asante! Check your inbox for a welcome note.', sw: 'Asante! Angalia barua pepe yako kwa ujumbe wa kukaribisha.' },
+  'newsletter.error': {
+    en: 'We could not add you just now. Please try again or contact the hotel.',
+    sw: 'Hatukuweza kukuongeza kwa sasa. Tafadhali jaribu tena au wasiliana na hoteli.',
+  },
   'newsletter.privacy': { en: 'We keep your details private. Unsubscribe anytime.', sw: 'Tunahifadhi taarifa zako kwa faragha. Unaweza kujiondoa wakati wowote.' },
   'newsletter.emailLabel': { en: 'Email address', sw: 'Barua pepe' },
 
@@ -1234,9 +1241,31 @@ const entries: Record<string, Entry> = {
     en: 'Contact {name} in {town}. Call, WhatsApp or email the 24-hour front desk for stays, dining, conferences and gym membership.',
     sw: 'Wasiliana na {name} huko {town}. Piga simu, WhatsApp au barua pepe kwa mapokezi ya saa 24 kwa kukaa, chakula, mikutano na uanachama wa mazoezi.',
   },
-  'meta.notFound.title': { en: 'Page not found — {name}, {town}', sw: 'Ukurasa haupatikani — {name}, {town}' },
+  'meta.notFound.title': { en: 'Page not found - {name}, {town}', sw: 'Ukurasa haupatikani - {name}, {town}' },
+  'meta.privacy.title': { en: 'Privacy notice - {name}', sw: 'Taarifa ya faragha - {name}' },
+  'meta.privacy.description': {
+    en: 'How {name} collects, uses, stores and protects guest personal data.',
+    sw: 'Jinsi {name} inavyokusanya, kutumia, kuhifadhi na kulinda taarifa za wageni.',
+  },
+  'meta.terms.title': { en: 'Booking terms - {name}', sw: 'Masharti ya kuweka nafasi - {name}' },
+  'meta.terms.description': {
+    en: 'Booking, payment, cancellation and stay terms for {name}.',
+    sw: 'Masharti ya kuweka nafasi, malipo, kughairi na kukaa kwa {name}.',
+  },
   'meta.dashboard.title': { en: 'Front Desk Dashboard — {name}', sw: 'Dashibodi ya Mapokezi — {name}' },
 
+  'policy.draft': {
+    en: 'Draft wording — pending hotel and legal review before launch.',
+    sw: 'Maneno ya rasimu — yanasubiri kupitiwa na hoteli na sheria kabla ya kuzindua.',
+  },
+  'policy.unavailable': {
+    en: 'This policy is temporarily unavailable. Please contact the hotel and we will send you the current wording.',
+    sw: 'Sera hii haipatikani kwa sasa. Tafadhali wasiliana na hoteli na tutakutumia maneno ya sasa.',
+  },
+  'policy.version': {
+    en: 'Policy version {version}. This page is stored in the hotel content system.',
+    sw: 'Toleo la sera {version}. Ukurasa huu unahifadhiwa kwenye mfumo wa maudhui wa hoteli.',
+  },
   'notFound.title': { en: 'This page has checked out.', sw: 'Ukurasa huu umeondoka.' },
   'notFound.text': {
     en: 'The page you were looking for is not here. Head back to the lobby, or book a room for your next stay.',

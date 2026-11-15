@@ -7,7 +7,9 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from apps.common.consent import record_consent
 from apps.common.exceptions import Conflict
+from apps.common.models import ConsentRecord
 from apps.notifications.models import NewsletterSubscriber
 from apps.rooms.models import RoomType
 
@@ -163,6 +165,12 @@ class BookingCreateView(APIView):
                 subscriber.consent = True
                 subscriber.unsubscribed_at = None
                 subscriber.save(update_fields=("consent", "unsubscribed_at", "updated_at"))
+            record_consent(
+                scope=ConsentRecord.Scope.NEWSLETTER,
+                subject=email,
+                reference=booking.reference,
+                language=data["language"],
+            )
 
         booking = (
             booking.__class__.objects.select_related(

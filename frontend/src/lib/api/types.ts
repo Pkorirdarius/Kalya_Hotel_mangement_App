@@ -23,6 +23,7 @@ export type PaymentInitiate = Schemas['PaymentInitiateRequest'];
 export type PaymentInitiateResponse = Schemas['PaymentInitiateResponse'];
 export type PaymentMethod = Schemas['MethodEnum'];
 export type MenuItem = Schemas['MenuItem'];
+export type PolicyPage = Schemas['PolicyPage'];
 export type TableBooking = Schemas['TableBooking'];
 export type TableBookingCreate = Schemas['TableBookingCreateRequest'];
 export type TableBookingCreateResponse = Schemas['TableBookingCreateResponse'];
