@@ -8,6 +8,7 @@ import type { TableBooking } from '../lib/api/types';
 import { errorMessage, fieldErrors } from '../lib/query/errors';
 import {
   useCreateTableBookingMutation,
+  useMenu,
   useRestaurantSlots,
 } from '../lib/query/hooks';
 import {
@@ -36,6 +37,13 @@ const MENU_ITEMS: Record<Venue, Array<{ name: string; desc: string; price: strin
     { name: 'menu.samosa.name', desc: 'menu.samosa.desc', price: 'KES 250' },
   ],
 };
+
+interface MenuRow {
+  key: string;
+  name: string;
+  description: string;
+  price: string;
+}
 
 const VENUES: Record<
   Venue,
@@ -100,7 +108,7 @@ function displayTime(value: string | undefined): string {
 }
 
 export function DiningPage() {
-  const { t, formatDate } = useI18n();
+  const { t, formatDate, formatMoney, language } = useI18n();
   const { showToast } = useToast();
   const [searchParams, setSearchParams] = useSearchParams();
   const today = todayISO();
@@ -123,7 +131,28 @@ export function DiningPage() {
   const active = VENUES[venue];
   const partySize = Number(party) || 1;
   const slotsQuery = useRestaurantSlots(venue === 'restaurant' ? date : undefined);
+  const menuQuery = useMenu({ venue });
   const createTableBooking = useCreateTableBookingMutation();
+
+  // Marketing edits menus in Django admin. The CMS is the source of truth, with
+  // the checked-in copy kept only as an offline/empty-CMS fallback.
+  const menuRows: MenuRow[] =
+    menuQuery.data && menuQuery.data.length > 0
+      ? menuQuery.data.map((item) => ({
+          key: `cms-${item.id}`,
+          name: language === 'sw' && item.name_sw ? item.name_sw : item.name_en,
+          description:
+            (language === 'sw' && item.description_sw
+              ? item.description_sw
+              : item.description_en) ?? '',
+          price: `KES ${formatMoney(Number(item.price))}`,
+        }))
+      : MENU_ITEMS[venue].map((item) => ({
+          key: item.name,
+          name: t(item.name),
+          description: t(item.desc),
+          price: item.price,
+        }));
 
   const timeOptions = TIMES.map((slot) => {
     const match = slotsQuery.data?.find((item) => item.time === slot);
@@ -317,13 +346,15 @@ export function DiningPage() {
                   <span className="pill bg-gold-soft text-gold-deep">{t('dining.menuNote')}</span>
                 </div>
                 <div className="mt-4">
-                  {MENU_ITEMS[venue].map((item, index, items) => (
-                    <div key={item.name} className={index === items.length - 1 ? 'py-3' : 'border-b border-line py-3'}>
+                  {menuRows.map((item, index, items) => (
+                    <div key={item.key} className={index === items.length - 1 ? 'py-3' : 'border-b border-line py-3'}>
                       <div className="flex items-baseline justify-between gap-4">
-                        <p className="text-[14px] font-bold text-forest">{t(item.name)}</p>
+                        <p className="text-[14px] font-bold text-forest">{item.name}</p>
                         <p className="shrink-0 text-[13px] font-bold text-forest">{item.price}</p>
                       </div>
-                      <p className="mt-1 text-[12px] text-muted">{t(item.desc)}</p>
+                      {item.description ? (
+                        <p className="mt-1 text-[12px] text-muted">{item.description}</p>
+                      ) : null}
                     </div>
                   ))}
                 </div>

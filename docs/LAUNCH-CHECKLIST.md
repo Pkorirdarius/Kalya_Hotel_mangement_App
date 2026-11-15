@@ -89,6 +89,11 @@ field before promising bilingual facility emails.
       approves Plausible (cookieless) and any required consent copy.
 - [ ] Google reviews remain disabled until real reviews are imported and
       `HOTEL_GOOGLE_REVIEWS_ENABLED=true`.
+- [ ] Every restaurant and coffee-shop menu item in Django admin has confirmed
+      EN/SW names, descriptions and prices (`needs_confirmation` cleared) so the
+      guest pages do not show placeholder copy.
+- [ ] Coffee shop copy is confirmed as walk-in only; no table-booking form is
+      shown and the API rejects `venue=coffee`.
 
 ## 6. Accessibility and QA
 

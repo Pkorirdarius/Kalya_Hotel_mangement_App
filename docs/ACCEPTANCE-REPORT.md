@@ -21,10 +21,10 @@ All commands were run from the repository root unless stated. Backend commands r
 | # | Command | Result |
 | --- | --- | --- |
 | 1 | `git status --short` | Clean tree (no output). Tip `230e6a9`, branch `feat/finish-frontend`, tracking `origin/feat/finish-frontend`. |
-| 2 | `..\.venv\Scripts\python.exe -m pytest -q` | **81 passed, 1 skipped** in 6.09s (after A1 gym price and A2 coffee-shop work). Skip: `apps/bookings/tests/test_concurrency.py:29 — Row-lock concurrency needs Postgres`. |
+| 2 | `..\.venv\Scripts\python.exe -m pytest -q` | **81 passed, 1 skipped** in 7.14s (after A1 gym price and A2 coffee-shop work). Skip: `apps/bookings/tests/test_concurrency.py:29 — Row-lock concurrency needs Postgres`. |
 | 3 | `npm run typecheck` | Passed (`tsc --noEmit`, no output). |
 | 4 | `npm run lint` | Passed (`eslint .`, no output). |
-| 5 | `npm test` | **69 passed** across **15 test files** in 27.71s (after the A2 coffee-shop tests). |
+| 5 | `npm test` | **71 passed** across **15 test files** in 25.92s (after the A2 coffee-shop and A3 CMS-menu tests). |
 | 6 | `npm run build` | Passed. Vite 6.4.5 built 217 modules and emitted `dist/robots.txt` and `dist/sitemap.xml`. |
 | 7 | `npm run check:brand` | `Brand check passed: no hard-coded brand strings in code or tests.` |
 
@@ -57,7 +57,7 @@ All commands were run from the repository root unless stated. Backend commands r
 | Conference is enquiry-only | **Done** | `ConferenceEnquiry` has `PENDING` default (`facilities/models.py:87-107`); `ConferencePage.tsx`; `ConferencePage.test.tsx`; front desk confirms/declines in `frontdesk/services.py`. | Confirm the half-day/full-day prices (flagged below). |
 | Gym day pass with QR token | **Done** | `GymDayPass.qr_token` (`facilities/models.py:183`); QR issuance in `facilities/services.py:246-247` and `payments/services.py:276-277`; public QR endpoint `facilities/views.py:299-306`; `test_frontdesk_api.py::test_gym_confirmation_issues_qr_and_undo_clears_reception_payment`. | None. |
 | One gym day-pass price, KES 500 | **Done** | `HotelSetting.gym_day_pass_price` default and seed are 500; `frontend/src/config/prices.ts` exports `GYM_DAY_PASS_PRICE = 500`; Gym/Facilities pages read the live API price and fall back to 500; translations contain no `1,000`; `backend/apps/common/tests/test_gym_price.py` has 4 passing checks against backend, seed, frontend config and i18n. Price remains editable in admin and flagged for hotel confirmation. | Hotel must confirm the amount before launch. |
-| Menus editable by marketing in EN and SW | **Partial** | Backend supports it: `MenuItem.name_en/name_sw/description_en/description_sw` (`facilities/models.py:8-31`), staff CRUD gated by `CanManageContent` (`staff_views.py:26-32`), public `/facilities/menu/` (`views.py:315-334`), Django admin (`facilities/admin.py:13`). The guest page **ignores the API** and renders hard-coded `MENU_ITEMS` (`DiningPage.tsx:21-38, 313-321`); `useMenu`/`getMenu` exist but are unused. | Wire `DiningPage` to `useMenu`, and provide a staff editing surface (API/admin is enough for MVP) before claiming marketing can edit menus. |
+| Menus editable by marketing in EN and SW | **Done** | Backend supports it: `MenuItem.name_en/name_sw/description_en/description_sw` (`facilities/models.py:8-31`), staff CRUD gated by `CanManageContent` (`staff_views.py:26-32`), public `/facilities/menu/` (`views.py:315-334`), Django admin (`facilities/admin.py:13`). `DiningPage.tsx` now renders `useMenu({ venue })`, chooses `name_sw`/`description_sw` when the language is Swahili (English fallback), formats the API price, and keeps the checked-in `MENU_ITEMS` only as an offline/empty-CMS fallback. `DiningPage.test.tsx` proves an edited CMS item appears in EN and SW and that the fallback renders when the API fails. Seed items are still sample prices flagged `needs_confirmation=True`. | Hotel must review and confirm every seeded price/description in Django admin. |
 
 ### 2.3 Front desk and notifications
 
@@ -120,12 +120,11 @@ All commands were run from the repository root unless stated. Backend commands r
 1. No Postgres concurrency proof (the only real two-guest test is skipped).
 2. No `/sw/` routing, hreflang, per-language canonicals or sitemap.
 3. No prerendering, no blog index, no privacy/terms pages.
-4. Menus are still hard-coded in `DiningPage.tsx` instead of read from the CMS.
-5. No consent records with text version.
-6. No CSP, axe tests, reduced-motion test or Lighthouse evidence.
-7. No Playwright, CI, staging stack, backup/restore, monitoring or content-confirmation page.
-8. Missing table/conference guest language fields.
-9. No UAT script, changelog, PR or tag.
+4. No consent records with text version.
+5. No CSP, axe tests, reduced-motion test or Lighthouse evidence.
+6. No Playwright, CI, staging stack, backup/restore, monitoring or content-confirmation page.
+7. Missing table/conference guest language fields.
+8. No UAT script, changelog, PR or tag.
 
 ## 4. Hotel decisions that remain unresolved (not decided by engineering)
 
