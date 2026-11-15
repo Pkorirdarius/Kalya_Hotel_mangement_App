@@ -32,6 +32,8 @@ All commands were run from the repository root unless stated. Backend commands r
 
 ## 2. Acceptance table
 
+**Status after A1–A3 and B4:** **31 Done**, **7 Partial**, **14 Missing**, **3 Unverified**, **1 Pending** (56 rows). Remaining P0 work is tracked in the Step 2 order below.
+
 ### 2.1 Booking and payments
 
 | Requirement | Status | Evidence | Action |
