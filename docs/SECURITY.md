@@ -26,6 +26,13 @@ must stay true. It is not a substitute for a penetration test before launch.
   The frontend hides actions the API would reject, but the API is the boundary.
 - Login is throttled (`login: 10/min`) and passwords are validated with Django's
   validators (minimum 10 characters, common-password and numeric checks).
+- Public write endpoints are throttled by scope (`booking`, `enquiry`,
+  `newsletter`, `lookup`, `payment`); `apps/common/tests/test_throttles.py` proves
+  the limits return 429. There is no honeypot field yet, so throttles are the
+  only anti-automation control on the public forms.
+- `seed_hotel --demo-users` is refused unless `ALLOW_DEMO_USERS=true`, and
+  production forces that setting back to false. Never create demo accounts on a
+  deployed environment; create named staff accounts instead.
 
 ## 2. Guest data and privacy
 

@@ -12,7 +12,7 @@ from decimal import Decimal
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 from django.utils import timezone
 
@@ -454,6 +454,11 @@ class Command(BaseCommand):
         )
 
         if options["demo_users"]:
+            if not getattr(settings, "ALLOW_DEMO_USERS", False):
+                raise CommandError(
+                    "Demo users are disabled. Set ALLOW_DEMO_USERS=true only in "
+                    "a local or test environment; production always refuses."
+                )
             self._demo_users()
 
         self.stdout.write(

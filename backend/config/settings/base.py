@@ -18,6 +18,7 @@ env = environ.Env(
     CSRF_COOKIE_SECURE=(bool, True),
     CORS_ALLOWED_ORIGINS=(list, []),
     CSRF_TRUSTED_ORIGINS=(list, []),
+    ALLOW_DEMO_USERS=(bool, False),
 )
 
 for candidate in (REPO_ROOT / ".env", BASE_DIR / ".env"):
@@ -28,6 +29,11 @@ for candidate in (REPO_ROOT / ".env", BASE_DIR / ".env"):
 SECRET_KEY = env("SECRET_KEY", default="insecure-dev-key-not-for-production")
 DEBUG = env("DEBUG")
 ALLOWED_HOSTS = env("ALLOWED_HOSTS")
+
+# Off everywhere unless a developer explicitly opts in. `seed_hotel
+# --demo-users` refuses to run while this is false, and production forces it
+# back to false regardless of the environment.
+ALLOW_DEMO_USERS = env("ALLOW_DEMO_USERS")
 
 SITE_URL = env("SITE_URL", default="http://localhost:5173")
 API_BASE_URL = env("API_BASE_URL", default="http://localhost:8000")

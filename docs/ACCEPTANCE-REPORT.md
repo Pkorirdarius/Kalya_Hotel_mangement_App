@@ -21,19 +21,20 @@ All commands were run from the repository root unless stated. Backend commands r
 | # | Command | Result |
 | --- | --- | --- |
 | 1 | `git status --short` | Clean tree (no output). Tip `230e6a9`, branch `feat/finish-frontend`, tracking `origin/feat/finish-frontend`. |
-| 2 | `..\.venv\Scripts\python.exe -m pytest -q` | **87 passed, 1 skipped** in 6.43s (after A1–A3 and B4). Skip: `apps/bookings/tests/test_concurrency.py:29 — Row-lock concurrency needs Postgres`. |
+| 2 | `..\.venv\Scripts\python.exe -m pytest -q` | **103 passed, 1 skipped** in 7.96s (after B6). Skip: `apps/bookings/tests/test_concurrency.py:30 — Row-lock concurrency needs Postgres`. |
 | 3 | `npm run typecheck` | Passed (`tsc --noEmit`, no output). |
 | 4 | `npm run lint` | Passed (`eslint .`, no output). |
 | 5 | `npm test` | **76 passed** across **17 test files** in 27.98s (after A2, A3 and B4). |
 | 6 | `npm run build` | Passed. Vite 6.4.5 built 219 modules and emitted `dist/robots.txt` and `dist/sitemap.xml`. |
 | 7 | `npm run check:brand` | `Brand check passed: no hard-coded brand strings in code or tests.` |
-| 8 | `USE_SQLITE=false ... python -m pytest -q` (Postgres 16 in Docker) | **88 passed** in 16.96s, including `test_concurrency.py` (8 threads, 1 room, exactly 1 booking). Two Postgres-only defects fixed first: notification `entity_type` truncation and `select_for_update` over nullable joins. |
+| 8 | `USE_SQLITE=false ... python -m pytest -q` (Postgres 16 in Docker) | **104 passed** in 22.72s (after B6), including `test_concurrency.py` (8 threads, 1 room, exactly 1 booking). Two Postgres-only defects fixed first: notification `entity_type` truncation and `select_for_update` over nullable joins. |
+| 9 | `python -m pytest -q apps/common/tests/test_throttles.py apps/accounts/tests/test_role_boundaries.py apps/common/tests/test_seed_users.py` | **16 passed** in 3.79s (B6 security tests). |
 
 **Not run (therefore unverified):** Docker/Compose staging stack, Playwright browser suite, Lighthouse, `manage.py check --deploy`, live M-Pesa/card/SMTP calls, backup/restore drill. The Postgres-backed suite now runs locally and in CI.
 
 ## 2. Acceptance table
 
-**Status after A1–A3, B4 and B5:** **33 Done**, **6 Partial**, **13 Missing**, **3 Unverified**, **1 Pending** (56 rows). Remaining P0 work is tracked in the Step 2 order below.
+**Status after A1–A3 and B4–B6:** **34 Done**, **7 Partial**, **13 Missing**, **1 Unverified**, **1 Pending** (56 rows). Remaining P0 work is tracked in the Step 2 order below.
 
 ### 2.1 Booking and payments
 
@@ -102,9 +103,9 @@ All commands were run from the repository root unless stated. Backend commands r
 | Motion: transform/opacity only, 150–350 ms ease-out | **Partial** | Most transitions are transform/opacity, but image zooms use `duration-500/700` (`HomePage.tsx:309,403`, `RoomsPage.tsx:142`, `FacilitiesPage.tsx:125`, `OffersPage.tsx:268`); `transition-all` in `BookingPage.tsx:705`. | Normalize to 150–350 ms ease-out and remove layout-affecting transitions. |
 | Complete `prefers-reduced-motion` fallback | **Partial** | Global override at `main.css:43-56` (0.01 ms, single iteration); no automated test. | Add a reduced-motion test (Step 2.8). |
 | Lighthouse mobile ≥ 85 on Home, Rooms, Booking | **Unverified** | Not run in this environment; no Lighthouse config/report in the repo. | Build, serve `dist`, run Lighthouse mobile, record scores, fix (Step 2.9). |
-| Role permissions | **Done** | `accounts/permissions.py` capability classes; `test_auth.py::test_role_capabilities`; `test_frontdesk_api.py::test_queue_requires_manage_bookings_permission` (marketing → 403); `test_reports.py::test_other_roles_cannot_export_guest_data`. | Add explicit "marketing cannot see bookings/guest data" security tests in Step 2.11. |
-| Throttles and honeypots | **Unverified** | Throttle scopes are set on public booking/lookup endpoints (`bookings/views.py:101,118,184,226`); no dedicated test found for throttle limits or honeypot rejection. | Add tests (Step 2.11). |
-| Demo users cannot exist in production | **Unverified** | No production check found that rejects seeded/demo accounts. | Add a production guard and test. |
+| Role permissions | **Done** | `accounts/permissions.py` capability classes; `test_auth.py::test_role_capabilities`; `test_role_boundaries.py` proves marketing cannot read the booking list, front desk queue/activity/actions, reports or guest exports, ICT admin cannot read bookings/queue/reports, director keeps access, and marketing can still manage content; `test_frontdesk_api.py::test_queue_requires_manage_bookings_permission`; `test_reports.py::test_other_roles_cannot_export_guest_data`. | None. |
+| Throttles and honeypots | **Partial** | Scoped throttles are configured in `config/settings/base.py:249-257` and set on public booking, quote, login, lookup, enquiry, newsletter and payment views. `test_throttles.py` proves 429 on the 11th newsletter request, 11th login attempt and 21st quote request. **No honeypot field is implemented** on the public forms; throttles are the only anti-automation control. | Add a hidden honeypot field to booking, table, conference, gym, contact and newsletter forms plus backend rejection (deferred; not launch-blocking if accepted). |
+| Demo users cannot exist in production | **Done** | `ALLOW_DEMO_USERS` defaults to false (`base.py`), is forced false in `prod.py`, and `seed_hotel --demo-users` raises `CommandError` unless explicitly enabled. `test_seed_users.py` proves a plain seed creates zero users, the flag is refused by default, and five demo users appear only under `override_settings(ALLOW_DEMO_USERS=True)`. | None. |
 | Production guards: DEBUG off, ALLOWED_HOSTS, real email backend | **Done** (code) | `config/settings/prod.py:9-17,35-52`; `test_production_settings.py`. | Exercise `manage.py check --deploy` with the production env in staging. |
 | CI runs backend, frontend and Postgres concurrency tests | **Done** | `.github/workflows/ci.yml` runs a backend job against a `postgres:16-alpine` service (system checks, migration drift, full `pytest`) and a frontend job (`npm ci`, typecheck, lint, unit tests, brand check, production build). The local Postgres run of the same suite is **88 passed** (no skips). Playwright specs are tracked in the next row. | None. |
 | Playwright E2E specs | **Missing** | `@playwright/test` is a devDependency, but there is no `playwright.config.*`, `frontend/e2e/` or spec. | Add the seven specs and run in CI. |
