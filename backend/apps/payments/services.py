@@ -204,11 +204,10 @@ def complete_payment(
     failure_message: str = "",
     raw_response: dict | None = None,
 ) -> Payment:
-    payment = (
-        Payment.objects.select_for_update()
-        .select_related("booking", "gym_pass")
-        .get(pk=payment.pk)
-    )
+    # Only the payment row needs the row lock. `select_related` here adds LEFT
+    # OUTER JOINs to nullable booking/gym_pass rows, which Postgres rejects
+    # with "FOR UPDATE cannot be applied to the nullable side of an outer join".
+    payment = Payment.objects.select_for_update().get(pk=payment.pk)
     terminal = (Payment.Status.SUCCEEDED, Payment.Status.REFUNDED)
     if payment.status in terminal or (
         not success and payment.status == Payment.Status.CANCELLED

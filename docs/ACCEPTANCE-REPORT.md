@@ -27,19 +27,20 @@ All commands were run from the repository root unless stated. Backend commands r
 | 5 | `npm test` | **76 passed** across **17 test files** in 27.98s (after A2, A3 and B4). |
 | 6 | `npm run build` | Passed. Vite 6.4.5 built 219 modules and emitted `dist/robots.txt` and `dist/sitemap.xml`. |
 | 7 | `npm run check:brand` | `Brand check passed: no hard-coded brand strings in code or tests.` |
+| 8 | `USE_SQLITE=false ... python -m pytest -q` (Postgres 16 in Docker) | **88 passed** in 16.96s, including `test_concurrency.py` (8 threads, 1 room, exactly 1 booking). Two Postgres-only defects fixed first: notification `entity_type` truncation and `select_for_update` over nullable joins. |
 
-**Not run (therefore unverified):** Postgres-backed backend suite, Docker/Compose stack, Playwright browser suite, Lighthouse, `manage.py check --deploy`, live M-Pesa/card/SMTP calls, backup/restore drill.
+**Not run (therefore unverified):** Docker/Compose staging stack, Playwright browser suite, Lighthouse, `manage.py check --deploy`, live M-Pesa/card/SMTP calls, backup/restore drill. The Postgres-backed suite now runs locally and in CI.
 
 ## 2. Acceptance table
 
-**Status after A1–A3 and B4:** **31 Done**, **7 Partial**, **14 Missing**, **3 Unverified**, **1 Pending** (56 rows). Remaining P0 work is tracked in the Step 2 order below.
+**Status after A1–A3, B4 and B5:** **33 Done**, **6 Partial**, **13 Missing**, **3 Unverified**, **1 Pending** (56 rows). Remaining P0 work is tracked in the Step 2 order below.
 
 ### 2.1 Booking and payments
 
 | Requirement | Status | Evidence | Action |
 | --- | --- | --- | --- |
 | Room booking creates a time-limited hold | **Done** | `backend/apps/bookings/services/bookings.py:32-129` (`@transaction.atomic`, `RoomType.objects.select_for_update()`, `hold_expires_at`); `apps/bookings/tests/test_booking_api.py::test_create_booking_holds_inventory`; `::test_expired_hold_releases_inventory` | None. |
-| No oversell when the last room is requested | **Partial** | Availability check under row lock (`services/bookings.py:79-97`); tests `test_last_website_room_cannot_be_oversold`, `test_create_booking_is_idempotent_by_client_request_id`. The real two-thread proof is **skipped** on SQLite (`test_concurrency.py:29`). | Run `test_concurrency.py` against Postgres and add it to CI (Step 2.10). |
+| No oversell when the last room is requested | **Done** | Availability runs inside `transaction.atomic()` under a `RoomType` row lock (`services/bookings.py:79-97`); tests `test_last_website_room_cannot_be_oversold` and `test_create_booking_is_idempotent_by_client_request_id`. `test_concurrency.py` now runs against a real Postgres 16 instance: 8 threads compete for 1 room and exactly 1 books while 7 get `SoldOutError` (fixed its date arithmetic). The Postgres run also exposed and fixed two production-only bugs: `NotificationLog.entity_type` overflowed `varchar(40)` because `_meta.model` was used instead of `_meta.model_name`, and `complete_payment` used `select_for_update()` with nullable `select_related()` joins. | None. |
 | M-Pesa payment initiation and callback | **Done** (sandbox) | `backend/apps/payments/services.py`, `views.py`; `test_payment_api.py::test_mpesa_callback_success_is_idempotent`, `::test_mpesa_callback_with_wrong_amount_cannot_complete_payment`, `::test_mpesa_malformed_callback_is_rejected`. | Live Daraja credentials and one low-value live payment remain a launch blocker. |
 | Card gateway callback (stub) | **Done** | `test_payment_api.py::test_card_callback_is_idempotent_and_logged`, `::test_card_callback_requires_secret_when_configured`, `::test_card_callback_failure_marks_payment_failed`. | None for the stub. Live gateway unverified. |
 | Bank transfer extends the hold | **Done** | `test_payment_api.py::test_bank_transfer_extends_hold_beyond_stay_hold`. | Confirm real bank details with the hotel. |
@@ -105,7 +106,7 @@ All commands were run from the repository root unless stated. Backend commands r
 | Throttles and honeypots | **Unverified** | Throttle scopes are set on public booking/lookup endpoints (`bookings/views.py:101,118,184,226`); no dedicated test found for throttle limits or honeypot rejection. | Add tests (Step 2.11). |
 | Demo users cannot exist in production | **Unverified** | No production check found that rejects seeded/demo accounts. | Add a production guard and test. |
 | Production guards: DEBUG off, ALLOWED_HOSTS, real email backend | **Done** (code) | `config/settings/prod.py:9-17,35-52`; `test_production_settings.py`. | Exercise `manage.py check --deploy` with the production env in staging. |
-| CI runs backend, frontend and Postgres concurrency tests | **Missing** | No `.github/` directory, workflow or CI config. | Add GitHub Actions with a Postgres service and Playwright (Step 2.10). |
+| CI runs backend, frontend and Postgres concurrency tests | **Done** | `.github/workflows/ci.yml` runs a backend job against a `postgres:16-alpine` service (system checks, migration drift, full `pytest`) and a frontend job (`npm ci`, typecheck, lint, unit tests, brand check, production build). The local Postgres run of the same suite is **88 passed** (no skips). Playwright specs are tracked in the next row. | None. |
 | Playwright E2E specs | **Missing** | `@playwright/test` is a devDependency, but there is no `playwright.config.*`, `frontend/e2e/` or spec. | Add the seven specs and run in CI. |
 | Production-like staging (app, Postgres, qcluster, proxy) | **Missing** | No `docker-compose*.yml`, Dockerfile or proxy config in the repo. | Build staging stack and smoke script (Step 3). |
 | Backup/restore tested | **Missing** | Documented as a launch checklist item (`docs/LAUNCH-CHECKLIST.md:108`), no script or drill. | Add backup/restore procedure and execute a restore (Step 3). |
@@ -119,13 +120,12 @@ All commands were run from the repository root unless stated. Backend commands r
 
 **Not ready for `v0.1.0-rc1`.** The core booking, payment, front-desk and reporting logic is implemented and covered by the existing suites, but the release definition of done is blocked by:
 
-1. No Postgres concurrency proof (the only real two-guest test is skipped).
-2. No `/sw/` routing, hreflang, per-language canonicals or sitemap.
-3. No prerendering, no blog index.
-4. No CSP, axe tests, reduced-motion test or Lighthouse evidence.
-5. No Playwright, CI, staging stack, backup/restore, monitoring or content-confirmation page.
-6. Missing table/conference guest language fields.
-7. No UAT script, changelog, PR or tag.
+1. No `/sw/` routing, hreflang, per-language canonicals or sitemap.
+2. No prerendering, no blog index.
+3. No CSP, axe tests, reduced-motion test or Lighthouse evidence.
+4. No Playwright, staging stack, backup/restore, monitoring or content-confirmation page.
+5. Missing table/conference guest language fields.
+6. No UAT script, changelog, PR or tag.
 
 ## 4. Hotel decisions that remain unresolved (not decided by engineering)
 

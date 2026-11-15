@@ -24,7 +24,9 @@ def _log(channel, kind, recipient, subject="", ok=True, error="", entity=None):
             subject=subject,
             status="sent" if ok else "failed",
             error=error,
-            entity_type=getattr(entity, "_meta", None).model if entity else "",
+            entity_type=getattr(getattr(entity, "_meta", None), "model_name", "")
+            if entity
+            else "",
             entity_id=str(getattr(entity, "pk", "")) if entity else "",
         )
     except Exception:  # notification logging must never break a booking
