@@ -14,6 +14,15 @@ from rest_framework.views import APIView
 
 from apps.bookings.models import Booking
 from apps.bookings.services.bookings import verify_contact
+from apps.common.anti_spam import (
+    BAD_TIMESTAMP,
+    HONEYPOT,
+    TOO_FAST,
+    blocked_reason,
+    not_found_response,
+    record_blocked_submission,
+    too_fast_response,
+)
 from apps.facilities.models import GymDayPass
 from apps.payments.models import Payment
 from apps.payments.providers.card import BankTransferProvider
@@ -91,6 +100,13 @@ class BookingPaymentInitiateView(APIView):
 
     @extend_schema(responses={201: PaymentInitiateResponseSerializer})
     def post(self, request, reference: str):
+        reason = blocked_reason(request.data)
+        if reason in (HONEYPOT, BAD_TIMESTAMP):
+            record_blocked_submission("payment", reason)
+            return not_found_response("We could not find a booking with those details.")
+        if reason == TOO_FAST:
+            record_blocked_submission("payment", reason)
+            return too_fast_response()
         booking = _booking_or_404(reference)
         serializer = PaymentInitiateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -248,6 +264,13 @@ class GymPaymentInitiateView(APIView):
         responses={201: PaymentInitiateResponseSerializer},
     )
     def post(self, request, reference: str):
+        reason = blocked_reason(request.data)
+        if reason in (HONEYPOT, BAD_TIMESTAMP):
+            record_blocked_submission("payment", reason)
+            return not_found_response("We could not find that day pass.")
+        if reason == TOO_FAST:
+            record_blocked_submission("payment", reason)
+            return too_fast_response()
         gym_pass = GymDayPass.objects.filter(reference__iexact=reference).first()
         if gym_pass is None:
             raise NotFound("We could not find that day pass.")

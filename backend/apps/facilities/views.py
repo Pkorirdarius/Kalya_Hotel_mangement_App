@@ -13,7 +13,14 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.common.anti_spam import is_bot_submission
+from apps.common.anti_spam import (
+    BAD_TIMESTAMP,
+    HONEYPOT,
+    TOO_FAST,
+    blocked_reason,
+    record_blocked_submission,
+    too_fast_response,
+)
 from apps.common.models import HotelSetting
 from apps.common.utils import as_kes_int, hotel_brand_token, hotel_today
 
@@ -79,11 +86,16 @@ class TableBookingCreateView(APIView):
 
     @extend_schema(responses={201: TableBookingCreateResponseSerializer})
     def post(self, request):
-        if is_bot_submission(request.data):
+        reason = blocked_reason(request.data)
+        if reason in (HONEYPOT, BAD_TIMESTAMP):
+            record_blocked_submission("table_booking", reason)
             return Response(
                 {"booking": {"reference": "TB-0000"}},
                 status=status.HTTP_201_CREATED,
             )
+        if reason == TOO_FAST:
+            record_blocked_submission("table_booking", reason)
+            return too_fast_response()
         serializer = TableBookingCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
@@ -181,11 +193,16 @@ class ConferenceEnquiryCreateView(APIView):
 
     @extend_schema(responses={201: ConferenceEnquiryCreateResponseSerializer})
     def post(self, request):
-        if is_bot_submission(request.data):
+        reason = blocked_reason(request.data)
+        if reason in (HONEYPOT, BAD_TIMESTAMP):
+            record_blocked_submission("conference_enquiry", reason)
             return Response(
                 {"enquiry": {"reference": "CE-0000"}},
                 status=status.HTTP_201_CREATED,
             )
+        if reason == TOO_FAST:
+            record_blocked_submission("conference_enquiry", reason)
+            return too_fast_response()
         serializer = ConferenceEnquiryCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
@@ -264,11 +281,16 @@ class GymDayPassCreateView(APIView):
 
     @extend_schema(responses={201: GymDayPassCreateResponseSerializer})
     def post(self, request):
-        if is_bot_submission(request.data):
+        reason = blocked_reason(request.data)
+        if reason in (HONEYPOT, BAD_TIMESTAMP):
+            record_blocked_submission("gym_day_pass", reason)
             return Response(
                 {"day_pass": {"reference": "GY-0000"}},
                 status=status.HTTP_201_CREATED,
             )
+        if reason == TOO_FAST:
+            record_blocked_submission("gym_day_pass", reason)
+            return too_fast_response()
         serializer = GymDayPassCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data

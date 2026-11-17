@@ -31,6 +31,9 @@ export const HoneypotField = forwardRef<HTMLInputElement, HoneypotFieldProps>(
           type="text"
           tabIndex={-1}
           autoComplete="off"
+          data-lpignore="true"
+          data-1p-ignore
+          aria-hidden="true"
           defaultValue=""
         />
       </div>

@@ -7,7 +7,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.common.anti_spam import is_bot_submission
+from apps.common.anti_spam import blocked_reason, record_blocked_submission
 from apps.common.consent import record_consent
 from apps.common.models import ConsentRecord
 from apps.common.utils import unique_reference
@@ -34,7 +34,11 @@ class NewsletterSubscribeView(APIView):
         responses={201: NewsletterSubscribeResponseSerializer},
     )
     def post(self, request):
-        if is_bot_submission(request.data):
+        reason = blocked_reason(request.data)
+        if reason:
+            # Low-risk list: a bot (or a too-fast client) gets the normal
+            # success shape and nothing is stored, mailed or queued.
+            record_blocked_submission("newsletter", reason)
             return Response(
                 {"subscribed": True, "already_subscribed": False},
                 status=status.HTTP_201_CREATED,
@@ -100,7 +104,10 @@ class ContactMessageCreateView(APIView):
         responses={201: ContactMessageEnvelopeSerializer},
     )
     def post(self, request):
-        if is_bot_submission(request.data):
+        reason = blocked_reason(request.data)
+        if reason:
+            # Same policy as the newsletter: generic success, no write.
+            record_blocked_submission("contact", reason)
             return Response(
                 {"message": {"reference": "CM-0000"}},
                 status=status.HTTP_201_CREATED,

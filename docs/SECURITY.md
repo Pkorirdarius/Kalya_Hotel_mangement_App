@@ -139,32 +139,51 @@ that shared address out. Writes stay strict.
 The throttle key is the client IP for anonymous traffic and the user for
 authenticated staff. Behind a reverse proxy, DRF reads `X-Forwarded-For` only
 when `NUM_PROXIES` is greater than zero; set it to the exact number of trusted
-proxies in front of Django. Leaving it at `0` while behind a proxy would otherwise
-throttle the proxy address instead of the guest. The cache backend must be shared
-by every application worker (Redis in production); a per-process local cache would
-let a guest multiply the limit by the number of workers.
+proxies in front of Django (see `docs/DEPLOYMENT.md`, "Choosing `NUM_PROXIES`").
+Leaving it at `0` while behind a proxy would throttle the proxy address instead
+of the guest; setting it too high trusts a client-supplied entry. The cache
+backend must be shared by every application worker (Redis or the database
+cache); a per-process local cache multiplies the effective limit by the number
+of workers.
 
 ### 5.2 Honeypot and minimum time
 
 All public forms post two extra fields (`apps/common/anti_spam.py`):
 
 - `website` - a hidden field placed off-screen. Real guests never see it; any
-  non-blank value marks the request as a bot.
+  non-blank value marks the request as a bot. The input is also marked
+  `data-lpignore`, `data-1p-ignore`, `autocomplete="off"` and
+  `aria-hidden="true"` so password managers and autofill skip it.
 - `form_started_at` - epoch milliseconds captured when the form mounted. A
   submission that arrives faster than `FORM_MIN_SUBMIT_SECONDS` (default 2) is
-  treated as automated.
+  suspicious. The check is configurable and deliberately conservative: autofill
+  and password managers fill fields instantly, and the guest still needs time to
+  press submit.
 
-Covered forms: newsletter, contact message, table booking, conference enquiry,
-gym day pass, room booking and booking lookup. The view checks these **before**
-serializer validation. A suspected bot gets the normal success shape (or a
-generic booking-not-found for lookups) with `201`/`404`, and nothing is written,
-queued or emailed. This keeps the response indistinguishable from a real success.
+The two signals are answered differently:
 
-`form_started_at` is optional for backwards compatibility (older clients and
-server-to-server callers); a missing timestamp does not block a guest, while a
-malformed one is treated as a bot. The honeypot field is also sent empty from the
-frontend, so a missing value is normal. Tests:
+| Forms | Honeypot or malformed timestamp | Submitted too fast |
+| --- | --- | --- |
+| Newsletter, contact | Generic `201`, nothing stored or sent | Generic `201`, nothing stored or sent |
+| Room booking, table booking, conference enquiry, gym day pass, payment initiation, booking lookup | Generic success or generic not-found, nothing written or charged | `400` with `error.code = "too_fast"` and a polite "Please try again" message |
+
+The low-risk list and contact forms can absorb a false positive silently, so a
+suspected bot gets the normal success shape. A room, table, conference, gym or
+payment request is too valuable to discard: a real guest whose browser autofilled
+the form is asked to retry instead of losing the booking. The retryable response
+is returned directly by `anti_spam.too_fast_response()` (not raised) so the
+blocked-submission row survives `ATOMIC_REQUESTS`.
+
+A timestamp in the future is treated as clock skew and allowed; a missing
+timestamp is allowed for backwards compatibility (older clients and
+server-to-server callers); a malformed value is treated as a bot. Tests:
 `backend/apps/common/tests/test_anti_spam.py`.
+
+Every block is logged (form, reason, timestamp; no personal data) and counted in
+the `FormGuardEvent` model. Staff with the system-management permission can read
+`GET /api/v1/staff/common/form-guard/summary/?days=7` or use the read-only Django
+admin list, so a guard that starts rejecting real guests is visible. Prune old
+rows on the normal retention schedule.
 
 Add proxy-level rate limiting and bot filtering as a second layer. Monitor spikes
 in 4xx/5xx and `429` responses; a sudden rise in honeypot hits usually means a

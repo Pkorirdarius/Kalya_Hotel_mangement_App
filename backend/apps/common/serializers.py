@@ -110,3 +110,16 @@ class StaffHotelSettingSerializer(serializers.ModelSerializer):
     class Meta:
         model = HotelSetting
         exclude = ("id", "created_at", "updated_at")
+
+
+class FormGuardCountSerializer(serializers.Serializer):
+    form = serializers.CharField()
+    reason = serializers.CharField()
+    count = serializers.IntegerField()
+
+
+class FormGuardSummarySerializer(serializers.Serializer):
+    window_days = serializers.IntegerField()
+    since = serializers.DateTimeField()
+    total = serializers.IntegerField()
+    counts = FormGuardCountSerializer(many=True)

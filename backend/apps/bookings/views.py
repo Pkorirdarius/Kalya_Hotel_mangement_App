@@ -7,7 +7,14 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.common.anti_spam import is_bot_submission
+from apps.common.anti_spam import (
+    BAD_TIMESTAMP,
+    HONEYPOT,
+    TOO_FAST,
+    blocked_reason,
+    record_blocked_submission,
+    too_fast_response,
+)
 from apps.common.consent import record_consent
 from apps.common.exceptions import Conflict
 from apps.common.models import ConsentRecord
@@ -123,11 +130,16 @@ class BookingCreateView(APIView):
 
     @extend_schema(responses={201: BookingCreateResponseSerializer})
     def post(self, request):
-        if is_bot_submission(request.data):
+        reason = blocked_reason(request.data)
+        if reason in (HONEYPOT, BAD_TIMESTAMP):
+            record_blocked_submission("booking", reason)
             return Response(
                 {"booking": {"reference": "WP-0000"}},
                 status=status.HTTP_201_CREATED,
             )
+        if reason == TOO_FAST:
+            record_blocked_submission("booking", reason)
+            return too_fast_response()
         serializer = BookingCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
@@ -206,7 +218,9 @@ class BookingDetailView(APIView):
         responses=BookingPublicSerializer,
     )
     def get(self, request, reference: str):
-        if is_bot_submission(request.query_params):
+        reason = blocked_reason(request.query_params)
+        if reason in (HONEYPOT, BAD_TIMESTAMP):
+            record_blocked_submission("booking_lookup", reason)
             return Response(
                 {
                     "error": {
@@ -217,6 +231,9 @@ class BookingDetailView(APIView):
                 },
                 status=status.HTTP_404_NOT_FOUND,
             )
+        if reason == TOO_FAST:
+            record_blocked_submission("booking_lookup", reason)
+            return too_fast_response()
         query = BookingLookupQuerySerializer(data=request.query_params)
         query.is_valid(raise_exception=True)
         booking = lookup_booking(

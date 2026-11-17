@@ -25,6 +25,14 @@ class PaymentRequired(APIException):
     default_code = "payment_required"
 
 
+class TooFast(APIException):
+    """Deprecated helper; views return ``anti_spam.too_fast_response()``."""
+
+    status_code = status.HTTP_400_BAD_REQUEST
+    default_detail = "Please try again in a moment."
+    default_code = "too_fast"
+
+
 def _clean_detail(value):
     if isinstance(value, dict):
         return {str(key): _clean_detail(item) for key, item in value.items()}
