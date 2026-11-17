@@ -174,7 +174,59 @@ access control — the staff API still requires a session and the right role.
 - Allow request bodies large enough for the admin uploads you expect.
 - Add basic rate limiting at the proxy in addition to DRF throttles.
 
+### Choosing `NUM_PROXIES`
+
+DRF throttles (and the audit log) identify a guest by client IP. Behind a
+reverse proxy `REMOTE_ADDR` is the proxy address, so Django reads
+`X-Forwarded-For` instead. `NUM_PROXIES` is the number of trusted proxies
+between the internet and Django, counted from the right of that header.
+
+| Setup | `NUM_PROXIES` |
+| --- | --- |
+| Django exposed directly (local dev) | `0` |
+| One nginx/Caddy in front of Django | `1` |
+| CDN (for example Cloudflare), then nginx | `2` |
+| CDN, load balancer, then nginx | `3` |
+
+Use the number of proxies you actually operate, never more. The single-VM
+topology in this guide uses `NUM_PROXIES=1`. Each proxy should *append* the
+address it received (nginx:
+`proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;`; Caddy does
+this by default).
+
+What goes wrong:
+
+- **Too low** (for example `0` behind a proxy): every guest shares the proxy's
+  bucket, so the first requests across all guests spend the limit and everyone
+  gets 429. Audit rows also record the proxy address instead of the guest's.
+- **Too high** (for example `2` with one proxy): Django reads an entry the
+  client can control. An attacker rotates that value to bypass throttles, and
+  the audit log records a fake IP. A single-entry header still works, which
+  makes this mistake easy to miss.
+
+To verify, run the staging smoke check in section 6. If throttles never trip
+while several web workers run, the throttle counters are per worker: configure
+a shared `CACHES` backend (Redis or the database cache) so all workers share
+them.
+
 ## 6. Post-deploy smoke test
+
+Run the automated checks against staging first:
+
+```powershell
+python scripts/staging_smoke.py --api-base https://api.staging.example.com
+```
+
+It verifies the health endpoint and then proves the throttle key is the real
+client IP: the same fake client is throttled, a second fake client is not, and
+a spoofed left-hand `X-Forwarded-For` entry does not move the bucket. It sends
+bad logins from the documentation-only `198.51.100.0/24` range, so it must only
+be pointed at staging; it leaves that fake bucket blocked for about a minute.
+The identity check assumes the recommended single proxy that appends to
+`X-Forwarded-For`; if a CDN rewrites the header, confirm `NUM_PROXIES` from the
+proxy configuration instead.
+
+Then walk the manual list:
 
 - [ ] `GET https://api.example.com/api/v1/health/` returns 200.
 - [ ] `/admin/` loads over HTTPS and an admin can sign in.

@@ -116,13 +116,24 @@ field before promising bilingual facility emails.
 ## 7. Operations
 
 - [ ] HTTPS enforced at the proxy; HSTS enabled; certificate renewal monitored.
+- [ ] `NUM_PROXIES` set to the exact number of proxies in front of Django (see
+      `docs/DEPLOYMENT.md`), and `python scripts/staging_smoke.py
+      --api-base https://api.staging.example.com` passes: same client 429,
+      different client 401, spoofed left-hand `X-Forwarded-For` ignored.
+- [ ] Throttle counters use a shared `CACHES` backend, so limits are not
+      multiplied by the number of web workers.
+- [ ] Blocked forms watched after launch: check
+      `GET /api/v1/staff/common/form-guard/summary/?days=7` (or the read-only
+      admin list) and investigate a sudden `too_fast` rise, which means real
+      guests are being asked to retry.
 - [ ] Postgres backups scheduled and **restore tested**.
 - [ ] `python manage.py qcluster` supervised (systemd/container) and restarting.
 - [ ] Logs and health check (`/api/v1/health/`) monitored; alert on failures.
 - [ ] Error tracking chosen (Sentry or host equivalent) and verified without
       leaking guest data.
 - [ ] Data retention (`HotelSetting.data_retention_months`, default 24) agreed
-      with the hotel and a deletion/anonymisation routine exists.
+      with the hotel and a deletion/anonymisation routine exists; include
+      `FormGuardEvent` and `AuditLog` in the prune.
 
 ## 8. Out of scope for this release
 
