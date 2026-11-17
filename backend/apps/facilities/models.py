@@ -38,7 +38,19 @@ class TableBooking(TimeStampedModel):
         DECLINED = "declined", "Declined"
         CANCELLED = "cancelled", "Cancelled"
 
+    class Venue(models.TextChoices):
+        RESTAURANT = "restaurant", "Restaurant"
+        COFFEE = "coffee", "Coffee shop"
+
     reference = models.CharField(max_length=20, unique=True, db_index=True)
+    # The coffee shop is walk-in only. Stored so the API can reject attempts and
+    # staff reports keep the distinction if that policy changes later.
+    venue = models.CharField(
+        max_length=20,
+        choices=Venue.choices,
+        default=Venue.RESTAURANT,
+        db_index=True,
+    )
     date = models.DateField()
     time = models.TimeField()
     party_size = models.PositiveSmallIntegerField()

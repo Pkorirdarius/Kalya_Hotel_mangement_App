@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import AuditLog, HotelSetting
+from .models import AuditLog, ConsentRecord, FormGuardEvent, HotelSetting
 
 
 @admin.register(HotelSetting)
@@ -97,6 +97,58 @@ class AuditLogAdmin(admin.ModelAdmin):
         "ip_address",
         "created_at",
     )
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
+@admin.register(ConsentRecord)
+class ConsentRecordAdmin(admin.ModelAdmin):
+    list_display = (
+        "created_at",
+        "scope",
+        "subject",
+        "reference",
+        "language",
+        "policy_version",
+    )
+    list_filter = ("scope", "language", "policy_version")
+    search_fields = ("subject", "reference")
+    readonly_fields = (
+        "scope",
+        "subject",
+        "reference",
+        "language",
+        "policy_version",
+        "policy_url",
+        "text_hash",
+        "created_at",
+    )
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
+@admin.register(FormGuardEvent)
+class FormGuardEventAdmin(admin.ModelAdmin):
+    """Read-only counts so staff can spot a guard that blocks real guests."""
+
+    list_display = ("created_at", "form", "reason")
+    list_filter = ("form", "reason")
+    date_hierarchy = "created_at"
+    readonly_fields = ("form", "reason", "created_at")
 
     def has_add_permission(self, request):
         return False

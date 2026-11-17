@@ -149,6 +149,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/content/policies/{slug}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["v1_content_policies_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/content/posts/": {
         parameters: {
             query?: never;
@@ -1472,7 +1488,16 @@ export interface components {
             needs_confirmation?: boolean;
             active?: boolean;
         };
+        /**
+         * @description Base for public forms with optional anti-spam fields.
+         *
+         *     They are accepted so the OpenAPI schema and generated frontend types stay
+         *     truthful. The view checks them before validation and returns a generic
+         *     success without writing anything.
+         */
         BookingCreateRequest: {
+            website?: string;
+            form_started_at?: number;
             quote: components["schemas"]["QuoteRequestRequest"];
             first_name: string;
             last_name: string;
@@ -1600,7 +1625,16 @@ export interface components {
             /** Format: date-time */
             readonly created_at: string;
         };
+        /**
+         * @description Base for public forms with optional anti-spam fields.
+         *
+         *     They are accepted so the OpenAPI schema and generated frontend types stay
+         *     truthful. The view checks them before validation and returns a generic
+         *     success without writing anything.
+         */
         ConferenceEnquiryCreateRequest: {
+            website?: string;
+            form_started_at?: number;
             /** Format: date */
             date: string;
             session: components["schemas"]["SessionEnum"];
@@ -1656,7 +1690,16 @@ export interface components {
             /** Format: date-time */
             readonly created_at: string;
         };
+        /**
+         * @description Base for public forms with optional anti-spam fields.
+         *
+         *     They are accepted so the OpenAPI schema and generated frontend types stay
+         *     truthful. The view checks them before validation and returns a generic
+         *     success without writing anything.
+         */
         ContactMessageCreateRequest: {
+            website?: string;
+            form_started_at?: number;
             name: string;
             /** Format: email */
             email: string;
@@ -1759,7 +1802,16 @@ export interface components {
             /** Format: date-time */
             readonly created_at: string;
         };
+        /**
+         * @description Base for public forms with optional anti-spam fields.
+         *
+         *     They are accepted so the OpenAPI schema and generated frontend types stay
+         *     truthful. The view checks them before validation and returns a generic
+         *     success without writing anything.
+         */
         GymDayPassCreateRequest: {
+            website?: string;
+            form_started_at?: number;
             /** Format: date */
             date: string;
             full_name: string;
@@ -1946,7 +1998,16 @@ export interface components {
          * @enum {string}
          */
         MethodEnum: "mpesa" | "card" | "bank_transfer";
+        /**
+         * @description Base for public forms with optional anti-spam fields.
+         *
+         *     They are accepted so the OpenAPI schema and generated frontend types stay
+         *     truthful. The view checks them before validation and returns a generic
+         *     success without writing anything.
+         */
         NewsletterSubscribeRequest: {
+            website?: string;
+            form_started_at?: number;
             /** Format: email */
             email: string;
             /** @default true */
@@ -2644,6 +2705,8 @@ export interface components {
         };
         PatchedTableBookingStaffRequest: {
             reference?: string;
+            venue?: components["schemas"]["VenueEnum"];
+            venue_display?: string;
             /** Format: date */
             date?: string;
             /** Format: time */
@@ -2771,6 +2834,18 @@ export interface components {
             table_bookings: number;
             conference_enquiries: number;
             gym_day_passes: number;
+        };
+        PolicyPage: {
+            slug: string;
+            title_en: string;
+            title_sw?: string;
+            body_en?: string;
+            body_sw?: string;
+            version?: string;
+            /** Format: date-time */
+            readonly updated_at: string;
+            /** @description Legal wording still needs hotel/legal review. */
+            needs_confirmation?: boolean;
         };
         /**
          * @description * `mpesa` - M-Pesa
@@ -3367,6 +3442,8 @@ export interface components {
         StatusF4cEnum: "held" | "pending_payment" | "pending_confirmation" | "confirmed" | "declined" | "cancelled" | "expired";
         TableBooking: {
             reference: string;
+            venue?: components["schemas"]["VenueEnum"];
+            venue_display: string;
             /** Format: date */
             date: string;
             /** Format: time */
@@ -3385,7 +3462,18 @@ export interface components {
             /** Format: date-time */
             readonly created_at: string;
         };
+        /**
+         * @description Base for public forms with optional anti-spam fields.
+         *
+         *     They are accepted so the OpenAPI schema and generated frontend types stay
+         *     truthful. The view checks them before validation and returns a generic
+         *     success without writing anything.
+         */
         TableBookingCreateRequest: {
+            website?: string;
+            form_started_at?: number;
+            /** @default restaurant */
+            venue: components["schemas"]["VenueEnum"];
             /** Format: date */
             date: string;
             time: string;
@@ -3402,6 +3490,8 @@ export interface components {
         };
         TableBookingStaff: {
             reference: string;
+            venue?: components["schemas"]["VenueEnum"];
+            venue_display: string;
             /** Format: date */
             date: string;
             /** Format: time */
@@ -3678,6 +3768,27 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Offer"][];
+                };
+            };
+        };
+    };
+    v1_content_policies_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PolicyPage"];
                 };
             };
         };

@@ -1,0 +1,15 @@
+Dear {{ table.guest_name }},
+
+{% if confirmed %}Your table is confirmed.{% else %}We are sorry, we could not confirm this table booking.{% endif %}
+
+Reference: {{ table.reference }}
+Date: {{ table.date|date:"D, j M Y" }}
+Time: {{ table.time|time:"H:i" }}
+Guests: {{ table.party_size }}
+{% if table.occasion %}Occasion: {{ table.occasion }}
+{% endif %}{% if table.notes %}Notes: {{ table.notes }}
+{% endif %}
+{% if confirmed %}Please arrive about 10 minutes early. To change or cancel, call {{ hotel.phone }}.{% else %}Call {{ hotel.phone }} and we will help you find another time.{% endif %}
+
+{{ hotel.name }}
+{{ hotel.address }}

@@ -8,6 +8,10 @@ from .base import *  # noqa: F401,F403
 
 DEBUG = False
 
+# Never allow seeded demo accounts in production, even if the environment says
+# otherwise. Real staff accounts are created by a named administrator.
+ALLOW_DEMO_USERS = False
+
 SECRET_KEY = env("SECRET_KEY")  # noqa: F405
 if SECRET_KEY == "insecure-dev-key-not-for-production":
     raise ImproperlyConfigured("Set a real SECRET_KEY in production.")

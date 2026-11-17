@@ -13,6 +13,14 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from apps.common.anti_spam import (
+    BAD_TIMESTAMP,
+    HONEYPOT,
+    TOO_FAST,
+    blocked_reason,
+    record_blocked_submission,
+    too_fast_response,
+)
 from apps.common.models import HotelSetting
 from apps.common.utils import as_kes_int, hotel_brand_token, hotel_today
 
@@ -51,6 +59,7 @@ def _raise_facility_error(exc: FacilityError):
 class RestaurantSlotsView(APIView):
     authentication_classes = []
     permission_classes = [AllowAny]
+    throttle_scope = "browse"
 
     @extend_schema(
         parameters=[OpenApiParameter("date", str, required=True)],
@@ -77,6 +86,16 @@ class TableBookingCreateView(APIView):
 
     @extend_schema(responses={201: TableBookingCreateResponseSerializer})
     def post(self, request):
+        reason = blocked_reason(request.data)
+        if reason in (HONEYPOT, BAD_TIMESTAMP):
+            record_blocked_submission("table_booking", reason)
+            return Response(
+                {"booking": {"reference": "TB-0000"}},
+                status=status.HTTP_201_CREATED,
+            )
+        if reason == TOO_FAST:
+            record_blocked_submission("table_booking", reason)
+            return too_fast_response()
         serializer = TableBookingCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
@@ -91,6 +110,7 @@ class TableBookingCreateView(APIView):
                 email=data.get("email", ""),
                 occasion=data.get("occasion", ""),
                 notes=data.get("notes", ""),
+                venue=data.get("venue", TableBooking.Venue.RESTAURANT),
             )
         except FacilityError as exc:
             _raise_facility_error(exc)
@@ -119,6 +139,7 @@ class TableBookingDetailView(APIView):
 class ConferenceAvailabilityView(APIView):
     authentication_classes = []
     permission_classes = [AllowAny]
+    throttle_scope = "browse"
 
     @extend_schema(
         parameters=[
@@ -172,6 +193,16 @@ class ConferenceEnquiryCreateView(APIView):
 
     @extend_schema(responses={201: ConferenceEnquiryCreateResponseSerializer})
     def post(self, request):
+        reason = blocked_reason(request.data)
+        if reason in (HONEYPOT, BAD_TIMESTAMP):
+            record_blocked_submission("conference_enquiry", reason)
+            return Response(
+                {"enquiry": {"reference": "CE-0000"}},
+                status=status.HTTP_201_CREATED,
+            )
+        if reason == TOO_FAST:
+            record_blocked_submission("conference_enquiry", reason)
+            return too_fast_response()
         serializer = ConferenceEnquiryCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
@@ -216,6 +247,7 @@ class ConferenceEnquiryDetailView(APIView):
 class GymAvailabilityView(APIView):
     authentication_classes = []
     permission_classes = [AllowAny]
+    throttle_scope = "browse"
 
     @extend_schema(
         parameters=[OpenApiParameter("date", str, required=False)],
@@ -249,6 +281,16 @@ class GymDayPassCreateView(APIView):
 
     @extend_schema(responses={201: GymDayPassCreateResponseSerializer})
     def post(self, request):
+        reason = blocked_reason(request.data)
+        if reason in (HONEYPOT, BAD_TIMESTAMP):
+            record_blocked_submission("gym_day_pass", reason)
+            return Response(
+                {"day_pass": {"reference": "GY-0000"}},
+                status=status.HTTP_201_CREATED,
+            )
+        if reason == TOO_FAST:
+            record_blocked_submission("gym_day_pass", reason)
+            return too_fast_response()
         serializer = GymDayPassCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
@@ -315,6 +357,7 @@ class GymDayPassQrView(APIView):
 class MenuView(APIView):
     authentication_classes = []
     permission_classes = [AllowAny]
+    throttle_scope = "browse"
 
     @extend_schema(
         parameters=[

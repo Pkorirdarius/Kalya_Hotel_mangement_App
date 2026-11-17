@@ -184,10 +184,10 @@ export function Footer() {
               <span>{t('footer.rights')}</span>
             </p>
             <div className="flex flex-wrap items-center gap-x-5 gap-y-1">
-              <Link className="transition hover:text-gold" to="/contact">
+              <Link className="transition hover:text-gold" to="/privacy">
                 {t('footer.privacy')}
               </Link>
-              <Link className="transition hover:text-gold" to="/contact">
+              <Link className="transition hover:text-gold" to="/terms">
                 {t('footer.terms')}
               </Link>
               <Link className="transition hover:text-gold" to="/dashboard">

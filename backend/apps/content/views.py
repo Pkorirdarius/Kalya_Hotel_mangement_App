@@ -7,10 +7,11 @@ from rest_framework.views import APIView
 
 from apps.common.models import HotelSetting
 
-from .models import BlogPost, Offer, Review
+from .models import BlogPost, Offer, PolicyPage, Review
 from .serializers import (
     BlogPostSerializer,
     OfferSerializer,
+    PolicyPageSerializer,
     ReviewListSerializer,
     ReviewSerializer,
 )
@@ -40,6 +41,17 @@ class BlogPostDetailView(generics.RetrieveAPIView):
         return BlogPost.objects.filter(
             active=True, published_at__isnull=False, published_at__lte=timezone.now()
         )
+
+
+@extend_schema(tags=["content"])
+class PolicyPageDetailView(generics.RetrieveAPIView):
+    authentication_classes = []
+    permission_classes = [AllowAny]
+    serializer_class = PolicyPageSerializer
+    lookup_field = "slug"
+
+    def get_queryset(self):
+        return PolicyPage.objects.filter(active=True)
 
 
 @extend_schema(tags=["content"])

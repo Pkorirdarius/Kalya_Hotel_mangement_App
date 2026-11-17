@@ -160,3 +160,66 @@ class AuditLog(models.Model):
 
     def __str__(self) -> str:
         return f"{self.action} at {self.created_at:%Y-%m-%d %H:%M:%S}"
+
+
+class ConsentRecord(models.Model):
+    """Immutable evidence of a guest consenting to a policy or marketing.
+
+    Consent text is versioned through ``HotelSetting``/``PolicyPage``; the
+    optional ``text_hash`` lets staff prove exactly which wording was shown
+    without duplicating long policy bodies into every row.
+    """
+
+    class Scope(models.TextChoices):
+        BOOKING_PRIVACY = "booking_privacy", "Booking privacy notice"
+        NEWSLETTER = "newsletter", "Newsletter"
+        CONTACT = "contact", "Contact message"
+        ENQUIRY = "enquiry", "Facility enquiry"
+
+    scope = models.CharField(
+        max_length=32, choices=Scope.choices, db_index=True
+    )
+    subject = models.CharField(max_length=255, blank=True)
+    reference = models.CharField(max_length=40, blank=True, db_index=True)
+    language = models.CharField(max_length=2, default="en")
+    policy_version = models.CharField(max_length=40, blank=True)
+    policy_url = models.CharField(max_length=255, blank=True)
+    text_hash = models.CharField(max_length=64, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["scope", "-created_at"]),
+            models.Index(fields=["subject", "scope"]),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.get_scope_display()} · {self.subject or self.reference}"
+
+
+class FormGuardEvent(models.Model):
+    """One blocked public-form submission.
+
+    Deliberately contains no personal data: only the form name, the reason the
+    guard fired and when. Staff use the counts to spot false positives; the
+    rows are safe to prune on a schedule.
+    """
+
+    class Reason(models.TextChoices):
+        HONEYPOT = "honeypot", "Honeypot filled"
+        TOO_FAST = "too_fast", "Submitted too fast"
+        BAD_TIMESTAMP = "bad_timestamp", "Malformed timestamp"
+
+    form = models.CharField(max_length=32, db_index=True)
+    reason = models.CharField(max_length=20, choices=Reason.choices, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["form", "reason", "-created_at"]),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.form}: {self.get_reason_display()} at {self.created_at:%Y-%m-%d %H:%M}"

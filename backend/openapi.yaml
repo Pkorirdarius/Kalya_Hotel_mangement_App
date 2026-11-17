@@ -226,6 +226,26 @@ paths:
                 items:
                   $ref: '#/components/schemas/Offer'
           description: ''
+  /api/v1/content/policies/{slug}/:
+    get:
+      operationId: v1_content_policies_retrieve
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - content
+      security:
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PolicyPage'
+          description: ''
   /api/v1/content/posts/:
     get:
       operationId: v1_content_posts_list
@@ -3984,7 +4004,20 @@ components:
       - title_en
     BookingCreateRequest:
       type: object
+      description: |-
+        Base for public forms with optional anti-spam fields.
+
+        They are accepted so the OpenAPI schema and generated frontend types stay
+        truthful. The view checks them before validation and returns a generic
+        success without writing anything.
       properties:
+        website:
+          type: string
+          writeOnly: true
+          maxLength: 200
+        form_started_at:
+          type: integer
+          minimum: 0
         quote:
           $ref: '#/components/schemas/QuoteRequestRequest'
         first_name:
@@ -4341,7 +4374,20 @@ components:
       - status_display
     ConferenceEnquiryCreateRequest:
       type: object
+      description: |-
+        Base for public forms with optional anti-spam fields.
+
+        They are accepted so the OpenAPI schema and generated frontend types stay
+        truthful. The view checks them before validation and returns a generic
+        success without writing anything.
       properties:
+        website:
+          type: string
+          writeOnly: true
+          maxLength: 200
+        form_started_at:
+          type: integer
+          minimum: 0
         date:
           type: string
           format: date
@@ -4502,7 +4548,20 @@ components:
       - reference
     ContactMessageCreateRequest:
       type: object
+      description: |-
+        Base for public forms with optional anti-spam fields.
+
+        They are accepted so the OpenAPI schema and generated frontend types stay
+        truthful. The view checks them before validation and returns a generic
+        success without writing anything.
       properties:
+        website:
+          type: string
+          writeOnly: true
+          maxLength: 200
+        form_started_at:
+          type: integer
+          minimum: 0
         name:
           type: string
           minLength: 1
@@ -4762,7 +4821,20 @@ components:
       - status_display
     GymDayPassCreateRequest:
       type: object
+      description: |-
+        Base for public forms with optional anti-spam fields.
+
+        They are accepted so the OpenAPI schema and generated frontend types stay
+        truthful. The view checks them before validation and returns a generic
+        success without writing anything.
       properties:
+        website:
+          type: string
+          writeOnly: true
+          maxLength: 200
+        form_started_at:
+          type: integer
+          minimum: 0
         date:
           type: string
           format: date
@@ -5280,7 +5352,20 @@ components:
         * `bank_transfer` - Bank transfer
     NewsletterSubscribeRequest:
       type: object
+      description: |-
+        Base for public forms with optional anti-spam fields.
+
+        They are accepted so the OpenAPI schema and generated frontend types stay
+        truthful. The view checks them before validation and returns a generic
+        success without writing anything.
       properties:
+        website:
+          type: string
+          writeOnly: true
+          maxLength: 200
+        form_started_at:
+          type: integer
+          minimum: 0
         email:
           type: string
           format: email
@@ -6770,6 +6855,11 @@ components:
           type: string
           minLength: 1
           maxLength: 20
+        venue:
+          $ref: '#/components/schemas/VenueEnum'
+        venue_display:
+          type: string
+          minLength: 1
         date:
           type: string
           format: date
@@ -7100,6 +7190,37 @@ components:
       - gym_day_passes
       - room_bookings
       - table_bookings
+    PolicyPage:
+      type: object
+      properties:
+        slug:
+          type: string
+          maxLength: 40
+          pattern: ^[-a-zA-Z0-9_]+$
+        title_en:
+          type: string
+          maxLength: 200
+        title_sw:
+          type: string
+          maxLength: 200
+        body_en:
+          type: string
+        body_sw:
+          type: string
+        version:
+          type: string
+          maxLength: 40
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        needs_confirmation:
+          type: boolean
+          description: Legal wording still needs hotel/legal review.
+      required:
+      - slug
+      - title_en
+      - updated_at
     ProviderEnum:
       enum:
       - mpesa
@@ -8582,6 +8703,10 @@ components:
         reference:
           type: string
           maxLength: 20
+        venue:
+          $ref: '#/components/schemas/VenueEnum'
+        venue_display:
+          type: string
         date:
           type: string
           format: date
@@ -8635,9 +8760,27 @@ components:
       - reference
       - status_display
       - time
+      - venue_display
     TableBookingCreateRequest:
       type: object
+      description: |-
+        Base for public forms with optional anti-spam fields.
+
+        They are accepted so the OpenAPI schema and generated frontend types stay
+        truthful. The view checks them before validation and returns a generic
+        success without writing anything.
       properties:
+        website:
+          type: string
+          writeOnly: true
+          maxLength: 200
+        form_started_at:
+          type: integer
+          minimum: 0
+        venue:
+          allOf:
+          - $ref: '#/components/schemas/VenueEnum'
+          default: restaurant
         date:
           type: string
           format: date
@@ -8693,6 +8836,10 @@ components:
         reference:
           type: string
           maxLength: 20
+        venue:
+          $ref: '#/components/schemas/VenueEnum'
+        venue_display:
+          type: string
         date:
           type: string
           format: date
@@ -8750,6 +8897,7 @@ components:
       - reference
       - status_display
       - time
+      - venue_display
     User:
       type: object
       properties:

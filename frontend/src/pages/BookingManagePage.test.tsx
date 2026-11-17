@@ -170,6 +170,9 @@ describe('BookingManagePage', () => {
     expect(lookupCall).toBeTruthy();
     expect(String(lookupCall?.[0])).toContain('email=amina%40example.com');
     expect(String(lookupCall?.[0])).not.toContain('phone=');
+    const lookupUrl = new URL(String(lookupCall?.[0]), 'http://localhost');
+    expect(lookupUrl.searchParams.get('website') ?? '').toBe('');
+    expect(Number(lookupUrl.searchParams.get('form_started_at'))).toBeGreaterThan(0);
   });
 
   it('cancels after a two-step confirmation', async () => {

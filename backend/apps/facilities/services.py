@@ -52,6 +52,7 @@ def restaurant_remaining(date_value: date, slot: time, exclude_id=None) -> int:
     query = TableBooking.objects.filter(
         date=date_value,
         time=slot,
+        venue=TableBooking.Venue.RESTAURANT,
         status__in=(TableBooking.Status.PENDING, TableBooking.Status.CONFIRMED),
     )
     if exclude_id:
@@ -81,8 +82,14 @@ def create_table_booking(
     email: str = "",
     occasion: str = "",
     notes: str = "",
+    venue: str = TableBooking.Venue.RESTAURANT,
     created_by=None,
 ) -> TableBooking:
+    if venue == TableBooking.Venue.COFFEE:
+        raise FacilityError(
+            "The coffee shop is walk-in only and cannot be booked.",
+            {"venue": "The coffee shop is walk-in only and cannot be booked."},
+        )
     if date_value < hotel_now().date():
         raise FacilityError("Choose a future date.", {"date": "Choose a future date."})
     slot_time = _slot_time(slot)
@@ -103,6 +110,7 @@ def create_table_booking(
         )
     return TableBooking.objects.create(
         reference=unique_reference(TableBooking, "TB"),
+        venue=venue,
         date=date_value,
         time=slot_time,
         party_size=party_size,

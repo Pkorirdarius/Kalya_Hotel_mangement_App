@@ -3,6 +3,9 @@
 export interface Contact {
   email?: string;
   phone?: string;
+  /** Anti-spam fields sent with booking lookups; ignored by the cancel call. */
+  website?: string;
+  form_started_at?: number;
 }
 
 export interface AvailabilityParams {
@@ -21,6 +24,7 @@ export const queryKeys = {
   post: (slug: string) => ['posts', slug] as const,
   reviews: ['reviews'] as const,
   menu: (params?: { venue?: string; category?: string }) => ['menu', params ?? {}] as const,
+  policy: (slug: string) => ['policy', slug] as const,
   availability: (params: AvailabilityParams) => ['availability', params] as const,
   booking: (reference: string, contact: Contact) => ['booking', reference, contact] as const,
   restaurantSlots: (date: string) => ['restaurant-slots', date] as const,
@@ -32,4 +36,9 @@ export const queryKeys = {
   staffMe: ['staff', 'me'] as const,
   frontDeskQueue: ['frontdesk', 'queue'] as const,
   frontDeskActivity: (limit: number) => ['frontdesk', 'activity', limit] as const,
+  staffOverview: (date: string) => ['staff', 'reports', 'overview', date] as const,
+  occupancyReport: (start: string, end: string) =>
+    ['staff', 'reports', 'occupancy', start, end] as const,
+  paymentReport: (start: string, end: string) =>
+    ['staff', 'reports', 'payments', start, end] as const,
 } as const;

@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import BlogPost, Offer, Review
+from .models import BlogPost, Offer, PolicyPage, Review
 
 
 @admin.register(BlogPost)
@@ -32,3 +32,10 @@ class ReviewAdmin(admin.ModelAdmin):
     list_display = ("author", "rating", "source", "reviewed_at", "active", "needs_confirmation")
     list_filter = ("active", "needs_confirmation", "source", "rating")
     search_fields = ("author", "quote_en")
+
+
+@admin.register(PolicyPage)
+class PolicyPageAdmin(admin.ModelAdmin):
+    list_display = ("title_en", "slug", "version", "active", "needs_confirmation", "updated_at")
+    list_filter = ("active", "needs_confirmation")
+    search_fields = ("title_en", "title_sw", "slug", "body_en", "body_sw")

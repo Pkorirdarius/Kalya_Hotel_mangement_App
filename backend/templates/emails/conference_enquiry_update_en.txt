@@ -1,0 +1,16 @@
+Dear {{ enquiry.guest_name }},
+
+{% if confirmed %}Your conference request is confirmed.{% else %}We are sorry, we could not confirm this conference request.{% endif %}
+
+Reference: {{ enquiry.reference }}
+Date: {{ enquiry.date|date:"D, j M Y" }}
+Session: {{ enquiry.get_session_display }}
+Guests: {{ enquiry.people }}
+Layout: {{ enquiry.get_layout_display }}
+{% if enquiry.company %}Company: {{ enquiry.company }}
+{% endif %}{% if enquiry.notes %}Notes: {{ enquiry.notes }}
+{% endif %}
+{% if confirmed %}Our events team will contact you before the meeting to confirm catering and arrival times.{% else %}Call {{ hotel.phone }} or reply to this email and we will suggest another date or session.{% endif %}
+
+{{ hotel.name }}
+{{ hotel.address }}

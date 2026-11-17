@@ -5,7 +5,7 @@ from datetime import date
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
-from apps.common.serializers import KesField
+from apps.common.serializers import KesField, PublicFormSerializer
 from apps.common.utils import normalise_kenyan_phone
 from apps.rates.models import MealPlan
 from apps.rooms.models import RoomType
@@ -59,7 +59,7 @@ class QuoteResponseSerializer(serializers.Serializer):
     available_rooms = serializers.IntegerField()
 
 
-class BookingCreateSerializer(serializers.Serializer):
+class BookingCreateSerializer(PublicFormSerializer):
     quote = QuoteRequestSerializer()
     first_name = serializers.CharField(max_length=80)
     last_name = serializers.CharField(max_length=80)
@@ -186,7 +186,7 @@ class BookingCreateResponseSerializer(serializers.Serializer):
     booking = BookingPublicSerializer()
 
 
-class BookingLookupQuerySerializer(serializers.Serializer):
+class BookingLookupQuerySerializer(PublicFormSerializer):
     email = serializers.EmailField(required=False)
     phone = serializers.CharField(required=False, max_length=32)
 

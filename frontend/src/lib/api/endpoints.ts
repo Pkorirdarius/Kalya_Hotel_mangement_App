@@ -5,7 +5,7 @@
  * Pages and hooks call these functions; they never build URLs themselves.
  */
 
-import { apiRequest } from './client';
+import { API_BASE_URL, apiRequest } from './client';
 import type {
   AvailabilityRow,
   BlogPost,
@@ -27,11 +27,15 @@ import type {
   MenuItem,
   NewsletterSubscribe,
   NewsletterSubscribeResponse,
+  OccupancyResponse,
   Offer,
+  Overview,
   Payment,
   PaymentInitiate,
   PaymentInitiateResponse,
+  PolicyPage,
   PaymentMethodsResponse,
+  PaymentReportResponse,
   QueueResponse,
   Quote,
   RestaurantSlot,
@@ -62,6 +66,9 @@ export const getPosts = () => apiRequest<BlogPost[]>('/content/posts/');
 export const getPost = (slug: string) => apiRequest<BlogPost>(`/content/posts/${slug}/`);
 
 export const getReviews = () => apiRequest<ReviewList>('/content/reviews/');
+
+export const getPolicy = (slug: string) =>
+  apiRequest<PolicyPage>(`/content/policies/${slug}/`);
 
 export const getMenu = (params?: { venue?: string; category?: string }) =>
   apiRequest<MenuItem[]>('/facilities/menu/', { params });
@@ -225,3 +232,31 @@ export const escalateOverdue = () =>
   apiRequest<import('./types').EscalateResponse>('/staff/frontdesk/escalate/', {
     method: 'POST',
   });
+
+// ---------------------------------------------------------------------------
+// Staff reports + exports
+// ---------------------------------------------------------------------------
+
+export const getStaffOverview = (params: { date?: string } = {}) =>
+  apiRequest<Overview>('/staff/reports/overview/', { params });
+
+export const getOccupancyReport = (params: { start?: string; end?: string }) =>
+  apiRequest<OccupancyResponse>('/staff/reports/occupancy/', { params });
+
+export const getPaymentReport = (params: {
+  start?: string;
+  end?: string;
+  provider?: string;
+  status?: string;
+}) =>
+  apiRequest<PaymentReportResponse>('/staff/reports/payments/', {
+    params: { ...params, format: 'json' },
+  });
+
+/** Direct link for the browser to download the CSV with the session cookie. */
+export function paymentReportCsvUrl(params: { start?: string; end?: string }) {
+  const search = new URLSearchParams({ format: 'csv' });
+  if (params.start) search.set('start', params.start);
+  if (params.end) search.set('end', params.end);
+  return `${API_BASE_URL}/staff/reports/payments/?${search.toString()}`;
+}

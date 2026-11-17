@@ -7,6 +7,9 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from apps.common.anti_spam import blocked_reason, record_blocked_submission
+from apps.common.consent import record_consent
+from apps.common.models import ConsentRecord
 from apps.common.utils import unique_reference
 
 from .models import ContactMessage, NewsletterSubscriber
@@ -31,6 +34,15 @@ class NewsletterSubscribeView(APIView):
         responses={201: NewsletterSubscribeResponseSerializer},
     )
     def post(self, request):
+        reason = blocked_reason(request.data)
+        if reason:
+            # Low-risk list: a bot (or a too-fast client) gets the normal
+            # success shape and nothing is stored, mailed or queued.
+            record_blocked_submission("newsletter", reason)
+            return Response(
+                {"subscribed": True, "already_subscribed": False},
+                status=status.HTTP_201_CREATED,
+            )
         serializer = NewsletterSubscribeSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
@@ -50,6 +62,11 @@ class NewsletterSubscribeView(APIView):
             subscriber.save(
                 update_fields=("consent", "language", "unsubscribed_at", "updated_at")
             )
+        record_consent(
+            scope=ConsentRecord.Scope.NEWSLETTER,
+            subject=email,
+            language=data["language"],
+        )
         return Response(
             {"subscribed": True, "already_subscribed": not created},
             status=status.HTTP_201_CREATED,
@@ -87,12 +104,25 @@ class ContactMessageCreateView(APIView):
         responses={201: ContactMessageEnvelopeSerializer},
     )
     def post(self, request):
+        reason = blocked_reason(request.data)
+        if reason:
+            # Same policy as the newsletter: generic success, no write.
+            record_blocked_submission("contact", reason)
+            return Response(
+                {"message": {"reference": "CM-0000"}},
+                status=status.HTTP_201_CREATED,
+            )
         serializer = ContactMessageCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
         message = ContactMessage.objects.create(
             reference=unique_reference(ContactMessage, "CM"),
-            **data,
+            name=data["name"],
+            email=data["email"],
+            phone=data.get("phone", ""),
+            topic=data.get("topic", ""),
+            message=data["message"],
+            language=data["language"],
         )
         try:
             from django.conf import settings

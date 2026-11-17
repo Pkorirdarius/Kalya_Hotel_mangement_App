@@ -1,13 +1,16 @@
 import { useState, type FormEvent } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { HoneypotField } from '../components/HoneypotField';
 import { usePageMeta } from '../components/Page';
 import { useToast } from '../components/ToastProvider';
 import { useI18n } from '../i18n-context';
 import { whatsappHref } from '../config/hotel';
 import type { TableBooking } from '../lib/api/types';
+import { useFormGuard } from '../lib/forms/useFormGuard';
 import { errorMessage, fieldErrors } from '../lib/query/errors';
 import {
   useCreateTableBookingMutation,
+  useMenu,
   useRestaurantSlots,
 } from '../lib/query/hooks';
 import {
@@ -36,6 +39,13 @@ const MENU_ITEMS: Record<Venue, Array<{ name: string; desc: string; price: strin
     { name: 'menu.samosa.name', desc: 'menu.samosa.desc', price: 'KES 250' },
   ],
 };
+
+interface MenuRow {
+  key: string;
+  name: string;
+  description: string;
+  price: string;
+}
 
 const VENUES: Record<
   Venue,
@@ -100,7 +110,7 @@ function displayTime(value: string | undefined): string {
 }
 
 export function DiningPage() {
-  const { t, formatDate } = useI18n();
+  const { t, formatDate, formatMoney, language } = useI18n();
   const { showToast } = useToast();
   const [searchParams, setSearchParams] = useSearchParams();
   const today = todayISO();
@@ -122,8 +132,30 @@ export function DiningPage() {
 
   const active = VENUES[venue];
   const partySize = Number(party) || 1;
-  const slotsQuery = useRestaurantSlots(date);
+  const slotsQuery = useRestaurantSlots(venue === 'restaurant' ? date : undefined);
+  const menuQuery = useMenu({ venue });
   const createTableBooking = useCreateTableBookingMutation();
+  const { honeypotRef, guardPayload } = useFormGuard();
+
+  // Marketing edits menus in Django admin. The CMS is the source of truth, with
+  // the checked-in copy kept only as an offline/empty-CMS fallback.
+  const menuRows: MenuRow[] =
+    menuQuery.data && menuQuery.data.length > 0
+      ? menuQuery.data.map((item) => ({
+          key: `cms-${item.id}`,
+          name: language === 'sw' && item.name_sw ? item.name_sw : item.name_en,
+          description:
+            (language === 'sw' && item.description_sw
+              ? item.description_sw
+              : item.description_en) ?? '',
+          price: `KES ${formatMoney(Number(item.price))}`,
+        }))
+      : MENU_ITEMS[venue].map((item) => ({
+          key: item.name,
+          name: t(item.name),
+          description: t(item.desc),
+          price: item.price,
+        }));
 
   const timeOptions = TIMES.map((slot) => {
     const match = slotsQuery.data?.find((item) => item.time === slot);
@@ -142,6 +174,12 @@ export function DiningPage() {
     : '';
 
   const handleVenue = (next: Venue) => {
+    // The booking form and its confirmation belong to one venue. Reset them
+    // when the guest switches so a restaurant confirmation cannot appear under
+    // the read-only coffee shop panel.
+    setBooking(null);
+    setErrors({});
+    setSubmitError('');
     setSearchParams(next === 'restaurant' ? {} : { venue: next }, { replace: true });
   };
 
@@ -174,6 +212,7 @@ export function DiningPage() {
     const { firstName, lastName } = splitFullName(name);
     try {
       const response = await createTableBooking.mutateAsync({
+        venue,
         date,
         time: effectiveTime,
         party_size: partySize,
@@ -183,6 +222,7 @@ export function DiningPage() {
         email: email.trim(),
         occasion,
         notes: notes.trim(),
+        ...guardPayload(),
       });
       setBookedVenue(venue);
       setBooking(response.booking);
@@ -310,13 +350,15 @@ export function DiningPage() {
                   <span className="pill bg-gold-soft text-gold-deep">{t('dining.menuNote')}</span>
                 </div>
                 <div className="mt-4">
-                  {MENU_ITEMS[venue].map((item, index, items) => (
-                    <div key={item.name} className={index === items.length - 1 ? 'py-3' : 'border-b border-line py-3'}>
+                  {menuRows.map((item, index, items) => (
+                    <div key={item.key} className={index === items.length - 1 ? 'py-3' : 'border-b border-line py-3'}>
                       <div className="flex items-baseline justify-between gap-4">
-                        <p className="text-[14px] font-bold text-forest">{t(item.name)}</p>
+                        <p className="text-[14px] font-bold text-forest">{item.name}</p>
                         <p className="shrink-0 text-[13px] font-bold text-forest">{item.price}</p>
                       </div>
-                      <p className="mt-1 text-[12px] text-muted">{t(item.desc)}</p>
+                      {item.description ? (
+                        <p className="mt-1 text-[12px] text-muted">{item.description}</p>
+                      ) : null}
                     </div>
                   ))}
                 </div>
@@ -337,13 +379,49 @@ export function DiningPage() {
           </div>
 
           <div className="rounded-3xl border border-line bg-white p-5 shadow-soft sm:p-7 lg:sticky lg:top-28">
-            {!booking ? (
+            {venue === 'coffee' ? (
+              <div>
+                <p className="eyebrow">{t('dining.coffeeEyebrow')}</p>
+                <h2 className="heading-sm mt-2">{t('dining.coffeeTitle')}</h2>
+                <p className="mt-2 text-sm leading-relaxed text-muted">{t('dining.coffeeText')}</p>
+                <div className="mt-5 grid gap-3 rounded-2xl bg-forest-50 p-4 text-[12px] font-semibold text-forest">
+                  <p className="flex items-center gap-2">
+                    <span className="material-symbols-outlined text-[17px] text-gold-deep" aria-hidden="true">
+                      schedule
+                    </span>
+                    <span>{t('facility.coffee.hours')}</span>
+                  </p>
+                  <p className="flex items-center gap-2">
+                    <span className="material-symbols-outlined text-[17px] text-gold-deep" aria-hidden="true">
+                      directions_walk
+                    </span>
+                    <span>{t('dining.coffeeWalkIn')}</span>
+                  </p>
+                  <p className="flex items-center gap-2">
+                    <span className="material-symbols-outlined text-[17px] text-gold-deep" aria-hidden="true">
+                      call
+                    </span>
+                    <span>+254 20 765 4321 · ext. 3</span>
+                  </p>
+                </div>
+                <p className="mt-4 text-[11px] leading-relaxed text-muted">{t('dining.coffeeNote')}</p>
+                <a
+                  href={whatsappHref()}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn-outline btn-sm mt-5"
+                >
+                  {t('common.whatsapp')}
+                </a>
+              </div>
+            ) : !booking ? (
               <>
                 <p className="eyebrow">{t('dining.bookEyebrow')}</p>
                 <h2 className="heading-sm mt-2">{t('dining.bookTitle')}</h2>
                 <p className="mt-2 text-sm leading-relaxed text-muted">{t('dining.bookText')}</p>
 
                 <form className="mt-6 grid gap-4" noValidate onSubmit={handleSubmit}>
+                  <HoneypotField id="table-website" ref={honeypotRef} />
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div>
                       <label className="field-label" htmlFor="table-date">

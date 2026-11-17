@@ -7,7 +7,17 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from apps.common.anti_spam import (
+    BAD_TIMESTAMP,
+    HONEYPOT,
+    TOO_FAST,
+    blocked_reason,
+    record_blocked_submission,
+    too_fast_response,
+)
+from apps.common.consent import record_consent
 from apps.common.exceptions import Conflict
+from apps.common.models import ConsentRecord
 from apps.notifications.models import NewsletterSubscriber
 from apps.rooms.models import RoomType
 
@@ -62,6 +72,7 @@ def _quote_data(data) -> dict:
 class AvailabilityView(APIView):
     authentication_classes = []
     permission_classes = [AllowAny]
+    throttle_scope = "browse"
 
     @extend_schema(
         parameters=[
@@ -98,7 +109,7 @@ class AvailabilityView(APIView):
 class QuoteView(APIView):
     authentication_classes = []
     permission_classes = [AllowAny]
-    throttle_scope = "booking"
+    throttle_scope = "browse"
 
     @extend_schema(responses=QuoteResponseSerializer)
     def post(self, request):
@@ -119,6 +130,16 @@ class BookingCreateView(APIView):
 
     @extend_schema(responses={201: BookingCreateResponseSerializer})
     def post(self, request):
+        reason = blocked_reason(request.data)
+        if reason in (HONEYPOT, BAD_TIMESTAMP):
+            record_blocked_submission("booking", reason)
+            return Response(
+                {"booking": {"reference": "WP-0000"}},
+                status=status.HTTP_201_CREATED,
+            )
+        if reason == TOO_FAST:
+            record_blocked_submission("booking", reason)
+            return too_fast_response()
         serializer = BookingCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
@@ -163,6 +184,12 @@ class BookingCreateView(APIView):
                 subscriber.consent = True
                 subscriber.unsubscribed_at = None
                 subscriber.save(update_fields=("consent", "unsubscribed_at", "updated_at"))
+            record_consent(
+                scope=ConsentRecord.Scope.NEWSLETTER,
+                subject=email,
+                reference=booking.reference,
+                language=data["language"],
+            )
 
         booking = (
             booking.__class__.objects.select_related(
@@ -191,6 +218,22 @@ class BookingDetailView(APIView):
         responses=BookingPublicSerializer,
     )
     def get(self, request, reference: str):
+        reason = blocked_reason(request.query_params)
+        if reason in (HONEYPOT, BAD_TIMESTAMP):
+            record_blocked_submission("booking_lookup", reason)
+            return Response(
+                {
+                    "error": {
+                        "code": "not_found",
+                        "message": "We could not find a booking with those details.",
+                        "fields": None,
+                    }
+                },
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        if reason == TOO_FAST:
+            record_blocked_submission("booking_lookup", reason)
+            return too_fast_response()
         query = BookingLookupQuerySerializer(data=request.query_params)
         query.is_valid(raise_exception=True)
         booking = lookup_booking(

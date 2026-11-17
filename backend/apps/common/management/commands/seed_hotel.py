@@ -12,13 +12,14 @@ from decimal import Decimal
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 from django.utils import timezone
 
 from apps.common.models import HotelSetting
 from apps.content.models import BlogPost, Offer, Review
 from apps.facilities.models import MenuItem
+from apps.content.models import PolicyPage
 from apps.notifications.models import NewsletterSubscriber
 from apps.rates.models import LongStayDiscount, MealPlan, RatePlan
 from apps.rooms.models import RoomType
@@ -167,6 +168,67 @@ MENU_ITEMS = [
     ("coffee", "Pastries", "Butter croissant", "Kroissant ya siagi", 350),
 ]
 
+POLICY_PAGES = [
+    {
+        "slug": "privacy",
+        "title_en": "Privacy notice",
+        "title_sw": "Taarifa ya faragha",
+        "version": "2026-11-draft",
+        "body_en": (
+            "This is a draft privacy notice pending review by the hotel and its "
+            "legal adviser.\n\n"
+            "We collect the details you give us when you book a room, send an "
+            "enquiry, subscribe to the newsletter or contact the hotel. We use "
+            "them to provide your booking, respond to you and meet our legal and "
+            "accounting duties.\n\n"
+            "We keep booking and payment records only as long as the hotel's "
+            "retention policy requires. You can ask to see, correct, export or "
+            "delete your personal data by contacting the hotel."
+        ),
+        "body_sw": (
+            "Hii ni rasimu ya taarifa ya faragha inayosubiri kupitiwa na hoteli "
+            "na mshauri wake wa sheria.\n\n"
+            "Tunakusanya taarifa unazotupatia unapoweka nafasi ya chumba, "
+            "kutuma ombi, kujiandikisha kwa jarida au kuwasiliana na hoteli. "
+            "Tunazitumia kuhudumia nafasi yako, kukujibu na kutimiza wajibu wetu "
+            "wa kisheria na wa uhasibu.\n\n"
+            "Tunahifadhi kumbukumbu za nafasi na malipo kwa muda unaotakiwa na "
+            "sera ya hoteli. Unaweza kuomba kuona, kusahihisha, kuhamisha au "
+            "kufuta taarifa zako kwa kuwasiliana na hoteli."
+        ),
+    },
+    {
+        "slug": "terms",
+        "title_en": "Booking terms",
+        "title_sw": "Masharti ya kuweka nafasi",
+        "version": "2026-11-draft",
+        "body_en": (
+            "These booking terms are a draft pending review by the hotel and its "
+            "legal adviser.\n\n"
+            "A website booking is held for a limited time until payment is "
+            "received. Room rates, meal plans, taxes and the cancellation cutoff "
+            "are shown before you confirm. Cancellations made before the cutoff "
+            "are handled under the policy shown at booking; later cancellations "
+            "may be charged.\n\n"
+            "The hotel may decline a booking if the details are incomplete or if "
+            "the room is no longer available, and will refund any payment taken "
+            "for that booking."
+        ),
+        "body_sw": (
+            "Masharti haya ya kuweka nafasi ni rasimu inayosubiri kupitiwa na "
+            "hoteli na mshauri wake wa sheria.\n\n"
+            "Nafasi iliyowekwa kupitia tovuti huhifadhiwa kwa muda maalum hadi "
+            "malipo yapokelewe. Bei za vyumba, mipango ya chakula, kodi na muda "
+            "wa mwisho wa kughairi huonyeshwa kabla ya kuthibitisha. Kughairi "
+            "kabla ya muda huo hufuata sera iliyoonyeshwa wakati wa kuweka "
+            "nafasi; kughairi baadaye kunaweza kutoza ada.\n\n"
+            "Hoteli inaweza kukataa nafasi ikiwa taarifa hazijakamilika au "
+            "chumba hakipo tena, na itarejesha malipo yoyote yaliyotolewa kwa "
+            "nafasi hiyo."
+        ),
+    },
+]
+
 BLOG_POSTS = [
     {
         "slug": "a-weekend-in-west-pokot",
@@ -247,7 +309,7 @@ class Command(BaseCommand):
         settings_obj.claims_verified = False
         settings_obj.google_reviews_enabled = False
         settings_obj.privacy_notice_url = "/privacy"
-        settings_obj.privacy_notice_version = "2026-01"
+        settings_obj.privacy_notice_version = "2026-11-draft"
         settings_obj.save()
         self.stdout.write(self.style.SUCCESS("Hotel settings seeded"))
 
@@ -323,6 +385,21 @@ class Command(BaseCommand):
                 },
             )
 
+        for item in POLICY_PAGES:
+            PolicyPage.objects.update_or_create(
+                slug=item["slug"],
+                defaults={
+                    "title_en": item["title_en"],
+                    "title_sw": item["title_sw"],
+                    "body_en": item["body_en"],
+                    "body_sw": item["body_sw"],
+                    "version": item["version"],
+                    "active": True,
+                    "needs_confirmation": True,
+                },
+            )
+            self.stdout.write(f"Policy seeded: {item['slug']}")
+
         now = timezone.now()
         for item in BLOG_POSTS:
             BlogPost.objects.update_or_create(
@@ -377,6 +454,11 @@ class Command(BaseCommand):
         )
 
         if options["demo_users"]:
+            if not getattr(settings, "ALLOW_DEMO_USERS", False):
+                raise CommandError(
+                    "Demo users are disabled. Set ALLOW_DEMO_USERS=true only in "
+                    "a local or test environment; production always refuses."
+                )
             self._demo_users()
 
         self.stdout.write(

@@ -1,9 +1,12 @@
 import { useRef, useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
+import { HoneypotField } from '../components/HoneypotField';
 import { usePageMeta } from '../components/Page';
 import { useToast } from '../components/ToastProvider';
+import { GYM_DAY_PASS_PRICE } from '../config/prices';
 import { useI18n } from '../i18n-context';
 import type { GymDayPass } from '../lib/api/types';
+import { useFormGuard } from '../lib/forms/useFormGuard';
 import { errorMessage, fieldErrors } from '../lib/query/errors';
 import {
   useCreateGymDayPassMutation,
@@ -24,7 +27,7 @@ const EQUIPMENT = [
 ];
 
 const PLANS = [
-  { key: 'day', price: 'KES 1,000', includes: ['access', 'locker', 'orientation'], cta: 'gym.bookDayPass', popular: false },
+  { key: 'day', price: '', includes: ['access', 'locker', 'orientation'], cta: 'gym.bookDayPass', popular: false },
   { key: 'monthly', price: 'KES 6,500', includes: ['unlimited', 'classes', 'guest'], cta: 'gym.joinMonthly', popular: true },
   { key: 'quarterly', price: 'KES 17,500', includes: ['unlimited', 'classes', 'programme'], cta: 'plan.choose', popular: false },
   { key: 'annual', price: 'KES 55,000', includes: ['unlimited', 'classes', 'priority'], cta: 'plan.choose', popular: false },
@@ -81,10 +84,11 @@ export function GymPage() {
 
   const availabilityQuery = useGymAvailability(date);
   const createDayPass = useCreateGymDayPassMutation();
+  const { honeypotRef, guardPayload } = useFormGuard();
 
   const remaining = availabilityQuery.data?.remaining;
   const dayPassPrice = availabilityQuery.data?.price;
-  const priceLabel = dayPassPrice !== undefined ? `KES ${formatMoney(dayPassPrice)}` : null;
+  const priceLabel = `KES ${formatMoney(dayPassPrice ?? GYM_DAY_PASS_PRICE)}`;
   const fullyBooked = remaining === 0;
 
   const openDialog = () => {
@@ -126,6 +130,7 @@ export function GymPage() {
         phone: normaliseKenyanPhone(phone),
         email: '',
         payment_method: 'reception',
+        ...guardPayload(),
       });
       setCreated(response.day_pass);
       setName('');
@@ -173,7 +178,7 @@ export function GymPage() {
                     {item.icon}
                   </span>
                   <span>
-                    {item.key === 'gym.dayFrom' && priceLabel
+                    {item.key === 'gym.dayFrom'
                       ? t('gym.dayFromValue', { price: priceLabel })
                       : t(item.key)}
                   </span>
@@ -384,6 +389,7 @@ export function GymPage() {
           </div>
         ) : (
           <form className="grid gap-4 p-5" noValidate onSubmit={handleSubmit}>
+            <HoneypotField id="gym-website" ref={honeypotRef} />
             <p className="text-[13px] leading-relaxed text-muted">{t('gym.dialog.text')}</p>
             <div
               className={`rounded-xl px-3 py-2 text-[12px] font-semibold ${
@@ -397,7 +403,7 @@ export function GymPage() {
                   : fullyBooked
                     ? t('gym.dialog.full')
                     : t('gym.dialog.remaining', { count: remaining ?? 0 })}
-              {priceLabel && !availabilityQuery.isError ? ` · ${priceLabel} ${t('common.perPerson')}` : ''}
+              {!availabilityQuery.isError ? ` · ${priceLabel} ${t('common.perPerson')}` : ''}
             </div>
             <div>
               <label className="field-label" htmlFor="gym-name">
@@ -470,11 +476,7 @@ export function GymPage() {
               <span className="material-symbols-outlined text-[15px] text-forest" aria-hidden="true">
                 payments
               </span>
-              <span>
-                {priceLabel
-                  ? t('gym.dialog.noteValue', { price: priceLabel })
-                  : t('gym.dialog.note')}
-              </span>
+              <span>{t('gym.dialog.noteValue', { price: priceLabel })}</span>
             </p>
           </form>
         )}

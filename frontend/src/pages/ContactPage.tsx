@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { HoneypotField } from '../components/HoneypotField';
 import { usePageMeta } from '../components/Page';
 import { useToast } from '../components/ToastProvider';
 import {
@@ -10,6 +11,9 @@ import {
   whatsappHref,
 } from '../config/hotel';
 import { useI18n } from '../i18n-context';
+import { useFormGuard } from '../lib/forms/useFormGuard';
+import { errorMessage } from '../lib/query/errors';
+import { useSendContactMessageMutation } from '../lib/query/hooks';
 import { isValidEmail, isValidKenyanPhone } from '../utils';
 
 const TOPICS = ['general', 'booking', 'dining', 'conference', 'gym', 'group'];
@@ -36,8 +40,10 @@ interface Errors {
 }
 
 export function ContactPage() {
-  const { t } = useI18n();
+  const { language, t } = useI18n();
   const { showToast } = useToast();
+  const sendMessage = useSendContactMessageMutation();
+  const { honeypotRef, guardPayload } = useFormGuard();
   const [searchParams] = useSearchParams();
   const requested = searchParams.get('topic') ?? 'general';
   const initialTopic = requested === 'membership' || requested === 'classes' ? 'gym' : TOPICS.includes(requested) ? requested : 'general';
@@ -68,10 +74,23 @@ export function ContactPage() {
     }
 
     setSending(true);
-    await new Promise((resolve) => window.setTimeout(resolve, 800));
-    setSummary(`${t(`topic.${topic}`)} · ${email.trim()}`);
-    setSending(false);
-    showToast(t('toast.formSent'));
+    try {
+      const response = await sendMessage.mutateAsync({
+        name: name.trim(),
+        email: email.trim(),
+        phone: phone.trim() ? phone.trim() : '',
+        topic,
+        message: message.trim(),
+        language,
+        ...guardPayload(),
+      });
+      setSummary(`${t(`topic.${topic}`)} · ${response.message.reference}`);
+      showToast(t('toast.formSent'));
+    } catch (error) {
+      showToast(errorMessage(error, t('contact.submitError')));
+    } finally {
+      setSending(false);
+    }
   };
 
   const handleAgain = () => {
@@ -141,6 +160,7 @@ export function ContactPage() {
                 <p className="mt-2 text-sm leading-relaxed text-muted">{t('contact.form.text')}</p>
 
                 <form className="mt-6 grid gap-4" noValidate onSubmit={handleSubmit}>
+                  <HoneypotField id="contact-website" ref={honeypotRef} />
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div>
                       <label className="field-label" htmlFor="contact-name">

@@ -128,6 +128,17 @@ def create_booking(
         created_by=created_by,
     )
 
+    if consent_privacy:
+        from apps.common.consent import record_consent
+        from apps.common.models import ConsentRecord
+
+        record_consent(
+            scope=ConsentRecord.Scope.BOOKING_PRIVACY,
+            subject=booking.email,
+            reference=booking.reference,
+            language=booking.language,
+        )
+
     from ..models import BookingStatusEvent
 
     BookingStatusEvent.objects.create(

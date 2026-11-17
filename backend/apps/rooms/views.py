@@ -10,6 +10,7 @@ from .serializers import RoomTypeDetailSerializer, RoomTypePublicSerializer
 class RoomTypeListView(generics.ListAPIView):
     authentication_classes = []
     permission_classes = [AllowAny]
+    throttle_scope = "browse"
     serializer_class = RoomTypePublicSerializer
     pagination_class = None
 
@@ -21,6 +22,7 @@ class RoomTypeListView(generics.ListAPIView):
 class RoomTypeDetailView(generics.RetrieveAPIView):
     authentication_classes = []
     permission_classes = [AllowAny]
+    throttle_scope = "browse"
     serializer_class = RoomTypeDetailSerializer
     lookup_field = "slug"
 

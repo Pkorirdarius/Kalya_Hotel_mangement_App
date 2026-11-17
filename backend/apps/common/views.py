@@ -1,4 +1,7 @@
+from datetime import timedelta
+
 from django.db import connection
+from django.db.models import Count
 from django.utils import timezone
 from drf_spectacular.utils import extend_schema
 from rest_framework import status
@@ -8,8 +11,9 @@ from rest_framework.views import APIView
 
 from apps.accounts.permissions import CanManageSystem
 
-from .models import HotelSetting
+from .models import FormGuardEvent, HotelSetting
 from .serializers import (
+    FormGuardSummarySerializer,
     HealthSerializer,
     PublicHotelSettingSerializer,
     StaffHotelSettingSerializer,
@@ -75,3 +79,34 @@ class StaffHotelSettingsView(APIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data)
+
+
+@extend_schema(tags=["staff"], responses=FormGuardSummarySerializer)
+class StaffFormGuardSummaryView(APIView):
+    """Blocked-submission counts so staff can spot guard false positives."""
+
+    permission_classes = [CanManageSystem]
+
+    def get(self, request):
+        try:
+            window_days = int(request.query_params.get("days", 7))
+        except (TypeError, ValueError):
+            window_days = 7
+        window_days = min(max(window_days, 1), 90)
+        since = timezone.now() - timedelta(days=window_days)
+
+        rows = (
+            FormGuardEvent.objects.filter(created_at__gte=since)
+            .values("form", "reason")
+            .annotate(count=Count("id"))
+            .order_by("-count", "form", "reason")
+        )
+        counts = list(rows)
+        return Response(
+            {
+                "window_days": window_days,
+                "since": since,
+                "total": sum(row["count"] for row in counts),
+                "counts": counts,
+            }
+        )

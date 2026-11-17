@@ -8,6 +8,7 @@ CI runs it with ``USE_SQLITE=false`` and a live database.
 from __future__ import annotations
 
 from concurrent.futures import ThreadPoolExecutor
+from datetime import timedelta
 from decimal import Decimal
 
 import pytest
@@ -53,8 +54,8 @@ def test_only_one_of_many_concurrent_guests_gets_the_last_room():
         min_nights=1,
         active=True,
     )
-    checkin = hotel_today() + 10
-    checkout = checkin + 2
+    checkin = hotel_today() + timedelta(days=10)
+    checkout = checkin + timedelta(days=2)
 
     def attempt(index: int) -> str:
         from django.db import transaction

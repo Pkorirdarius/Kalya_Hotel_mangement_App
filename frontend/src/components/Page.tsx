@@ -1,16 +1,44 @@
 import { useEffect, type ReactNode } from 'react';
 import { useLocation } from 'react-router-dom';
 
-export function usePageMeta(title: string, description?: string) {
+import { trackPageview } from '../lib/analytics';
+
+export function usePageMeta(title: string, description?: string, noindex = false) {
+  const { pathname } = useLocation();
+
   useEffect(() => {
     document.title = title;
+
     if (description) {
       const meta = document.querySelector<HTMLMetaElement>('meta[name="description"]');
       if (meta) {
         meta.content = description;
       }
+      const ogDescription = document.querySelector<HTMLMetaElement>(
+        'meta[property="og:description"]',
+      );
+      if (ogDescription) ogDescription.content = description;
+      const twitterDescription = document.querySelector<HTMLMetaElement>(
+        'meta[name="twitter:description"]',
+      );
+      if (twitterDescription) twitterDescription.content = description;
     }
-  }, [title, description]);
+
+    const ogTitle = document.querySelector<HTMLMetaElement>('meta[property="og:title"]');
+    if (ogTitle) ogTitle.content = title;
+    const twitterTitle = document.querySelector<HTMLMetaElement>('meta[name="twitter:title"]');
+    if (twitterTitle) twitterTitle.content = title;
+
+    const canonical = document.querySelector<HTMLLinkElement>('link[rel="canonical"]');
+    if (canonical) {
+      canonical.href = `${canonical.dataset.origin ?? ''}${pathname === '/' ? '/' : pathname}`;
+    }
+
+    const robots = document.querySelector<HTMLMetaElement>('meta[name="robots"]');
+    if (robots) {
+      robots.content = noindex ? 'noindex,nofollow' : 'index,follow';
+    }
+  }, [title, description, noindex, pathname]);
 }
 
 export function ScrollToTop() {
@@ -18,6 +46,16 @@ export function ScrollToTop() {
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'auto' });
+  }, [pathname]);
+
+  return null;
+}
+
+export function RouteAnalytics() {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    trackPageview(pathname);
   }, [pathname]);
 
   return null;

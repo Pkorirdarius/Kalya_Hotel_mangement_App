@@ -1,10 +1,11 @@
 import { QueryClientProvider } from '@tanstack/react-query';
-import { render, screen, waitFor } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { ToastProvider } from '../components/ToastProvider';
+import { setLanguage } from '../i18n';
 import { I18nProvider } from '../i18n-context';
 import { createQueryClient } from '../lib/query/queryClient';
 import { DiningPage } from './DiningPage';
@@ -22,6 +23,8 @@ function jsonResponse(status: number, body: unknown) {
 function tableBookingBody(request: Record<string, unknown>) {
   return {
     reference: 'TB-4821',
+    venue: request.venue ?? 'restaurant',
+    venue_display: 'Restaurant',
     date: request.date,
     time: `${String(request.time)}:00`,
     party_size: request.party_size,
@@ -38,7 +41,7 @@ function tableBookingBody(request: Record<string, unknown>) {
   };
 }
 
-function renderDiningPage() {
+function renderDiningPage(path = '/dining') {
   const client = createQueryClient();
   client.setDefaultOptions({
     queries: { retry: false },
@@ -48,7 +51,7 @@ function renderDiningPage() {
     <QueryClientProvider client={client}>
       <I18nProvider>
         <ToastProvider>
-          <MemoryRouter initialEntries={['/dining']}>
+          <MemoryRouter initialEntries={[path]}>
             <DiningPage />
           </MemoryRouter>
         </ToastProvider>
@@ -59,6 +62,8 @@ function renderDiningPage() {
 
 function mockFetch(options: {
   slots?: Array<{ time: string; remaining: number }>;
+  menu?: Array<Record<string, unknown>>;
+  menuStatus?: number;
   createStatus?: number;
   createBody?: unknown;
 } = {}) {
@@ -67,6 +72,9 @@ function mockFetch(options: {
     const method = init?.method ?? 'GET';
 
     if (url.includes('/auth/csrf/')) return jsonResponse(200, {});
+    if (url.includes('/facilities/menu/') && method === 'GET') {
+      return jsonResponse(options.menuStatus ?? 200, options.menu ?? []);
+    }
     if (url.includes('/facilities/restaurant/slots/') && method === 'GET') {
       return jsonResponse(200, options.slots ?? [
         { time: '18:00', remaining: 20 },
@@ -95,6 +103,7 @@ async function fillValidForm(user: ReturnType<typeof userEvent.setup>) {
 
 afterEach(() => {
   vi.unstubAllGlobals();
+  setLanguage('en', false);
 });
 
 describe('DiningPage', () => {
@@ -118,13 +127,96 @@ describe('DiningPage', () => {
         init?.method === 'POST',
     );
     expect(createCall).toBeTruthy();
-    expect(JSON.parse(String(createCall?.[1]?.body))).toMatchObject({
+    const createBody = JSON.parse(String(createCall?.[1]?.body)) as Record<string, unknown>;
+    expect(createBody).toMatchObject({
+      venue: 'restaurant',
       time: '19:00',
       party_size: 2,
       first_name: 'Amina',
       last_name: 'Otieno',
       phone: '254712345678',
+      website: '',
     });
+    expect(typeof createBody.form_started_at).toBe('number');
+  });
+
+  it('renders menu items edited in the CMS and switches language', async () => {
+    vi.stubGlobal(
+      'fetch',
+      mockFetch({
+        menu: [
+          {
+            id: 7,
+            venue: 'restaurant',
+            category: 'Mains',
+            name_en: "Chef's special",
+            name_sw: 'Kipaji cha mpishi',
+            description_en: 'Edited in the CMS',
+            description_sw: 'Imehaririwa kwenye CMS',
+            price: 1234,
+            image: '',
+            needs_confirmation: true,
+            sort_order: 1,
+          },
+        ],
+      }),
+    );
+    renderDiningPage();
+
+    expect(await screen.findByText("Chef's special")).toBeInTheDocument();
+    expect(screen.getByText('KES 1,234')).toBeInTheDocument();
+    expect(screen.getByText('Edited in the CMS')).toBeInTheDocument();
+
+    act(() => setLanguage('sw'));
+
+    expect(await screen.findByText('Kipaji cha mpishi')).toBeInTheDocument();
+    expect(screen.getByText('Imehaririwa kwenye CMS')).toBeInTheDocument();
+    expect(screen.queryByText("Chef's special")).not.toBeInTheDocument();
+  });
+
+  it('falls back to checked-in menu copy when the CMS is unavailable', async () => {
+    const fetchMock = mockFetch({ menuStatus: 500 });
+    vi.stubGlobal('fetch', fetchMock);
+    renderDiningPage();
+
+    await waitFor(() =>
+      expect(
+        fetchMock.mock.calls.some(([input]) => String(input).includes('/facilities/menu/')),
+      ).toBe(true),
+    );
+    expect(await screen.findByText('Nyama choma platter')).toBeInTheDocument();
+    expect(screen.getByText('KES 1,850')).toBeInTheDocument();
+  });
+
+  it('shows the coffee shop as walk-in only, without the booking form', async () => {
+    const fetchMock = mockFetch();
+    vi.stubGlobal('fetch', fetchMock);
+    renderDiningPage('/dining?venue=coffee');
+
+    expect(await screen.findByText('No booking needed.')).toBeInTheDocument();
+    expect(screen.getByText('Walk-ins only, all day')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Request table' })).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('Date')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('Full name')).not.toBeInTheDocument();
+
+    // No table availability request is needed for a walk-in venue.
+    expect(
+      fetchMock.mock.calls.some(([input]) =>
+        String(input).includes('/facilities/restaurant/slots/'),
+      ),
+    ).toBe(false);
+  });
+
+  it('restores the restaurant form after switching back from the coffee shop', async () => {
+    vi.stubGlobal('fetch', mockFetch());
+    const user = userEvent.setup();
+    renderDiningPage('/dining?venue=coffee');
+
+    expect(await screen.findByText('No booking needed.')).toBeInTheDocument();
+    await user.click(screen.getByRole('tab', { name: 'Tulia Restaurant' }));
+
+    expect(await screen.findByRole('button', { name: 'Request table' })).toBeInTheDocument();
+    expect(screen.queryByText('No booking needed.')).not.toBeInTheDocument();
   });
 
   it('marks slots that no longer fit the party size as full', async () => {

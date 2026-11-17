@@ -10,6 +10,7 @@ from .serializers import MealPlanSerializer
 class MealPlanListView(generics.ListAPIView):
     authentication_classes = []
     permission_classes = [AllowAny]
+    throttle_scope = "browse"
     serializer_class = MealPlanSerializer
     pagination_class = None
     queryset = MealPlan.objects.filter(active=True)

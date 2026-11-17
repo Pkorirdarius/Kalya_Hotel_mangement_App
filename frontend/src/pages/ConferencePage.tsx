@@ -1,9 +1,11 @@
 import { useState, type FormEvent } from 'react';
+import { HoneypotField } from '../components/HoneypotField';
 import { usePageMeta } from '../components/Page';
 import { useToast } from '../components/ToastProvider';
 import { useI18n } from '../i18n-context';
 import { whatsappHref } from '../config/hotel';
 import type { ConferenceEnquiry } from '../lib/api/types';
+import { useFormGuard } from '../lib/forms/useFormGuard';
 import { errorMessage, fieldErrors } from '../lib/query/errors';
 import {
   useConferenceAvailability,
@@ -124,6 +126,7 @@ export function ConferencePage() {
 
   const availabilityQuery = useConferenceAvailability({ session });
   const createEnquiry = useCreateConferenceEnquiryMutation();
+  const { honeypotRef, guardPayload } = useFormGuard();
 
   const availabilityByDate = new Map(
     (availabilityQuery.data ?? []).map((row) => [row.date, toAvailability(row.status)]),
@@ -191,6 +194,7 @@ export function ConferencePage() {
         email: email.trim(),
         phone: normaliseKenyanPhone(phone),
         notes: notes.trim(),
+        ...guardPayload(),
       });
       setEnquiry(response.enquiry);
       showToast(t(mode === 'quote' ? 'toast.quoteSent' : 'toast.hallBooked'), 'success');
@@ -439,6 +443,7 @@ export function ConferencePage() {
                 </div>
 
                 <form className="mt-5 grid gap-4" noValidate onSubmit={handleSubmit}>
+                  <HoneypotField id="conf-website" ref={honeypotRef} />
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div>
                       <label className="field-label" htmlFor="conf-date">

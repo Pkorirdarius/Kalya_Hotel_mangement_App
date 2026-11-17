@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import BlogPost, Offer, Review
+from .models import BlogPost, Offer, PolicyPage, Review
 
 
 class BlogPostSerializer(serializers.ModelSerializer):
@@ -38,6 +38,21 @@ class OfferSerializer(serializers.ModelSerializer):
             "cta_url",
             "valid_from",
             "valid_to",
+            "needs_confirmation",
+        )
+
+
+class PolicyPageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PolicyPage
+        fields = (
+            "slug",
+            "title_en",
+            "title_sw",
+            "body_en",
+            "body_sw",
+            "version",
+            "updated_at",
             "needs_confirmation",
         )
 

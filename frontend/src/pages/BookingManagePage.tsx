@@ -1,11 +1,13 @@
 import { useState, type FormEvent } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
+import { HoneypotField } from '../components/HoneypotField';
 import { usePageMeta } from '../components/Page';
 import { useToast } from '../components/ToastProvider';
 import { HOTEL } from '../config/hotel';
 import { useI18n } from '../i18n-context';
 import { ApiError } from '../lib/api/client';
 import type { Booking } from '../lib/api/types';
+import { useFormGuard } from '../lib/forms/useFormGuard';
 import { errorMessage } from '../lib/query/errors';
 import { useBooking, useCancelBookingMutation } from '../lib/query/hooks';
 import type { Contact } from '../lib/query/keys';
@@ -62,7 +64,7 @@ export function BookingManagePage() {
   const { language, t, formatDate, formatMoney } = useI18n();
   const { showToast } = useToast();
   const [searchParams] = useSearchParams();
-  usePageMeta(t('meta.manage.title'), t('meta.manage.description'));
+  usePageMeta(t('meta.manage.title'), t('meta.manage.description'), true);
 
   const [form, setForm] = useState<LookupForm>({
     reference: searchParams.get('reference') ?? '',
@@ -76,6 +78,7 @@ export function BookingManagePage() {
   const [cancelOpen, setCancelOpen] = useState(false);
   const [cancelReason, setCancelReason] = useState('');
   const [cancelError, setCancelError] = useState('');
+  const { honeypotRef, guardPayload } = useFormGuard();
 
   const bookingQuery = useBooking(
     contact ? submittedReference : undefined,
@@ -130,6 +133,7 @@ export function BookingManagePage() {
     setContact({
       email: form.email.trim() || undefined,
       phone: normaliseKenyanPhone(form.phone) || undefined,
+      ...guardPayload(),
     });
   };
 
@@ -193,6 +197,7 @@ export function BookingManagePage() {
               </p>
 
               <form onSubmit={handleLookup} className="mt-6" noValidate>
+                <HoneypotField id="lookup-website" ref={honeypotRef} />
                 <div>
                   <label className="field-label" htmlFor="reference">
                     {t('manage.reference')}

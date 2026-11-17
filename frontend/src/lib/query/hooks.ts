@@ -27,6 +27,9 @@ import {
   getOffers,
   getPayment,
   getPaymentMethods,
+  getOccupancyReport,
+  getPaymentReport,
+  getPolicy,
   getPost,
   getPosts,
   getQuote,
@@ -35,6 +38,7 @@ import {
   getRoom,
   getRoomAvailability,
   getRooms,
+  getStaffOverview,
   initiateBookingPayment,
   initiateGymPayment,
   sendContactMessage,
@@ -118,6 +122,14 @@ export function useMenu(params?: { venue?: string; category?: string }) {
   return useQuery({
     queryKey: queryKeys.menu(params),
     queryFn: () => getMenu(params),
+  });
+}
+
+export function usePolicy(slug: string) {
+  return useQuery({
+    queryKey: queryKeys.policy(slug),
+    queryFn: () => getPolicy(slug),
+    enabled: Boolean(slug),
   });
 }
 
@@ -377,5 +389,36 @@ export function useEscalateOverdueMutation() {
     onSuccess: () => {
       void client.invalidateQueries({ queryKey: ['frontdesk'] });
     },
+  });
+}
+
+export function useStaffOverview(date: string, options: Enabled = {}) {
+  return useQuery({
+    queryKey: queryKeys.staffOverview(date),
+    queryFn: () => getStaffOverview({ date }),
+    enabled: options.enabled ?? true,
+    retry: false,
+  });
+}
+
+export function useOccupancyReport(
+  start: string,
+  end: string,
+  options: Enabled = {},
+) {
+  return useQuery({
+    queryKey: queryKeys.occupancyReport(start, end),
+    queryFn: () => getOccupancyReport({ start, end }),
+    enabled: options.enabled ?? true,
+    retry: false,
+  });
+}
+
+export function usePaymentReport(start: string, end: string, options: Enabled = {}) {
+  return useQuery({
+    queryKey: queryKeys.paymentReport(start, end),
+    queryFn: () => getPaymentReport({ start, end }),
+    enabled: options.enabled ?? true,
+    retry: false,
   });
 }
