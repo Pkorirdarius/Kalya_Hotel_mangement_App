@@ -27,7 +27,7 @@ All commands were run from the repository root unless stated. Backend commands r
 | 5 | `npm test` | **78 passed** across **18 test files** in 35.98s (adds `ContactPage.test.tsx` and guard-payload assertions). |
 | 6 | `npm run build` | Passed. Vite 6.4.5 built 219 modules and emitted `dist/robots.txt` and `dist/sitemap.xml`. |
 | 7 | `npm run check:brand` | `Brand check passed: no hard-coded brand strings in code or tests.` |
-| 8 | `USE_SQLITE=false ... python -m pytest -q` (Postgres 16 in Docker) | **104 passed** in 22.72s (after B6), including `test_concurrency.py` (8 threads, 1 room, exactly 1 booking). Two Postgres-only defects fixed first: notification `entity_type` truncation and `select_for_update` over nullable joins. Pre-C7 suite is not yet re-run on Postgres. |
+| 8 | `USE_SQLITE=false ... python -m pytest -q` (Postgres 16 in Docker) | **104 passed** in 22.72s (after B6), including `test_concurrency.py` (8 threads, 1 room, exactly 1 booking). Two Postgres-only defects fixed first: notification `entity_type` truncation and `select_for_update` over nullable joins. The pre-C7 suite is proven on Postgres by CI run [44046794171](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/44046794171). |
 | 9 | `python -m pytest -q apps/common/tests/test_throttles.py apps/accounts/tests/test_role_boundaries.py apps/common/tests/test_seed_users.py` | **19 passed** in 3.43s (B6 security tests plus browse/lookup throttle coverage). |
 
 **Not run (therefore unverified):** Docker/Compose staging stack, Playwright browser suite, Lighthouse, `manage.py check --deploy`, live M-Pesa/card/SMTP calls, backup/restore drill. The Postgres-backed suite now runs locally and in CI. Docker Desktop is not running in this environment, so local Postgres proof is currently unavailable; CI is the Postgres proof instead.
@@ -41,9 +41,9 @@ The workflow runs on every push to `main` and `feat/**`: backend (Postgres 16 se
 | [43720682496](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/43720682496) | `4ca180f` | Failed — backend “Tests against Postgres”, 24 s |
 | [43721258237](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/43721258237) | `2883310` | Failed — same step, 23 s; frontend job passed |
 | [44046536724](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/44046536724) | `0b5ed0f` | Failed — same step |
-| [44046794171](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/44046794171) | `25e500a` | Fix run — installs `backend/requirements-dev.txt` (adds `pytest`, `pytest-django`) |
+| [44046794171](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/44046794171) | `25e500a` | **Passed** — Backend (Postgres) 38 s, Frontend 49 s |
 
-**Cause:** the workflow installed only `backend/requirements.txt`, which is the production set and does not include pytest, so `python -m pytest -q` exited 1. `25e500a` adds `backend/requirements-dev.txt` and installs it in CI; the production image still uses `requirements.txt`. The frontend job passed on every run.
+**Cause:** the workflow installed only `backend/requirements.txt`, which is the production set and does not include pytest, so `python -m pytest -q` exited 1. `25e500a` adds `backend/requirements-dev.txt` and installs it in CI; the production image still uses `requirements.txt`. The frontend job passed on every run. Run `44046794171` is green on both jobs, including `test_concurrency.py` against Postgres.
 
 ## 2. Acceptance table
 
