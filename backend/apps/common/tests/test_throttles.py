@@ -62,7 +62,13 @@ def test_login_throttle_blocks_repeated_password_guessing():
     assert blocked.status_code == 429
 
 
-def test_quote_throttle_blocks_the_twenty_first_request(room_type, meal_plan, stay_dates):
+def test_quote_uses_the_generous_browse_throttle(room_type, meal_plan, stay_dates):
+    """Guests behind one shared hotel or mobile IP must be able to compare stays.
+
+    Quotes used to share the strict booking limit. They now use ``browse``
+    (1200/hour by default), so a normal session cannot exhaust it.
+    """
+
     checkin, checkout = stay_dates
     payload = {
         "room_type": room_type.slug,
@@ -73,10 +79,59 @@ def test_quote_throttle_blocks_the_twenty_first_request(room_type, meal_plan, st
     }
     client = APIClient()
 
-    for _ in range(20):
+    for _ in range(25):
         response = client.post("/api/v1/bookings/quote/", payload, format="json")
         assert response.status_code == 200, response.data
 
-    blocked = client.post("/api/v1/bookings/quote/", payload, format="json")
+
+def test_browse_views_share_one_generous_scope():
+    from apps.bookings.views import AvailabilityView, QuoteView
+    from apps.facilities.views import (
+        ConferenceAvailabilityView,
+        GymAvailabilityView,
+        MenuView,
+        RestaurantSlotsView,
+    )
+    from apps.rates.views import MealPlanListView
+    from apps.rooms.views import RoomTypeDetailView, RoomTypeListView
+
+    views = [
+        AvailabilityView,
+        QuoteView,
+        RoomTypeListView,
+        RoomTypeDetailView,
+        MealPlanListView,
+        RestaurantSlotsView,
+        ConferenceAvailabilityView,
+        GymAvailabilityView,
+        MenuView,
+    ]
+
+    for view in views:
+        assert view.throttle_scope == "browse", view.__name__
+
+
+def test_strict_views_keep_their_own_scope():
+    from apps.bookings.views import BookingCreateView, BookingDetailView
+    from apps.notifications.views import (
+        ContactMessageCreateView,
+        NewsletterSubscribeView,
+    )
+
+    assert BookingCreateView.throttle_scope == "booking"
+    assert BookingDetailView.throttle_scope == "lookup"
+    assert NewsletterSubscribeView.throttle_scope == "newsletter"
+    assert ContactMessageCreateView.throttle_scope == "enquiry"
+
+
+def test_booking_lookup_throttle_blocks_the_thirty_first_request():
+    client = APIClient()
+    url = "/api/v1/bookings/WP-MISSING/?email=guest@example.com"
+
+    for _ in range(30):
+        response = client.get(url)
+        assert response.status_code == 404
+
+    blocked = client.get(url)
 
     assert blocked.status_code == 429

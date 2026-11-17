@@ -26,10 +26,9 @@ must stay true. It is not a substitute for a penetration test before launch.
   The frontend hides actions the API would reject, but the API is the boundary.
 - Login is throttled (`login: 10/min`) and passwords are validated with Django's
   validators (minimum 10 characters, common-password and numeric checks).
-- Public write endpoints are throttled by scope (`booking`, `enquiry`,
-  `newsletter`, `lookup`, `payment`); `apps/common/tests/test_throttles.py` proves
-  the limits return 429. There is no honeypot field yet, so throttles are the
-  only anti-automation control on the public forms.
+- Public write endpoints use two layers: scoped DRF throttles and the hidden
+  honeypot / minimum-time check described in section 5. Both are configuration,
+  not a substitute for a WAF or a penetration test.
 - `seed_hotel --demo-users` is refused unless `ALLOW_DEMO_USERS=true`, and
   production forces that setting back to false. Never create demo accounts on a
   deployed environment; create named staff accounts instead.
@@ -115,20 +114,61 @@ dashboard flows, then tighten rather than loosen.
 
 ## 5. Abuse controls
 
-DRF scoped throttles (`base.py`):
+### 5.1 Scoped throttles
 
-| Scope | Limit |
-| --- | --- |
-| `booking` | 20/hour |
-| `hold` | 40/hour |
-| `enquiry` | 10/hour |
-| `newsletter` | 10/hour |
-| `lookup` | 30/hour |
-| `payment` | 30/hour |
-| `login` | 10/min |
+Every limit is read from the environment, so operations can tighten or relax it
+without a code change. Defaults live in `backend/config/settings/base.py` and are
+enforced by DRF scoped throttling. Requests over the limit receive `429` with
+`error.code = "throttled"`.
 
-Add proxy-level rate limiting as a second layer. Monitor spikes in 4xx/5xx and
-`429` responses.
+| Scope | Env var | Default | Key | Applies to |
+| --- | --- | --- | --- | --- |
+| `browse` | `THROTTLE_BROWSE` | 1200/hour | client IP | Room list/detail, availability, quote, meal plans, menu, restaurant slots, conference availability, gym availability |
+| `booking` | `THROTTLE_BOOKING` | 20/hour | client IP | Create a room booking (`POST /bookings/`) |
+| `hold` | `THROTTLE_HOLD` | 40/hour | client IP | Additional hold/expiry actions |
+| `enquiry` | `THROTTLE_ENQUIRY` | 10/hour | client IP | Contact message, table booking, conference enquiry, gym day pass |
+| `newsletter` | `THROTTLE_NEWSLETTER` | 10/hour | client IP | Newsletter subscribe/unsubscribe |
+| `lookup` | `THROTTLE_LOOKUP` | 30/hour | client IP | Booking lookup/cancel, payment status lookup |
+| `payment` | `THROTTLE_PAYMENT` | 30/hour | client IP | Payment initiation and sandbox completion |
+| `login` | `THROTTLE_LOGIN` | 10/min | client IP / staff user | Staff login |
+
+`browse` is deliberately generous: many guests share one hotel, office or mobile
+carrier NAT address. Browsing, comparing rooms and requesting quotes must not lock
+that shared address out. Writes stay strict.
+
+The throttle key is the client IP for anonymous traffic and the user for
+authenticated staff. Behind a reverse proxy, DRF reads `X-Forwarded-For` only
+when `NUM_PROXIES` is greater than zero; set it to the exact number of trusted
+proxies in front of Django. Leaving it at `0` while behind a proxy would otherwise
+throttle the proxy address instead of the guest. The cache backend must be shared
+by every application worker (Redis in production); a per-process local cache would
+let a guest multiply the limit by the number of workers.
+
+### 5.2 Honeypot and minimum time
+
+All public forms post two extra fields (`apps/common/anti_spam.py`):
+
+- `website` - a hidden field placed off-screen. Real guests never see it; any
+  non-blank value marks the request as a bot.
+- `form_started_at` - epoch milliseconds captured when the form mounted. A
+  submission that arrives faster than `FORM_MIN_SUBMIT_SECONDS` (default 2) is
+  treated as automated.
+
+Covered forms: newsletter, contact message, table booking, conference enquiry,
+gym day pass, room booking and booking lookup. The view checks these **before**
+serializer validation. A suspected bot gets the normal success shape (or a
+generic booking-not-found for lookups) with `201`/`404`, and nothing is written,
+queued or emailed. This keeps the response indistinguishable from a real success.
+
+`form_started_at` is optional for backwards compatibility (older clients and
+server-to-server callers); a missing timestamp does not block a guest, while a
+malformed one is treated as a bot. The honeypot field is also sent empty from the
+frontend, so a missing value is normal. Tests:
+`backend/apps/common/tests/test_anti_spam.py`.
+
+Add proxy-level rate limiting and bot filtering as a second layer. Monitor spikes
+in 4xx/5xx and `429` responses; a sudden rise in honeypot hits usually means a
+targeted form spam run.
 
 ## 6. Logging and audit
 

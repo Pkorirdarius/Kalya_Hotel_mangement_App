@@ -1,7 +1,7 @@
 # Acceptance report — `feat/finish-frontend`
 
-**Audit date:** 14 November 2026  
-**Branch tip at audit:** `230e6a9` — `fix(analytics): queue early pageviews without double counting`  
+**Audit date:** 14 November 2026; report updated 17 November 2026  
+**Branch tip at audit:** `230e6a9`; pre-C7 security work proceeds from `2883310`  
 **Target:** `v0.1.0-rc1` release candidate (no merge, no production deploy)  
 **Scope:** prove the definition of done, close gaps, stage and package the release. No new guest features and no UI redesign.
 
@@ -21,20 +21,20 @@ All commands were run from the repository root unless stated. Backend commands r
 | # | Command | Result |
 | --- | --- | --- |
 | 1 | `git status --short` | Clean tree (no output). Tip `230e6a9`, branch `feat/finish-frontend`, tracking `origin/feat/finish-frontend`. |
-| 2 | `..\.venv\Scripts\python.exe -m pytest -q` | **103 passed, 1 skipped** in 7.96s (after B6). Skip: `apps/bookings/tests/test_concurrency.py:30 — Row-lock concurrency needs Postgres`. |
+| 2 | `..\.venv\Scripts\python.exe -m pytest -q` | **128 passed, 1 skipped** in 15.03s (after anti-spam/throttle work). Skip: `apps/bookings/tests/test_concurrency.py:30 — Row-lock concurrency needs Postgres`. |
 | 3 | `npm run typecheck` | Passed (`tsc --noEmit`, no output). |
 | 4 | `npm run lint` | Passed (`eslint .`, no output). |
-| 5 | `npm test` | **76 passed** across **17 test files** in 27.98s (after A2, A3 and B4). |
+| 5 | `npm test` | **78 passed** across **18 test files** in 35.98s (adds `ContactPage.test.tsx` and guard-payload assertions). |
 | 6 | `npm run build` | Passed. Vite 6.4.5 built 219 modules and emitted `dist/robots.txt` and `dist/sitemap.xml`. |
 | 7 | `npm run check:brand` | `Brand check passed: no hard-coded brand strings in code or tests.` |
-| 8 | `USE_SQLITE=false ... python -m pytest -q` (Postgres 16 in Docker) | **104 passed** in 22.72s (after B6), including `test_concurrency.py` (8 threads, 1 room, exactly 1 booking). Two Postgres-only defects fixed first: notification `entity_type` truncation and `select_for_update` over nullable joins. |
-| 9 | `python -m pytest -q apps/common/tests/test_throttles.py apps/accounts/tests/test_role_boundaries.py apps/common/tests/test_seed_users.py` | **16 passed** in 3.79s (B6 security tests). |
+| 8 | `USE_SQLITE=false ... python -m pytest -q` (Postgres 16 in Docker) | **104 passed** in 22.72s (after B6), including `test_concurrency.py` (8 threads, 1 room, exactly 1 booking). Two Postgres-only defects fixed first: notification `entity_type` truncation and `select_for_update` over nullable joins. Pre-C7 suite is not yet re-run on Postgres. |
+| 9 | `python -m pytest -q apps/common/tests/test_throttles.py apps/accounts/tests/test_role_boundaries.py apps/common/tests/test_seed_users.py` | **19 passed** in 3.43s (B6 security tests plus browse/lookup throttle coverage). |
 
 **Not run (therefore unverified):** Docker/Compose staging stack, Playwright browser suite, Lighthouse, `manage.py check --deploy`, live M-Pesa/card/SMTP calls, backup/restore drill. The Postgres-backed suite now runs locally and in CI.
 
 ## 2. Acceptance table
 
-**Status after A1–A3 and B4–B6:** **34 Done**, **7 Partial**, **13 Missing**, **1 Unverified**, **1 Pending** (56 rows). Remaining P0 work is tracked in the Step 2 order below.
+**Status after A1–A3, B4–B6 and the pre-C7 anti-spam/throttle item:** **35 Done**, **6 Partial**, **13 Missing**, **1 Unverified**, **1 Pending** (56 rows). Remaining P0 work is tracked in the Step 2 order below.
 
 ### 2.1 Booking and payments
 
@@ -104,7 +104,7 @@ All commands were run from the repository root unless stated. Backend commands r
 | Complete `prefers-reduced-motion` fallback | **Partial** | Global override at `main.css:43-56` (0.01 ms, single iteration); no automated test. | Add a reduced-motion test (Step 2.8). |
 | Lighthouse mobile ≥ 85 on Home, Rooms, Booking | **Unverified** | Not run in this environment; no Lighthouse config/report in the repo. | Build, serve `dist`, run Lighthouse mobile, record scores, fix (Step 2.9). |
 | Role permissions | **Done** | `accounts/permissions.py` capability classes; `test_auth.py::test_role_capabilities`; `test_role_boundaries.py` proves marketing cannot read the booking list, front desk queue/activity/actions, reports or guest exports, ICT admin cannot read bookings/queue/reports, director keeps access, and marketing can still manage content; `test_frontdesk_api.py::test_queue_requires_manage_bookings_permission`; `test_reports.py::test_other_roles_cannot_export_guest_data`. | None. |
-| Throttles and honeypots | **Partial** | Scoped throttles are configured in `config/settings/base.py:249-257` and set on public booking, quote, login, lookup, enquiry, newsletter and payment views. `test_throttles.py` proves 429 on the 11th newsletter request, 11th login attempt and 21st quote request. **No honeypot field is implemented** on the public forms; throttles are the only anti-automation control. | Add a hidden honeypot field to booking, table, conference, gym, contact and newsletter forms plus backend rejection (deferred; not launch-blocking if accepted). |
+| Throttles and honeypots | **Done** | Scoped throttles are configured in `config/settings/base.py` with env overrides: `browse` 1200/hour (availability, quote, rooms, meal plans, menu, restaurant slots, conference/gym availability), `booking` 20/hour, `hold` 40/hour, `enquiry` 10/hour (contact, table booking, conference enquiry, gym pass), `newsletter` 10/hour, `lookup` 30/hour, `payment` 30/hour, `login` 10/min. `NUM_PROXIES` makes throttle keys use the forwarded client IP. Hidden `website` honeypot plus `form_started_at` minimum-time (`FORM_MIN_SUBMIT_SECONDS`, default 2 s) guard newsletter, contact, table booking, conference enquiry, gym pass, room booking and booking lookup; bots get the normal success/404 shape with no write, email or lookup. Previewed in `frontend/src/components/HoneypotField.tsx` and `frontend/src/lib/forms/useFormGuard.ts`. Tests: `apps/common/tests/test_anti_spam.py` (22 tests), `test_throttles.py` (6 tests), plus guard payload assertions in the six frontend form test files. Values and key semantics are documented in `docs/SECURITY.md` §5. | None. |
 | Demo users cannot exist in production | **Done** | `ALLOW_DEMO_USERS` defaults to false (`base.py`), is forced false in `prod.py`, and `seed_hotel --demo-users` raises `CommandError` unless explicitly enabled. `test_seed_users.py` proves a plain seed creates zero users, the flag is refused by default, and five demo users appear only under `override_settings(ALLOW_DEMO_USERS=True)`. | None. |
 | Production guards: DEBUG off, ALLOWED_HOSTS, real email backend | **Done** (code) | `config/settings/prod.py:9-17,35-52`; `test_production_settings.py`. | Exercise `manage.py check --deploy` with the production env in staging. |
 | CI runs backend, frontend and Postgres concurrency tests | **Done** | `.github/workflows/ci.yml` runs a backend job against a `postgres:16-alpine` service (system checks, migration drift, full `pytest`) and a frontend job (`npm ci`, typecheck, lint, unit tests, brand check, production build). The local Postgres run of the same suite is **88 passed** (no skips). Playwright specs are tracked in the next row. | None. |
@@ -116,6 +116,31 @@ All commands were run from the repository root unless stated. Backend commands r
 | Staff "Content needing confirmation" page | **Missing** | `needs_confirmation` flags exist on CMS/facility models; no staff page aggregates them. | Add the staff page (Step 3). |
 | Documentation | **Partial** | `README.md`, `docs/LAUNCH-CHECKLIST.md`, `docs/DEPLOYMENT.md`, `docs/SECURITY.md` exist; this acceptance report is new. No UAT script or changelog yet. | Add `docs/UAT-SCRIPT.md` and `CHANGELOG` in Steps 4–5. |
 | Release candidate PR + tag | **Pending** | Branch `feat/finish-frontend` is 12 commits ahead of `main`; no PR/tag yet. | Step 5, only after the gaps above are closed. |
+
+### 2.12 Frontend form and mutation audit (pre-C7 item 3)
+
+Every submit path in `frontend/src` was inspected. A handler may navigate, but it
+may not claim a persisted outcome without a successful API call.
+
+| Form / mutation | Submits to | Verdict |
+| --- | --- | --- |
+| `NewsletterForm` | `POST /marketing/newsletter/` | Calls the API; guard fields added; API failure shows the server message. |
+| `ContactPage` message | `POST /marketing/contact/` | **Fixed:** previously waited 800 ms and faked success. Now calls the API, shows the returned `CM-…` reference, and shows an error without clearing the form on failure. `ContactPage.test.tsx` covers both paths. |
+| `DiningPage` table request | `POST /facilities/restaurant/bookings/` | Calls the API, shows the returned `TB-…` reference; coffee shop has no form. |
+| `ConferencePage` enquiry | `POST /facilities/conference/enquiries/` | Calls the API; shows the returned reference and API field errors. |
+| `GymPage` day pass | `POST /facilities/gym/day-passes/` | Calls the API; shows the returned reference and API field errors. |
+| `BookingPage` room booking | `POST /bookings/`, `/bookings/quote/`, `/payments/…` | Calls the API for quote, booking and payment. The “simulate payment” control calls the sandbox completion endpoint and is rendered only in sandbox mode; production flags force it off. |
+| `BookingManagePage` lookup | `GET /bookings/<ref>/?email|phone` | Calls the API; guard fields added to the query. Shows not-found generically. |
+| `BookingManagePage` cancel | `POST /bookings/<ref>/cancel/` | Calls the API; server decides `can_cancel`; failure keeps the dialog open with the server message. |
+| `DashboardPage` login/logout/actions | `/staff/auth/…`, `/staff/frontdesk/…` | Calls the API; no optimistic “success” without a response. |
+| `BookingSearchForm` | none | Validates dates and navigates to `/booking`; it does not claim to persist anything. |
+| `OffersPage` CTAs | none | Filter/modal state only; links navigate to booking or contact. |
+
+No remaining handler fakes success. Tests:
+`NewsletterForm.test.tsx`, `ContactPage.test.tsx`, `DiningPage.test.tsx`,
+`ConferencePage.test.tsx`, `GymPage.test.tsx`, `BookingPage.test.tsx`,
+`BookingManagePage.test.tsx`; all assert the outgoing API payload, including the
+guard fields.
 
 ## 3. Verdict
 
