@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from rest_framework import serializers
 
-from apps.common.serializers import KesField
+from apps.common.serializers import KesField, PublicFormSerializer
 from apps.common.utils import normalise_kenyan_phone
 
 from .models import (
@@ -15,7 +15,7 @@ from .models import (
 )
 
 
-class TableBookingCreateSerializer(serializers.Serializer):
+class TableBookingCreateSerializer(PublicFormSerializer):
     venue = serializers.ChoiceField(
         choices=TableBooking.Venue.choices,
         default=TableBooking.Venue.RESTAURANT,
@@ -77,7 +77,7 @@ class RestaurantSlotSerializer(serializers.Serializer):
     remaining = serializers.IntegerField()
 
 
-class ConferenceEnquiryCreateSerializer(serializers.Serializer):
+class ConferenceEnquiryCreateSerializer(PublicFormSerializer):
     date = serializers.DateField()
     session = serializers.ChoiceField(choices=ConferenceEnquiry.Session.choices)
     people = serializers.IntegerField(min_value=4, max_value=120)
@@ -136,7 +136,7 @@ class ConferenceAvailabilitySerializer(serializers.Serializer):
     label = serializers.CharField()
 
 
-class GymDayPassCreateSerializer(serializers.Serializer):
+class GymDayPassCreateSerializer(PublicFormSerializer):
     date = serializers.DateField()
     full_name = serializers.CharField(max_length=120)
     phone = serializers.CharField(max_length=32)

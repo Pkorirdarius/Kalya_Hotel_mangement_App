@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
+import { HoneypotField } from '../components/HoneypotField';
 import { usePageMeta } from '../components/Page';
 import { useToast } from '../components/ToastProvider';
 import { HOTEL, addressText, whatsappHref } from '../config/hotel';
 import { useI18n } from '../i18n-context';
 import type { Booking, Payment, Quote } from '../lib/api/types';
+import { useFormGuard } from '../lib/forms/useFormGuard';
 import { errorMessage, fieldErrors } from '../lib/query/errors';
 import {
   useCompleteSandboxPaymentMutation,
@@ -216,6 +218,7 @@ export function BookingPage() {
   const clientRequestId = useRef(newRequestId());
   const paymentAttempt = useRef(0);
   const paidToastShown = useRef(false);
+  const { honeypotRef, guardPayload } = useFormGuard();
 
   const quoteMutation = useQuoteMutation();
   const createBookingMutation = useCreateBookingMutation();
@@ -524,6 +527,7 @@ export function BookingPage() {
           consent_privacy: form.terms,
           marketing_consent: form.marketing,
           client_request_id: clientRequestId.current,
+          ...guardPayload(),
         });
         target = created.booking;
         setBooking(target);
@@ -750,6 +754,7 @@ export function BookingPage() {
             </div>
 
             <form ref={formRef} onSubmit={handleSubmit} className="mt-8" noValidate>
+              <HoneypotField id="booking-website" ref={honeypotRef} />
               {step === 1 ? (
                 <section aria-labelledby="booking-step-1">
                   <h2 id="booking-step-1" className="heading-sm">

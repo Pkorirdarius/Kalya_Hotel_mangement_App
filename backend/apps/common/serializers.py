@@ -38,6 +38,20 @@ class KesField(serializers.DecimalField):
         return int(Decimal(value).quantize(Decimal("1")))
 
 
+class PublicFormSerializer(serializers.Serializer):
+    """Base for public forms with optional anti-spam fields.
+
+    They are accepted so the OpenAPI schema and generated frontend types stay
+    truthful. The view checks them before validation and returns a generic
+    success without writing anything.
+    """
+
+    website = serializers.CharField(
+        required=False, allow_blank=True, max_length=200, write_only=True
+    )
+    form_started_at = serializers.IntegerField(required=False, min_value=0)
+
+
 class PublicHotelSettingSerializer(serializers.ModelSerializer):
     cancellation_cutoff_hours = serializers.IntegerField(read_only=True)
     gym_day_pass_price = KesField(read_only=True)

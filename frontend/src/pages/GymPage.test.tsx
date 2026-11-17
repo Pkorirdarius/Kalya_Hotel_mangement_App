@@ -133,12 +133,15 @@ describe('GymPage', () => {
         init?.method === 'POST',
     );
     expect(createCall).toBeTruthy();
-    expect(JSON.parse(String(createCall?.[1]?.body))).toMatchObject({
+    const createBody = JSON.parse(String(createCall?.[1]?.body)) as Record<string, unknown>;
+    expect(createBody).toMatchObject({
       date: today,
       full_name: 'Amina Otieno',
       phone: '254712345678',
       payment_method: 'reception',
+      website: '',
     });
+    expect(typeof createBody.form_started_at).toBe('number');
   });
 
   it('disables the form when the gym is fully booked', async () => {

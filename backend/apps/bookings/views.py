@@ -7,6 +7,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from apps.common.anti_spam import is_bot_submission
 from apps.common.consent import record_consent
 from apps.common.exceptions import Conflict
 from apps.common.models import ConsentRecord
@@ -64,6 +65,7 @@ def _quote_data(data) -> dict:
 class AvailabilityView(APIView):
     authentication_classes = []
     permission_classes = [AllowAny]
+    throttle_scope = "browse"
 
     @extend_schema(
         parameters=[
@@ -100,7 +102,7 @@ class AvailabilityView(APIView):
 class QuoteView(APIView):
     authentication_classes = []
     permission_classes = [AllowAny]
-    throttle_scope = "booking"
+    throttle_scope = "browse"
 
     @extend_schema(responses=QuoteResponseSerializer)
     def post(self, request):
@@ -121,6 +123,11 @@ class BookingCreateView(APIView):
 
     @extend_schema(responses={201: BookingCreateResponseSerializer})
     def post(self, request):
+        if is_bot_submission(request.data):
+            return Response(
+                {"booking": {"reference": "WP-0000"}},
+                status=status.HTTP_201_CREATED,
+            )
         serializer = BookingCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
@@ -199,6 +206,17 @@ class BookingDetailView(APIView):
         responses=BookingPublicSerializer,
     )
     def get(self, request, reference: str):
+        if is_bot_submission(request.query_params):
+            return Response(
+                {
+                    "error": {
+                        "code": "not_found",
+                        "message": "We could not find a booking with those details.",
+                        "fields": None,
+                    }
+                },
+                status=status.HTTP_404_NOT_FOUND,
+            )
         query = BookingLookupQuerySerializer(data=request.query_params)
         query.is_valid(raise_exception=True)
         booking = lookup_booking(

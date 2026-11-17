@@ -13,6 +13,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from apps.common.anti_spam import is_bot_submission
 from apps.common.models import HotelSetting
 from apps.common.utils import as_kes_int, hotel_brand_token, hotel_today
 
@@ -51,6 +52,7 @@ def _raise_facility_error(exc: FacilityError):
 class RestaurantSlotsView(APIView):
     authentication_classes = []
     permission_classes = [AllowAny]
+    throttle_scope = "browse"
 
     @extend_schema(
         parameters=[OpenApiParameter("date", str, required=True)],
@@ -77,6 +79,11 @@ class TableBookingCreateView(APIView):
 
     @extend_schema(responses={201: TableBookingCreateResponseSerializer})
     def post(self, request):
+        if is_bot_submission(request.data):
+            return Response(
+                {"booking": {"reference": "TB-0000"}},
+                status=status.HTTP_201_CREATED,
+            )
         serializer = TableBookingCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
@@ -120,6 +127,7 @@ class TableBookingDetailView(APIView):
 class ConferenceAvailabilityView(APIView):
     authentication_classes = []
     permission_classes = [AllowAny]
+    throttle_scope = "browse"
 
     @extend_schema(
         parameters=[
@@ -173,6 +181,11 @@ class ConferenceEnquiryCreateView(APIView):
 
     @extend_schema(responses={201: ConferenceEnquiryCreateResponseSerializer})
     def post(self, request):
+        if is_bot_submission(request.data):
+            return Response(
+                {"enquiry": {"reference": "CE-0000"}},
+                status=status.HTTP_201_CREATED,
+            )
         serializer = ConferenceEnquiryCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
@@ -217,6 +230,7 @@ class ConferenceEnquiryDetailView(APIView):
 class GymAvailabilityView(APIView):
     authentication_classes = []
     permission_classes = [AllowAny]
+    throttle_scope = "browse"
 
     @extend_schema(
         parameters=[OpenApiParameter("date", str, required=False)],
@@ -250,6 +264,11 @@ class GymDayPassCreateView(APIView):
 
     @extend_schema(responses={201: GymDayPassCreateResponseSerializer})
     def post(self, request):
+        if is_bot_submission(request.data):
+            return Response(
+                {"day_pass": {"reference": "GY-0000"}},
+                status=status.HTTP_201_CREATED,
+            )
         serializer = GymDayPassCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
@@ -316,6 +335,7 @@ class GymDayPassQrView(APIView):
 class MenuView(APIView):
     authentication_classes = []
     permission_classes = [AllowAny]
+    throttle_scope = "browse"
 
     @extend_schema(
         parameters=[

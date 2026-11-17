@@ -7,6 +7,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from apps.common.anti_spam import is_bot_submission
 from apps.common.consent import record_consent
 from apps.common.models import ConsentRecord
 from apps.common.utils import unique_reference
@@ -33,6 +34,11 @@ class NewsletterSubscribeView(APIView):
         responses={201: NewsletterSubscribeResponseSerializer},
     )
     def post(self, request):
+        if is_bot_submission(request.data):
+            return Response(
+                {"subscribed": True, "already_subscribed": False},
+                status=status.HTTP_201_CREATED,
+            )
         serializer = NewsletterSubscribeSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
@@ -94,12 +100,22 @@ class ContactMessageCreateView(APIView):
         responses={201: ContactMessageEnvelopeSerializer},
     )
     def post(self, request):
+        if is_bot_submission(request.data):
+            return Response(
+                {"message": {"reference": "CM-0000"}},
+                status=status.HTTP_201_CREATED,
+            )
         serializer = ContactMessageCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
         message = ContactMessage.objects.create(
             reference=unique_reference(ContactMessage, "CM"),
-            **data,
+            name=data["name"],
+            email=data["email"],
+            phone=data.get("phone", ""),
+            topic=data.get("topic", ""),
+            message=data["message"],
+            language=data["language"],
         )
         try:
             from django.conf import settings

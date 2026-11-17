@@ -1166,6 +1166,7 @@ const entries: Record<string, Entry> = {
   'contact.message': { en: 'Message', sw: 'Ujumbe' },
   'contact.messagePlaceholder': { en: 'Dates, numbers, dietary needs or anything else…', sw: 'Tarehe, namba, mahitaji ya chakula au jambo lingine…' },
   'contact.submit': { en: 'Send message', sw: 'Tuma ujumbe' },
+  'contact.submitError': { en: 'Message not sent. Please try again or call us.', sw: 'Ujumbe haujatumwa. Tafadhali jaribu tena au tupigie.' },
   'contact.response': { en: 'We reply within one working day.', sw: 'Tunajibu ndani ya siku moja ya kazi.' },
   'contact.successTitle': { en: 'Message sent.', sw: 'Ujumbe umetumwa.' },
   'contact.successText': { en: 'Thank you — the front desk will reply within one working day. For anything urgent, call {phone}.', sw: 'Asante — mapokezi yatajibu ndani ya siku moja ya kazi. Kwa jambo la haraka, piga {phone}.' },

@@ -63,7 +63,10 @@ describe('NewsletterForm', () => {
       consent: true,
       language: 'en',
       source: 'website',
+      website: '',
     });
+    const body = JSON.parse(String(call?.[1]?.body)) as Record<string, unknown>;
+    expect(typeof body.form_started_at).toBe('number');
   });
 
   it('shows the server error and keeps the email when the API rejects it', async () => {

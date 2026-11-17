@@ -249,7 +249,9 @@ describe('BookingPage', () => {
       last_name: 'Otieno',
       email: 'amina@example.com',
       consent_privacy: true,
+      website: '',
     });
+    expect(typeof createBody.form_started_at).toBe('number');
     expect(createBody.client_request_id).toBeTruthy();
   });
 

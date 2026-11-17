@@ -145,7 +145,8 @@ describe('ConferencePage', () => {
         init?.method === 'POST',
     );
     expect(createCall).toBeTruthy();
-    expect(JSON.parse(String(createCall?.[1]?.body))).toMatchObject({
+    const createBody = JSON.parse(String(createCall?.[1]?.body)) as Record<string, unknown>;
+    expect(createBody).toMatchObject({
       date: tomorrow,
       session: 'half_day',
       layout: 'boardroom',
@@ -155,7 +156,9 @@ describe('ConferencePage', () => {
       last_name: 'Otieno',
       email: 'amina@example.com',
       phone: '254712345678',
+      website: '',
     });
+    expect(typeof createBody.form_started_at).toBe('number');
   });
 
   it('blocks a fully booked date and disables the submit button', async () => {

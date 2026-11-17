@@ -1,11 +1,12 @@
 from rest_framework import serializers
 
+from apps.common.serializers import PublicFormSerializer
 from apps.common.utils import normalise_kenyan_phone
 
 from .models import ContactMessage, NewsletterSubscriber
 
 
-class NewsletterSubscribeSerializer(serializers.Serializer):
+class NewsletterSubscribeSerializer(PublicFormSerializer):
     email = serializers.EmailField()
     consent = serializers.BooleanField(default=True)
     language = serializers.ChoiceField(choices=("en", "sw"), default="en")
@@ -25,7 +26,7 @@ class NewsletterSubscriberSerializer(serializers.ModelSerializer):
         fields = ("email", "language", "consent", "created_at")
 
 
-class ContactMessageCreateSerializer(serializers.Serializer):
+class ContactMessageCreateSerializer(PublicFormSerializer):
     name = serializers.CharField(max_length=120)
     email = serializers.EmailField()
     phone = serializers.CharField(max_length=32, required=False, allow_blank=True)

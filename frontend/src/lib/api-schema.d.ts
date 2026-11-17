@@ -1488,7 +1488,16 @@ export interface components {
             needs_confirmation?: boolean;
             active?: boolean;
         };
+        /**
+         * @description Base for public forms with optional anti-spam fields.
+         *
+         *     They are accepted so the OpenAPI schema and generated frontend types stay
+         *     truthful. The view checks them before validation and returns a generic
+         *     success without writing anything.
+         */
         BookingCreateRequest: {
+            website?: string;
+            form_started_at?: number;
             quote: components["schemas"]["QuoteRequestRequest"];
             first_name: string;
             last_name: string;
@@ -1616,7 +1625,16 @@ export interface components {
             /** Format: date-time */
             readonly created_at: string;
         };
+        /**
+         * @description Base for public forms with optional anti-spam fields.
+         *
+         *     They are accepted so the OpenAPI schema and generated frontend types stay
+         *     truthful. The view checks them before validation and returns a generic
+         *     success without writing anything.
+         */
         ConferenceEnquiryCreateRequest: {
+            website?: string;
+            form_started_at?: number;
             /** Format: date */
             date: string;
             session: components["schemas"]["SessionEnum"];
@@ -1672,7 +1690,16 @@ export interface components {
             /** Format: date-time */
             readonly created_at: string;
         };
+        /**
+         * @description Base for public forms with optional anti-spam fields.
+         *
+         *     They are accepted so the OpenAPI schema and generated frontend types stay
+         *     truthful. The view checks them before validation and returns a generic
+         *     success without writing anything.
+         */
         ContactMessageCreateRequest: {
+            website?: string;
+            form_started_at?: number;
             name: string;
             /** Format: email */
             email: string;
@@ -1775,7 +1802,16 @@ export interface components {
             /** Format: date-time */
             readonly created_at: string;
         };
+        /**
+         * @description Base for public forms with optional anti-spam fields.
+         *
+         *     They are accepted so the OpenAPI schema and generated frontend types stay
+         *     truthful. The view checks them before validation and returns a generic
+         *     success without writing anything.
+         */
         GymDayPassCreateRequest: {
+            website?: string;
+            form_started_at?: number;
             /** Format: date */
             date: string;
             full_name: string;
@@ -1962,7 +1998,16 @@ export interface components {
          * @enum {string}
          */
         MethodEnum: "mpesa" | "card" | "bank_transfer";
+        /**
+         * @description Base for public forms with optional anti-spam fields.
+         *
+         *     They are accepted so the OpenAPI schema and generated frontend types stay
+         *     truthful. The view checks them before validation and returns a generic
+         *     success without writing anything.
+         */
         NewsletterSubscribeRequest: {
+            website?: string;
+            form_started_at?: number;
             /** Format: email */
             email: string;
             /** @default true */
@@ -3417,7 +3462,16 @@ export interface components {
             /** Format: date-time */
             readonly created_at: string;
         };
+        /**
+         * @description Base for public forms with optional anti-spam fields.
+         *
+         *     They are accepted so the OpenAPI schema and generated frontend types stay
+         *     truthful. The view checks them before validation and returns a generic
+         *     success without writing anything.
+         */
         TableBookingCreateRequest: {
+            website?: string;
+            form_started_at?: number;
             /** @default restaurant */
             venue: components["schemas"]["VenueEnum"];
             /** Format: date */

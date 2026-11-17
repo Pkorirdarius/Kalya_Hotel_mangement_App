@@ -1,8 +1,10 @@
 import { useState, type FormEvent } from 'react';
 import { useI18n } from '../i18n-context';
+import { useFormGuard } from '../lib/forms/useFormGuard';
 import { errorMessage } from '../lib/query/errors';
 import { useSubscribeNewsletterMutation } from '../lib/query/hooks';
 import { isValidEmail } from '../utils';
+import { HoneypotField } from './HoneypotField';
 import { useToast } from './ToastProvider';
 
 interface NewsletterFormProps {
@@ -13,6 +15,7 @@ export function NewsletterForm({ showSuccess = true }: NewsletterFormProps) {
   const { t, language } = useI18n();
   const { showToast } = useToast();
   const subscribe = useSubscribeNewsletterMutation();
+  const { honeypotRef, guardPayload } = useFormGuard();
   const [email, setEmail] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -32,6 +35,7 @@ export function NewsletterForm({ showSuccess = true }: NewsletterFormProps) {
         consent: true,
         language,
         source: 'website',
+        ...guardPayload(),
       });
       if (showSuccess) {
         setSuccess(true);
@@ -50,6 +54,7 @@ export function NewsletterForm({ showSuccess = true }: NewsletterFormProps) {
       className="rounded-3xl border border-white/15 bg-white/5 p-5 backdrop-blur sm:p-7"
       noValidate
     >
+      <HoneypotField id="newsletter-website" ref={honeypotRef} />
       <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
         <div>
           <label className="sr-only" htmlFor="newsletter-email">

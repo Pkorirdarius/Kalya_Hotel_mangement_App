@@ -127,14 +127,17 @@ describe('DiningPage', () => {
         init?.method === 'POST',
     );
     expect(createCall).toBeTruthy();
-    expect(JSON.parse(String(createCall?.[1]?.body))).toMatchObject({
+    const createBody = JSON.parse(String(createCall?.[1]?.body)) as Record<string, unknown>;
+    expect(createBody).toMatchObject({
       venue: 'restaurant',
       time: '19:00',
       party_size: 2,
       first_name: 'Amina',
       last_name: 'Otieno',
       phone: '254712345678',
+      website: '',
     });
+    expect(typeof createBody.form_started_at).toBe('number');
   });
 
   it('renders menu items edited in the CMS and switches language', async () => {

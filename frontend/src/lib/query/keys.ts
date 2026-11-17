@@ -3,6 +3,9 @@
 export interface Contact {
   email?: string;
   phone?: string;
+  /** Anti-spam fields sent with booking lookups; ignored by the cancel call. */
+  website?: string;
+  form_started_at?: number;
 }
 
 export interface AvailabilityParams {

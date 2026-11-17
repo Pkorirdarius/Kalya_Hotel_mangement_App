@@ -4004,7 +4004,20 @@ components:
       - title_en
     BookingCreateRequest:
       type: object
+      description: |-
+        Base for public forms with optional anti-spam fields.
+
+        They are accepted so the OpenAPI schema and generated frontend types stay
+        truthful. The view checks them before validation and returns a generic
+        success without writing anything.
       properties:
+        website:
+          type: string
+          writeOnly: true
+          maxLength: 200
+        form_started_at:
+          type: integer
+          minimum: 0
         quote:
           $ref: '#/components/schemas/QuoteRequestRequest'
         first_name:
@@ -4361,7 +4374,20 @@ components:
       - status_display
     ConferenceEnquiryCreateRequest:
       type: object
+      description: |-
+        Base for public forms with optional anti-spam fields.
+
+        They are accepted so the OpenAPI schema and generated frontend types stay
+        truthful. The view checks them before validation and returns a generic
+        success without writing anything.
       properties:
+        website:
+          type: string
+          writeOnly: true
+          maxLength: 200
+        form_started_at:
+          type: integer
+          minimum: 0
         date:
           type: string
           format: date
@@ -4522,7 +4548,20 @@ components:
       - reference
     ContactMessageCreateRequest:
       type: object
+      description: |-
+        Base for public forms with optional anti-spam fields.
+
+        They are accepted so the OpenAPI schema and generated frontend types stay
+        truthful. The view checks them before validation and returns a generic
+        success without writing anything.
       properties:
+        website:
+          type: string
+          writeOnly: true
+          maxLength: 200
+        form_started_at:
+          type: integer
+          minimum: 0
         name:
           type: string
           minLength: 1
@@ -4782,7 +4821,20 @@ components:
       - status_display
     GymDayPassCreateRequest:
       type: object
+      description: |-
+        Base for public forms with optional anti-spam fields.
+
+        They are accepted so the OpenAPI schema and generated frontend types stay
+        truthful. The view checks them before validation and returns a generic
+        success without writing anything.
       properties:
+        website:
+          type: string
+          writeOnly: true
+          maxLength: 200
+        form_started_at:
+          type: integer
+          minimum: 0
         date:
           type: string
           format: date
@@ -5300,7 +5352,20 @@ components:
         * `bank_transfer` - Bank transfer
     NewsletterSubscribeRequest:
       type: object
+      description: |-
+        Base for public forms with optional anti-spam fields.
+
+        They are accepted so the OpenAPI schema and generated frontend types stay
+        truthful. The view checks them before validation and returns a generic
+        success without writing anything.
       properties:
+        website:
+          type: string
+          writeOnly: true
+          maxLength: 200
+        form_started_at:
+          type: integer
+          minimum: 0
         email:
           type: string
           format: email
@@ -8698,7 +8763,20 @@ components:
       - venue_display
     TableBookingCreateRequest:
       type: object
+      description: |-
+        Base for public forms with optional anti-spam fields.
+
+        They are accepted so the OpenAPI schema and generated frontend types stay
+        truthful. The view checks them before validation and returns a generic
+        success without writing anything.
       properties:
+        website:
+          type: string
+          writeOnly: true
+          maxLength: 200
+        form_started_at:
+          type: integer
+          minimum: 0
         venue:
           allOf:
           - $ref: '#/components/schemas/VenueEnum'

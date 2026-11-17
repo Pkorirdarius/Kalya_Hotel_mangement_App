@@ -1,10 +1,12 @@
 import { useRef, useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
+import { HoneypotField } from '../components/HoneypotField';
 import { usePageMeta } from '../components/Page';
 import { useToast } from '../components/ToastProvider';
 import { GYM_DAY_PASS_PRICE } from '../config/prices';
 import { useI18n } from '../i18n-context';
 import type { GymDayPass } from '../lib/api/types';
+import { useFormGuard } from '../lib/forms/useFormGuard';
 import { errorMessage, fieldErrors } from '../lib/query/errors';
 import {
   useCreateGymDayPassMutation,
@@ -82,6 +84,7 @@ export function GymPage() {
 
   const availabilityQuery = useGymAvailability(date);
   const createDayPass = useCreateGymDayPassMutation();
+  const { honeypotRef, guardPayload } = useFormGuard();
 
   const remaining = availabilityQuery.data?.remaining;
   const dayPassPrice = availabilityQuery.data?.price;
@@ -127,6 +130,7 @@ export function GymPage() {
         phone: normaliseKenyanPhone(phone),
         email: '',
         payment_method: 'reception',
+        ...guardPayload(),
       });
       setCreated(response.day_pass);
       setName('');
@@ -385,6 +389,7 @@ export function GymPage() {
           </div>
         ) : (
           <form className="grid gap-4 p-5" noValidate onSubmit={handleSubmit}>
+            <HoneypotField id="gym-website" ref={honeypotRef} />
             <p className="text-[13px] leading-relaxed text-muted">{t('gym.dialog.text')}</p>
             <div
               className={`rounded-xl px-3 py-2 text-[12px] font-semibold ${

@@ -1,10 +1,12 @@
 import { useState, type FormEvent } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { HoneypotField } from '../components/HoneypotField';
 import { usePageMeta } from '../components/Page';
 import { useToast } from '../components/ToastProvider';
 import { useI18n } from '../i18n-context';
 import { whatsappHref } from '../config/hotel';
 import type { TableBooking } from '../lib/api/types';
+import { useFormGuard } from '../lib/forms/useFormGuard';
 import { errorMessage, fieldErrors } from '../lib/query/errors';
 import {
   useCreateTableBookingMutation,
@@ -133,6 +135,7 @@ export function DiningPage() {
   const slotsQuery = useRestaurantSlots(venue === 'restaurant' ? date : undefined);
   const menuQuery = useMenu({ venue });
   const createTableBooking = useCreateTableBookingMutation();
+  const { honeypotRef, guardPayload } = useFormGuard();
 
   // Marketing edits menus in Django admin. The CMS is the source of truth, with
   // the checked-in copy kept only as an offline/empty-CMS fallback.
@@ -219,6 +222,7 @@ export function DiningPage() {
         email: email.trim(),
         occasion,
         notes: notes.trim(),
+        ...guardPayload(),
       });
       setBookedVenue(venue);
       setBooking(response.booking);
@@ -417,6 +421,7 @@ export function DiningPage() {
                 <p className="mt-2 text-sm leading-relaxed text-muted">{t('dining.bookText')}</p>
 
                 <form className="mt-6 grid gap-4" noValidate onSubmit={handleSubmit}>
+                  <HoneypotField id="table-website" ref={honeypotRef} />
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div>
                       <label className="field-label" htmlFor="table-date">

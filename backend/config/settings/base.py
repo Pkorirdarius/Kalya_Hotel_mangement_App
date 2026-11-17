@@ -19,6 +19,15 @@ env = environ.Env(
     CORS_ALLOWED_ORIGINS=(list, []),
     CSRF_TRUSTED_ORIGINS=(list, []),
     ALLOW_DEMO_USERS=(bool, False),
+    FORM_MIN_SUBMIT_SECONDS=(int, 2),
+    THROTTLE_BROWSE=(str, "1200/hour"),
+    THROTTLE_BOOKING=(str, "20/hour"),
+    THROTTLE_HOLD=(str, "40/hour"),
+    THROTTLE_ENQUIRY=(str, "10/hour"),
+    THROTTLE_NEWSLETTER=(str, "10/hour"),
+    THROTTLE_LOOKUP=(str, "30/hour"),
+    THROTTLE_PAYMENT=(str, "30/hour"),
+    THROTTLE_LOGIN=(str, "10/min"),
 )
 
 for candidate in (REPO_ROOT / ".env", BASE_DIR / ".env"):
@@ -34,6 +43,10 @@ ALLOWED_HOSTS = env("ALLOWED_HOSTS")
 # --demo-users` refuses to run while this is false, and production forces it
 # back to false regardless of the environment.
 ALLOW_DEMO_USERS = env("ALLOW_DEMO_USERS")
+
+# Minimum time a real guest needs between rendering and submitting a public
+# form. Bots that submit instantly are given a generic success with no writes.
+FORM_MIN_SUBMIT_SECONDS = env("FORM_MIN_SUBMIT_SECONDS")
 
 SITE_URL = env("SITE_URL", default="http://localhost:5173")
 API_BASE_URL = env("API_BASE_URL", default="http://localhost:8000")
@@ -253,14 +266,19 @@ REST_FRAMEWORK = {
         "rest_framework.throttling.ScopedRateThrottle",
     ],
     "DEFAULT_THROTTLE_RATES": {
-        "booking": "20/hour",
-        "hold": "40/hour",
-        "enquiry": "10/hour",
-        "newsletter": "10/hour",
-        "lookup": "30/hour",
-        "payment": "30/hour",
-        "login": "10/min",
+        "browse": env("THROTTLE_BROWSE"),
+        "booking": env("THROTTLE_BOOKING"),
+        "hold": env("THROTTLE_HOLD"),
+        "enquiry": env("THROTTLE_ENQUIRY"),
+        "newsletter": env("THROTTLE_NEWSLETTER"),
+        "lookup": env("THROTTLE_LOOKUP"),
+        "payment": env("THROTTLE_PAYMENT"),
+        "login": env("THROTTLE_LOGIN"),
     },
+    # Behind the production proxy, use the first forwarded client IP for
+    # throttling instead of the proxy's address. Keep this aligned with the
+    # number of trusted proxies in front of Django.
+    "NUM_PROXIES": env.int("NUM_PROXIES", default=0),
     "EXCEPTION_HANDLER": "apps.common.exceptions.api_exception_handler",
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     # Reports use ?format=csv|json for their own output format; without this,
