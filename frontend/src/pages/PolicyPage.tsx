@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link } from '../components/LocalizedLink';
 import { usePageMeta } from '../components/Page';
 import { useI18n } from '../i18n-context';
 import { usePolicy } from '../lib/query/hooks';

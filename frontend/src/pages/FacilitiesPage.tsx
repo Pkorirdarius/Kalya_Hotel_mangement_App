@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link } from '../components/LocalizedLink';
 import { usePageMeta } from '../components/Page';
 import { whatsappHref } from '../config/hotel';
 import { GYM_DAY_PASS_PRICE } from '../config/prices';

@@ -1,8 +1,10 @@
-import { lazy, Suspense } from 'react';
-import { Outlet, Route, Routes } from 'react-router-dom';
+import { lazy, Suspense, useEffect } from 'react';
+import { Outlet, Route, Routes, useLocation } from 'react-router-dom';
 import { Footer } from './components/Footer';
 import { Header } from './components/Header';
 import { ScrollToTop, RouteAnalytics } from './components/Page';
+import { useI18n } from './i18n-context';
+import { languageFromPath, SW_PATH_PREFIX } from './lib/routes';
 
 const HomePage = lazy(() => import('./pages/HomePage').then((module) => ({ default: module.HomePage })));
 const RoomsPage = lazy(() => import('./pages/RoomsPage').then((module) => ({ default: module.RoomsPage })));
@@ -53,14 +55,33 @@ function SiteLayout() {
   );
 }
 
+/**
+ * Keep the active UI language in step with the URL. This never redirects:
+ * crawlers and direct links always get the language encoded in the path,
+ * even if localStorage holds a different preference.
+ */
+function LanguageFromUrl() {
+  const { pathname } = useLocation();
+  const { language, setLanguage } = useI18n();
+  const pathLanguage = languageFromPath(pathname);
+
+  useEffect(() => {
+    if (language !== pathLanguage) setLanguage(pathLanguage);
+  }, [language, pathLanguage, setLanguage]);
+
+  return null;
+}
+
 export function App() {
   return (
     <>
+      <LanguageFromUrl />
       <ScrollToTop />
       <RouteAnalytics />
       <Suspense fallback={<RouteFallback />}>
         <Routes>
-          <Route element={<SiteLayout />}>
+          {/* English: unprefixed URLs. */}
+          <Route path="/" element={<SiteLayout />}>
             <Route index element={<HomePage />} />
             <Route path="rooms" element={<RoomsPage />} />
             <Route path="booking" element={<BookingPage />} />
@@ -75,7 +96,25 @@ export function App() {
             <Route path="terms" element={<PolicyPage slug="terms" />} />
             <Route path="*" element={<NotFoundPage />} />
           </Route>
-          <Route path="dashboard" element={<DashboardPage />} />
+          <Route path="/dashboard" element={<DashboardPage />} />
+
+          {/* Kiswahili: identical tree under /sw. */}
+          <Route path={SW_PATH_PREFIX} element={<SiteLayout />}>
+            <Route index element={<HomePage />} />
+            <Route path="rooms" element={<RoomsPage />} />
+            <Route path="booking" element={<BookingPage />} />
+            <Route path="booking/manage" element={<BookingManagePage />} />
+            <Route path="facilities" element={<FacilitiesPage />} />
+            <Route path="dining" element={<DiningPage />} />
+            <Route path="conference" element={<ConferencePage />} />
+            <Route path="gym" element={<GymPage />} />
+            <Route path="offers" element={<OffersPage />} />
+            <Route path="contact" element={<ContactPage />} />
+            <Route path="privacy" element={<PolicyPage slug="privacy" />} />
+            <Route path="terms" element={<PolicyPage slug="terms" />} />
+            <Route path="*" element={<NotFoundPage />} />
+          </Route>
+          <Route path={`${SW_PATH_PREFIX}/dashboard`} element={<DashboardPage />} />
         </Routes>
       </Suspense>
     </>

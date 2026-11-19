@@ -1,4 +1,5 @@
 import { brandTemplateVars } from './config/hotel';
+import { languageFromPath } from './lib/routes';
 import type { Language, LanguageChangeDetail } from './types';
 
 const STORAGE_KEY = 'hotel.language';
@@ -1305,9 +1306,13 @@ function readStoredLanguage(): Language | null {
   }
 }
 
+// The URL is the source of truth. A stored preference never triggers a
+// redirect, so crawlers and direct links get the language in the path.
 let currentLanguage: Language =
-  readStoredLanguage() ??
-  (typeof document !== 'undefined' && document.documentElement.lang === 'sw' ? 'sw' : 'en');
+  typeof window !== 'undefined' && typeof window.location !== 'undefined'
+    ? languageFromPath(window.location.pathname)
+    : readStoredLanguage() ??
+      (typeof document !== 'undefined' && document.documentElement.lang === 'sw' ? 'sw' : 'en');
 
 export function getCurrentLanguage(): Language {
   return currentLanguage;
@@ -1409,7 +1414,7 @@ export function initI18n(): void {
 }
 
 export function formatMoney(amount: number): string {
-  return new Intl.NumberFormat('en-KE', {
+  return new Intl.NumberFormat(currentLanguage === 'sw' ? 'sw-KE' : 'en-KE', {
     maximumFractionDigits: 0,
   }).format(amount);
 }

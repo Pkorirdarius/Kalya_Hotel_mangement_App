@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
+import { Link } from '../components/LocalizedLink';
 import { usePageMeta } from '../components/Page';
 import { useI18n } from '../i18n-context';
 import { ROOMS, type RoomType } from '../types';

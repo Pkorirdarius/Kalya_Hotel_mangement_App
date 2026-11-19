@@ -1,5 +1,5 @@
 import { useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from '../components/LocalizedLink';
 import { BookingSearchForm } from '../components/BookingSearchForm';
 import { NewsletterForm } from '../components/NewsletterForm';
 import { usePageMeta } from '../components/Page';

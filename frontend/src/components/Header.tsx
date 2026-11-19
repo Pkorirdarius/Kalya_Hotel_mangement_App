@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
+import { Link } from './LocalizedLink';
 import { HOTEL } from '../config/hotel';
 import { useI18n } from '../i18n-context';
 import type { PageId } from '../types';

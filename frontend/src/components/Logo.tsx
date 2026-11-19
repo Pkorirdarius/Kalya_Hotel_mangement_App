@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link } from './LocalizedLink';
 import { HOTEL } from '../config/hotel';
 import { useI18n } from '../i18n-context';
 

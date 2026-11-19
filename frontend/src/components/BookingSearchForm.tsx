@@ -1,11 +1,11 @@
 import { useState, type FormEvent } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useI18n } from '../i18n-context';
+import { useLocalizedNavigate } from '../lib/localizedRouting';
 import { addDaysISO, nightsBetween, todayISO } from '../utils';
 
 export function BookingSearchForm() {
   const { t } = useI18n();
-  const navigate = useNavigate();
+  const navigate = useLocalizedNavigate();
   const today = todayISO();
   const [checkin, setCheckin] = useState(addDaysISO(today, 7));
   const [checkout, setCheckout] = useState(addDaysISO(addDaysISO(today, 7), 2));

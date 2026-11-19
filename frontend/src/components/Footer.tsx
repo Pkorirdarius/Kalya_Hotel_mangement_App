@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link } from './LocalizedLink';
 import { HOTEL, addressText, mapLink, whatsappHref, type SocialLink } from '../config/hotel';
 import { useI18n } from '../i18n-context';
 import { Logo } from './Logo';
