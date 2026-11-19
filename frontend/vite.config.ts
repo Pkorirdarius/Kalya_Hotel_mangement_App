@@ -1,6 +1,7 @@
 import react from '@vitejs/plugin-react';
 import { defineConfig, type Plugin } from 'vite';
 import { HOTEL } from './src/config/hotel';
+import { buildRobots, buildSitemap } from './src/lib/seo';
 
 /**
  * Injects brand values into index.html at dev/build time so no brand string
@@ -53,36 +54,8 @@ function brandHtml(): Plugin {
  * live domain never has to be hard-coded in public assets.
  */
 function seoFiles(): Plugin {
-  const publicPaths = [
-    '/',
-    '/rooms',
-    '/booking',
-    '/facilities',
-    '/dining',
-    '/conference',
-    '/gym',
-    '/offers',
-    '/contact',
-  ];
-  const sitemap = [
-    '<?xml version="1.0" encoding="UTF-8"?>',
-    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
-    ...publicPaths.map(
-      (path) =>
-        `  <url><loc>${HOTEL.websiteUrl}${path === '/' ? '/' : path}</loc></url>`,
-    ),
-    '</urlset>',
-    '',
-  ].join('\n');
-  const robots = [
-    'User-agent: *',
-    'Allow: /',
-    'Disallow: /dashboard',
-    'Disallow: /booking/manage',
-    '',
-    `Sitemap: ${HOTEL.websiteUrl}/sitemap.xml`,
-    '',
-  ].join('\n');
+  const sitemap = buildSitemap();
+  const robots = buildRobots();
 
   return {
     name: 'seo-files',

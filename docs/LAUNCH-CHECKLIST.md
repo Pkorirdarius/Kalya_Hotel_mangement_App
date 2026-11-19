@@ -91,7 +91,12 @@ form does not collect a language — confirm with the hotel if that is acceptabl
       `hreflang="sw"` and `hreflang="x-default"`; `og:url`/`og:locale` match the
       URL language. Noindex routes have no alternates.
 - [ ] `HOTEL.websiteUrl` is the final domain; `robots.txt` / `sitemap.xml`
-      generated at build point at it.
+      generated at build point at it. The sitemap contains EN and SW URLs with
+      reciprocal hreflang links; robots disallows dashboard and manage-booking
+      in both languages.
+- [ ] Blog posts come from the CMS (`/blog`, `/blog/{slug}`); run
+      `python scripts/refresh_blog_routes.py` with `SITE_API_URL` set after
+      publishing so dynamic post URLs enter the sitemap.
 - [ ] `/sw/…` is served by the SPA fallback (Vercel, Netlify/Cloudflare and
       nginx) and shows translated copy plus translated 404s, not the English
       shell. A stored language preference never redirects a crawler away from

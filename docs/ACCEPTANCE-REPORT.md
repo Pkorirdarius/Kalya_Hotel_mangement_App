@@ -37,6 +37,9 @@ All commands were run from the repository root unless stated. Backend commands r
 | 15 | `npm run check` (after C8) | Typecheck and lint passed; **97 passed** across **23 test files**; `Brand check passed: no hard-coded brand strings in code or tests.` |
 | 16 | `npm run build` (after C8) | Passed. Vite 6.4.5 transformed 224 modules and emitted `dist/index.html`, `dist/robots.txt`, `dist/sitemap.xml` and hashed assets. The built `index.html` contains `en`, `sw` and `x-default` alternate links. |
 | 17 | `Select-String -Pattern hreflang frontend/dist/index.html` | Built HTML contains `<link rel="alternate" hreflang="en" href="https://westpremierhotel.co.ke/" />`, `hreflang="sw" ... /sw/` and `hreflang="x-default"` (inspection artifact for C8). |
+| 18 | `npm run check` (after C9) | Typecheck and lint passed; **105 passed** across **25 test files**; `Brand check passed: no hard-coded brand strings in code or tests.` |
+| 19 | `npm run build` (after C9) | Passed. Vite 6.4.5 transformed 227 modules; `dist/sitemap.xml` grew to 8.86 kB with EN/SW entries and `dist/robots.txt` disallows both `/booking/manage` and `/sw/booking/manage` plus both dashboard paths. |
+| 20 | `Get-Content frontend/dist/robots.txt` / `Get-Content frontend/dist/sitemap.xml` | Inspected artifacts: robots has four `Disallow` lines and the sitemap has reciprocal `xhtml:link` alternates for each language. |
 
 **Not run (therefore unverified):** Docker/Compose staging stack, Playwright browser suite, Lighthouse, `manage.py check --deploy`, live M-Pesa/card/SMTP calls, backup/restore drill. The Postgres-backed suite now runs locally and in CI. Docker Desktop is not running in this environment, so local Postgres proof is currently unavailable; CI is the Postgres proof instead.
 
@@ -116,9 +119,33 @@ is **green** on `d08fdbd` (backend + Postgres + frontend). The shared route
 manifest (`lib/routes.ts`) is in place but the sitemap/robots are not yet
 generated from it — that is C9.
 
+### 1.4 C9 verification — manifest-driven SEO and CMS blog routes
+
+C9 closes the manifest loop. `SITE_ROUTES` now lists every page including
+`/blog` and the dynamic `/blog/:slug`; `App.tsx` generates both language trees
+from it through `ROUTE_COMPONENTS`, so adding a route without a component fails
+`seo.test.ts`. `lib/seo.ts` builds `sitemap.xml` and `robots.txt` from the same
+manifest: indexable routes appear in both languages with reciprocal
+`hreflang="en"`, `hreflang="sw"` and `x-default` links, while private routes are
+`noindex` in the page meta and disallowed in both language variants in robots.
+
+The frontend `/blog` index and `/blog/:slug` post pages render CMS data from
+the existing `usePosts`/`usePost` hooks. They prefer Swahili fields with English
+fallback, keep the draft warning from `needs_confirmation`, and use localized
+dates. `BlogPages.test.tsx` covers index/post rendering, both languages, the
+English fallback and localized links. Concrete post slugs are refreshed from
+`GET /api/v1/content/posts/` with `scripts/refresh_blog_routes.py` into
+`frontend/src/content/blog-routes.json`; the checked-in list is empty until
+real posts are published, and `sitemapPaths(['first-post'])` is tested for
+dynamic expansion.
+
+Verification: `npm run check` (105 tests, 25 files) and `npm run build` passed;
+the built robots and sitemap were inspected. CI link will be recorded after the
+push.
+
 ## 2. Acceptance table
 
-**Status after A1–A3, B4–B6, the pre-C7 anti-spam/throttle item, C7 and C8:** **38 Done**, **6 Partial**, **10 Missing**, **1 Unverified**, **1 Pending** (56 rows). Remaining P0 work is tracked in the Step 2 order below.
+**Status after A1–A3, B4–B6, the pre-C7 anti-spam/throttle item, C7, C8 and C9:** **42 Done**, **5 Partial**, **8 Missing**, **1 Unverified**, **1 Pending** (57 rows). Remaining P0 work is tracked in the Step 2 order below.
 
 ### 2.1 Booking and payments
 
@@ -168,11 +195,12 @@ generated from it — that is C9.
 | EN/SW UI and persisted language choice | **Done** | `frontend/src/i18n.ts` (full dictionary, `localStorage`, `hotel:languagechange`), `LanguageSwitch.tsx`; the switcher now changes the URL as well as the active language. `App.routing.test.tsx`, `LanguageSwitch.test.tsx` and page tests cover both languages and stored preferences. | Native Swahili review remains a hotel blocker. |
 | `/sw/` URL routing on every route | **Done** | `App.tsx` mounts the full route tree unprefixed and again at `/sw`, including `/sw/dashboard`; `LocalizedLink`, `useLocalizedNavigate()` and `localizedPath()` keep internal links in the active language; the translated 404 works at `/sw/*`. Tests: `routes.test.ts`, `LocalizedLink.test.tsx`, `App.routing.test.tsx`. | Per-language sitemap entries are C9. |
 | hreflang and per-language canonical URLs | **Done** | `index.html` seeds `en`/`sw`/`x-default` alternates; `usePageMeta` rewrites the canonical, `og:url`, `og:locale` and alternates per language and removes alternates on noindex routes. `Page.test.tsx` covers EN, SW and noindex; built `dist/index.html` was inspected. | None for C8; prerendering is C10. |
-| Per-language sitemap entries | **Missing** | `vite.config.ts:56-66` still hard-codes 9 paths; generated `dist/sitemap.xml` has 9 English URLs only. | Generate from the shared route manifest, including `/sw/` (C9). |
-| Sitemap/robots cannot drift from the router | **Partial** | `frontend/src/lib/routes.ts` now defines `SITE_ROUTES`, `INDEXABLE_ROUTES`, `PRIVATE_ROUTES` and the language-path helpers, with `routes.test.ts`. The router still duplicates route declarations and `vite.config.ts` still hard-codes its SEO lists. | Wire router, sitemap and robots to the manifest and add the drift test (C9). |
+| Per-language sitemap entries | **Done** | `lib/seo.ts` builds both languages from `INDEXABLE_ROUTES` with reciprocal `hreflang` and `x-default`; `vite.config.ts` consumes it. Built `dist/sitemap.xml` contains EN and SW `<url>` entries for every indexable route. `seo.test.ts` proves coverage. | None for C9; prerender is C10. |
+| Sitemap/robots cannot drift from the router | **Done** | `SITE_ROUTES` is the single source for `App.tsx` (via `ROUTE_COMPONENTS`), `buildSitemap()` and `buildRobots()`. `seo.test.ts` fails if a manifest route has no component, a private route enters the sitemap, or a private path is missing from `robots.txt`. | None. |
 | Unique title/description/OG per page | **Done** | `Page.tsx:6-42`; `usePageMeta` on every page; brand injection and JSON-LD in `vite.config.ts:1-49`. | Prerender the tags for crawlers (Step 2.5). |
 | Prerendered marketing pages | **Missing** | SPA with `vercel.json` rewrite to `index.html`; no SSG/prerender dependency or config. | Add `vite-react-ssg` (or equivalent) for Home, Rooms, Facilities, Dining, Conference, Gym, Offers, Blog index, Contact, Privacy, Terms in EN and SW. |
-| Blog index and post pages | **Missing** | API exists (`content/urls.py:11-12`), but no frontend `/blog` route, page or `useBlog` hook. | Add the routes/pages required for prerendering the blog index. |
+| Blog index and post pages | **Done** | `/blog` and `/blog/:slug` are in the manifest and both language trees. `BlogIndexPage`/`BlogPostPage` use the existing `usePosts`/`usePost` CMS hooks with EN/SW fields, English fallback, draft badges and localized dates. `BlogPages.test.tsx` covers EN, SW, fallback and links; footer links to the journal. | Hotel must publish and review real posts; `scripts/refresh_blog_routes.py` refreshes slugs for the sitemap. |
+| Dashboard and manage-booking stay out of search | **Done** | Both pages call `usePageMeta(..., true)` (`noindex,nofollow`, no hreflang alternates); `buildRobots()` emits `Disallow` for `/dashboard`, `/booking/manage` and their `/sw` variants. `Page.test.tsx` and `seo.test.ts` cover both layers. | This is not access control; staff APIs still enforce roles. |
 | Privacy policy and Terms pages, CMS-editable EN/SW, seeded placeholders | **Done** | New `PolicyPage` model (`content/models.py`), Django admin, public `GET /api/v1/content/policies/<slug>/` (`content/views.py`, `urls.py`); seed creates `/privacy` and `/terms` drafts in EN/SW and sets `privacy_notice_version = 2026-11-draft` (`seed_hotel.py`). Frontend `PolicyPage.tsx` renders CMS text by language, shows a draft badge, and is routed at `/privacy` and `/terms`; footer and the booking consent label link to both. `PolicyPage.test.tsx` covers EN, SW and API failure. Wording is still a draft pending hotel/legal review. | Hotel/legal must approve the wording and clear `needs_confirmation`. |
 | Consent records (what, when, text version) | **Done** | New immutable `ConsentRecord` (`common/models.py`, migration `0005_consentrecord`) stores scope, subject, reference, language, `policy_version`, `policy_url`, optional `text_hash` and `created_at`; read-only in Django admin. `common/consent.py` snapshots the live `HotelSetting` version. Room bookings write `booking_privacy` plus `newsletter` when marketing consent is ticked; newsletter subscribe writes `newsletter`; the frontend newsletter form now calls the API instead of faking success. `test_consent.py` (3 tests) proves the records and the no-consent rejection. | Consent wording/version must be finalised before launch; `text_hash` stays empty until the full policy text is passed to the helper. |
 | Localized dates, numbers and KES | **Done** | `i18n.ts` (`Intl.DateTimeFormat` switches `sw-KE`/`en-GB`; `Intl.NumberFormat` switches `sw-KE`/`en-KE` for numbers, while pages keep the literal `KES ` prefix); `formatClock` in `DashboardPage.tsx:75`. `i18n.formatting.test.ts` covers both locales. | None. |
@@ -249,4 +277,4 @@ guard fields.
 
 ## 5. Next steps (after approval)
 
-C7 (guest language on table/conference records and localized guest messages) and C8 (URL-based `/sw/` routing, localized links, hreflang/canonicals and formatting) are complete. Proceed in this order: C9 route manifest/sitemap/robots, C10 prerender, then motion/accessibility/Lighthouse, Playwright and CSP, then Step 3 staging/operations, Step 4 UAT kit, Step 5 PR + `v0.1.0-rc1` tag. No merge and no production deployment.
+C7 (guest language on table/conference records and localized guest messages), C8 (URL-based `/sw/` routing, localized links, hreflang/canonicals and formatting) and C9 (manifest-driven router/sitemap/robots plus CMS blog routes) are complete. Proceed in this order: C10 prerender, then motion/accessibility/Lighthouse, Playwright and CSP, then Step 3 staging/operations, Step 4 UAT kit, Step 5 PR + `v0.1.0-rc1` tag. No merge and no production deployment.

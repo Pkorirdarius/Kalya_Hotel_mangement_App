@@ -1289,6 +1289,38 @@ const entries: Record<string, Entry> = {
   'toast.dayPass': { en: 'Day pass reserved. Pay at the front desk when you arrive.', sw: 'Pasi ya siku imehifadhiwa. Lipa mapokezi utakapofika.' },
   'toast.requestConfirmed': { en: 'Request confirmed. The guest has been notified.', sw: 'Ombi limethibitishwa. Mgeni amejulishwa.' },
   'toast.requestDeclined': { en: 'Request declined. The guest has been notified.', sw: 'Ombi limekataliwa. Mgeni amejulishwa.' },
+
+  'meta.blog.title': { en: 'Journal — {name}, {town}', sw: 'Jarida — {name}, {town}' },
+  'meta.blog.description': {
+    en: 'Notes, offers and stories from {name} in {town}, written for guests and neighbours.',
+    sw: 'Maelezo, ofa na hadithi kutoka {name} huko {town}, kwa wageni na majirani.',
+  },
+  'meta.blogPost.title': { en: '{title} — {name}', sw: '{title} — {name}' },
+  'meta.blogPost.description': { en: '{excerpt}', sw: '{excerpt}' },
+  'blog.eyebrow': { en: 'From the hotel', sw: 'Kutoka hotelini' },
+  'blog.title': { en: 'The journal', sw: 'Jarida' },
+  'blog.text': {
+    en: 'Small notes from Kapenguria — seasonal menus, local tips and news from the hotel.',
+    sw: 'Maelezo mafupi kutoka Kapenguria — menyu za msimu, ushauri wa eneo na habari za hoteli.',
+  },
+  'blog.readPost': { en: 'Read story', sw: 'Soma hadithi' },
+  'blog.back': { en: 'Back to the journal', sw: 'Rudi kwenye jarida' },
+  'blog.empty': {
+    en: 'No stories have been published yet. Please check back soon.',
+    sw: 'Hakuna hadithi zilizochapishwa bado. Tafadhali angalia tena hivi karibuni.',
+  },
+  'blog.error': {
+    en: 'The journal is temporarily unavailable. Please contact the hotel for the latest stories.',
+    sw: 'Jarida halipatikani kwa sasa. Tafadhali wasiliana na hoteli kwa hadithi za hivi karibuni.',
+  },
+  'blog.notFound': {
+    en: 'That story is not available. Browse the journal instead.',
+    sw: 'Hadithi hiyo haipatikani. Angalia jarida badala yake.',
+  },
+  'blog.draft': {
+    en: 'Draft story — pending marketing review.',
+    sw: 'Hadithi ya rasimu — inasubiri kupitiwa na idara ya masoko.',
+  },
 };
 
 const translations = entries as Record<string, Entry>;

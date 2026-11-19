@@ -18,6 +18,11 @@ describe('route manifest', () => {
       '/booking/manage',
       '/dashboard',
     ]);
+    expect(INDEXABLE_ROUTES.map((route) => route.path)).toContain('/blog');
+    expect(SITE_ROUTES.find((route) => route.id === 'blog-post')).toMatchObject({
+      path: '/blog/:slug',
+      dynamic: true,
+    });
   });
 
   it('maps relative React Router paths', () => {

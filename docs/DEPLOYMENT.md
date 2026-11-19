@@ -169,9 +169,14 @@ language: unprefixed paths are English and `/sw` paths are Kiswahili. A stored
 
 Keep `/dashboard`, `/sw/dashboard`, `/booking/manage` and
 `/sw/booking/manage` out of search results. The pages mark themselves `noindex`
-and `robots.txt` disallows the unprefixed paths (C9 will add the `/sw` variants),
-but do not rely on that as access control — the staff API still requires a
-session and the right role.
+and the generated `robots.txt` disallows all four paths, but do not rely on that
+as access control — the staff API still requires a session and the right role.
+
+The sitemap and robots files are generated from `frontend/src/lib/routes.ts`, so
+adding a page there updates all three. Blog post URLs are dynamic: after
+publishing posts in the CMS, run `python scripts/refresh_blog_routes.py` with
+`SITE_API_URL` pointing at the public API before `npm run build`, so
+`/blog/{slug}` and `/sw/blog/{slug}` are included in the sitemap.
 
 ## 5. Reverse proxy notes
 

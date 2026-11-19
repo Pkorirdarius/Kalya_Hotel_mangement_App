@@ -2,13 +2,32 @@ import type { Language } from '../types';
 
 export const SW_PATH_PREFIX = '/sw';
 
+export type RouteComponentId =
+  | 'home'
+  | 'rooms'
+  | 'booking'
+  | 'manage-booking'
+  | 'facilities'
+  | 'dining'
+  | 'conference'
+  | 'gym'
+  | 'offers'
+  | 'blog'
+  | 'blog-post'
+  | 'contact'
+  | 'privacy'
+  | 'terms'
+  | 'dashboard';
+
 export interface SiteRoute {
   /** Unprefixed path. English uses it directly; Kiswahili adds `/sw`. */
   path: string;
-  /** Stable id used by tests, SEO artifacts and future CMS links. */
-  id: string;
+  /** Stable id used by the router, tests, SEO artifacts and CMS links. */
+  id: RouteComponentId;
   /** Whether crawlers may index this route in either language. */
   indexable: boolean;
+  /** Dynamic routes need a concrete CMS slug before they can enter the sitemap. */
+  dynamic?: boolean;
 }
 
 /**
@@ -25,6 +44,8 @@ export const SITE_ROUTES: readonly SiteRoute[] = [
   { path: '/conference', id: 'conference', indexable: true },
   { path: '/gym', id: 'gym', indexable: true },
   { path: '/offers', id: 'offers', indexable: true },
+  { path: '/blog', id: 'blog', indexable: true },
+  { path: '/blog/:slug', id: 'blog-post', indexable: true, dynamic: true },
   { path: '/contact', id: 'contact', indexable: true },
   { path: '/privacy', id: 'privacy', indexable: true },
   { path: '/terms', id: 'terms', indexable: true },

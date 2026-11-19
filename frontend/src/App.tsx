@@ -4,30 +4,9 @@ import { Footer } from './components/Footer';
 import { Header } from './components/Header';
 import { ScrollToTop, RouteAnalytics } from './components/Page';
 import { useI18n } from './i18n-context';
-import { languageFromPath, SW_PATH_PREFIX } from './lib/routes';
+import { ROUTE_COMPONENTS } from './lib/routeComponents';
+import { SITE_ROUTES, SW_PATH_PREFIX, languageFromPath, relativeRoutePath } from './lib/routes';
 
-const HomePage = lazy(() => import('./pages/HomePage').then((module) => ({ default: module.HomePage })));
-const RoomsPage = lazy(() => import('./pages/RoomsPage').then((module) => ({ default: module.RoomsPage })));
-const BookingPage = lazy(() => import('./pages/BookingPage').then((module) => ({ default: module.BookingPage })));
-const BookingManagePage = lazy(() =>
-  import('./pages/BookingManagePage').then((module) => ({ default: module.BookingManagePage })),
-);
-const FacilitiesPage = lazy(() =>
-  import('./pages/FacilitiesPage').then((module) => ({ default: module.FacilitiesPage })),
-);
-const DiningPage = lazy(() => import('./pages/DiningPage').then((module) => ({ default: module.DiningPage })));
-const ConferencePage = lazy(() =>
-  import('./pages/ConferencePage').then((module) => ({ default: module.ConferencePage })),
-);
-const GymPage = lazy(() => import('./pages/GymPage').then((module) => ({ default: module.GymPage })));
-const OffersPage = lazy(() => import('./pages/OffersPage').then((module) => ({ default: module.OffersPage })));
-const ContactPage = lazy(() => import('./pages/ContactPage').then((module) => ({ default: module.ContactPage })));
-const PolicyPage = lazy(() =>
-  import('./pages/PolicyPage').then((module) => ({ default: module.PolicyPage })),
-);
-const DashboardPage = lazy(() =>
-  import('./pages/DashboardPage').then((module) => ({ default: module.DashboardPage })),
-);
 const NotFoundPage = lazy(() =>
   import('./pages/NotFoundPage').then((module) => ({ default: module.NotFoundPage })),
 );
@@ -53,6 +32,28 @@ function SiteLayout() {
       <Footer />
     </>
   );
+}
+
+/** Page routes are generated from the manifest so the router cannot drift. */
+function sitePageRoutes() {
+  return SITE_ROUTES.filter((route) => route.id !== 'dashboard').map((route) => {
+    const Component = ROUTE_COMPONENTS[route.id];
+    return <Route key={route.id} path={relativeRoutePath(route.path)} element={<Component />} />;
+  });
+}
+
+/** The dashboard stays outside the public site layout, in both languages. */
+function dashboardRoutes(prefix: '' | '/sw') {
+  return SITE_ROUTES.filter((route) => route.id === 'dashboard').map((route) => {
+    const Component = ROUTE_COMPONENTS[route.id];
+    return (
+      <Route
+        key={`${prefix || 'en'}-${route.id}`}
+        path={`${prefix}${route.path}`}
+        element={<Component />}
+      />
+    );
+  });
 }
 
 /**
@@ -82,39 +83,17 @@ export function App() {
         <Routes>
           {/* English: unprefixed URLs. */}
           <Route path="/" element={<SiteLayout />}>
-            <Route index element={<HomePage />} />
-            <Route path="rooms" element={<RoomsPage />} />
-            <Route path="booking" element={<BookingPage />} />
-            <Route path="booking/manage" element={<BookingManagePage />} />
-            <Route path="facilities" element={<FacilitiesPage />} />
-            <Route path="dining" element={<DiningPage />} />
-            <Route path="conference" element={<ConferencePage />} />
-            <Route path="gym" element={<GymPage />} />
-            <Route path="offers" element={<OffersPage />} />
-            <Route path="contact" element={<ContactPage />} />
-            <Route path="privacy" element={<PolicyPage slug="privacy" />} />
-            <Route path="terms" element={<PolicyPage slug="terms" />} />
+            {sitePageRoutes()}
             <Route path="*" element={<NotFoundPage />} />
           </Route>
-          <Route path="/dashboard" element={<DashboardPage />} />
+          {dashboardRoutes('')}
 
           {/* Kiswahili: identical tree under /sw. */}
           <Route path={SW_PATH_PREFIX} element={<SiteLayout />}>
-            <Route index element={<HomePage />} />
-            <Route path="rooms" element={<RoomsPage />} />
-            <Route path="booking" element={<BookingPage />} />
-            <Route path="booking/manage" element={<BookingManagePage />} />
-            <Route path="facilities" element={<FacilitiesPage />} />
-            <Route path="dining" element={<DiningPage />} />
-            <Route path="conference" element={<ConferencePage />} />
-            <Route path="gym" element={<GymPage />} />
-            <Route path="offers" element={<OffersPage />} />
-            <Route path="contact" element={<ContactPage />} />
-            <Route path="privacy" element={<PolicyPage slug="privacy" />} />
-            <Route path="terms" element={<PolicyPage slug="terms" />} />
+            {sitePageRoutes()}
             <Route path="*" element={<NotFoundPage />} />
           </Route>
-          <Route path={`${SW_PATH_PREFIX}/dashboard`} element={<DashboardPage />} />
+          {dashboardRoutes(SW_PATH_PREFIX)}
         </Routes>
       </Suspense>
     </>
