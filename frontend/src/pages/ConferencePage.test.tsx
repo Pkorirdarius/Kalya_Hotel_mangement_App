@@ -5,6 +5,7 @@ import { MemoryRouter } from 'react-router-dom';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { ToastProvider } from '../components/ToastProvider';
+import { setLanguage } from '../i18n';
 import { I18nProvider } from '../i18n-context';
 import { createQueryClient } from '../lib/query/queryClient';
 import { addDaysISO, todayISO } from '../utils';
@@ -109,6 +110,7 @@ async function fillValidForm(user: ReturnType<typeof userEvent.setup>) {
 
 afterEach(() => {
   vi.unstubAllGlobals();
+  setLanguage('en', false);
 });
 
 describe('ConferencePage', () => {
@@ -156,9 +158,31 @@ describe('ConferencePage', () => {
       last_name: 'Otieno',
       email: 'amina@example.com',
       phone: '254712345678',
+      language: 'en',
       website: '',
     });
     expect(typeof createBody.form_started_at).toBe('number');
+  });
+
+  it('sends the active UI language with the enquiry', async () => {
+    setLanguage('sw', false);
+    const fetchMock = mockFetch();
+    vi.stubGlobal('fetch', fetchMock);
+    const user = userEvent.setup();
+    renderConferencePage();
+
+    await user.type(screen.getByLabelText('Jina la mhusika'), 'Amina Otieno');
+    await user.type(screen.getByLabelText('Barua pepe'), 'amina@example.com');
+    await user.type(screen.getByLabelText('Simu'), '0712 345 678');
+    await user.click(screen.getByRole('button', { name: 'Omba ukumbi' }));
+
+    const createCall = fetchMock.mock.calls.find(
+      ([input, init]) =>
+        String(input).includes('/facilities/conference/enquiries/') &&
+        init?.method === 'POST',
+    );
+    const createBody = JSON.parse(String(createCall?.[1]?.body)) as Record<string, unknown>;
+    expect(createBody.language).toBe('sw');
   });
 
   it('blocks a fully booked date and disables the submit button', async () => {

@@ -220,6 +220,7 @@ export function DiningPage() {
         last_name: lastName,
         phone: normaliseKenyanPhone(phone),
         email: email.trim(),
+        language,
         occasion,
         notes: notes.trim(),
         ...guardPayload(),

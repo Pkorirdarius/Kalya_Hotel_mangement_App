@@ -70,11 +70,18 @@ Update all three, then run `npm run check:brand` from `frontend/`.
       `/booking/manage?reference=...` and the lookup succeeds.
 - [ ] Front desk escalation, new booking, payment review and contact-message
       emails reach the right inboxes.
-- [ ] Table and conference guest emails tested.
+- [ ] Table and conference guest emails **and SMS** tested in EN and SW for
+      confirmation, decline and next-day reminders. New submissions carry the
+      active UI language; legacy/unknown values fall back to English.
+- [ ] `send_facility_reminders` is registered by `manage.py setup_schedules`
+      and a dry run sends only tomorrow's confirmed tables/conferences.
+- [ ] Swahili messages reviewed by a native speaker: session/layout labels and
+      numeric dates must not fall back to English choice labels or month names.
 
-**Known limitation:** `TableBooking` and `ConferenceEnquiry` do not store a
-guest language, so those guest messages are English-only. Add a `language`
-field before promising bilingual facility emails.
+**C7 note:** migrations `0003_guest_language` and `0004` add/index the guest
+language and backfill existing rows to `en`; run migrations before enabling the
+reminder schedule. Gym day-pass messages remain English-only because the gym
+form does not collect a language — confirm with the hotel if that is acceptable.
 
 ## 5. Content and SEO
 

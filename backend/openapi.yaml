@@ -1007,6 +1007,21 @@ paths:
               schema:
                 $ref: '#/components/schemas/StaffBooking'
           description: ''
+  /api/v1/staff/common/form-guard/summary/:
+    get:
+      operationId: v1_staff_common_form_guard_summary_retrieve
+      description: Blocked-submission counts so staff can spot guard false positives.
+      tags:
+      - staff
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FormGuardSummary'
+          description: ''
   /api/v1/staff/common/settings/:
     get:
       operationId: v1_staff_common_settings_retrieve
@@ -4044,7 +4059,7 @@ components:
           maxLength: 1000
         language:
           allOf:
-          - $ref: '#/components/schemas/LanguageEnum'
+          - $ref: '#/components/schemas/LanguageF0bEnum'
           default: en
         consent_privacy:
           type: boolean
@@ -4347,6 +4362,8 @@ components:
         phone:
           type: string
           maxLength: 32
+        language:
+          $ref: '#/components/schemas/LanguageCb0Enum'
         notes:
           type: string
         status:
@@ -4424,6 +4441,10 @@ components:
           type: string
           minLength: 1
           maxLength: 32
+        language:
+          allOf:
+          - $ref: '#/components/schemas/LanguageCb0Enum'
+          default: en
         notes:
           type: string
           maxLength: 2000
@@ -4484,6 +4505,8 @@ components:
         phone:
           type: string
           maxLength: 32
+        language:
+          $ref: '#/components/schemas/LanguageCb0Enum'
         notes:
           type: string
         status:
@@ -4582,7 +4605,7 @@ components:
           maxLength: 3000
         language:
           allOf:
-          - $ref: '#/components/schemas/LanguageEnum'
+          - $ref: '#/components/schemas/LanguageF0bEnum'
           default: en
       required:
       - email
@@ -4740,6 +4763,38 @@ components:
           type: integer
       required:
       - escalated
+    FormGuardCount:
+      type: object
+      properties:
+        form:
+          type: string
+        reason:
+          type: string
+        count:
+          type: integer
+      required:
+      - count
+      - form
+      - reason
+    FormGuardSummary:
+      type: object
+      properties:
+        window_days:
+          type: integer
+        since:
+          type: string
+          format: date-time
+        total:
+          type: integer
+        counts:
+          type: array
+          items:
+            $ref: '#/components/schemas/FormGuardCount'
+      required:
+      - counts
+      - since
+      - total
+      - window_days
     GymAvailability:
       type: object
       properties:
@@ -5025,7 +5080,15 @@ components:
       - service
       - status
       - time
-    LanguageEnum:
+    LanguageCb0Enum:
+      enum:
+      - en
+      - sw
+      type: string
+      description: |-
+        * `en` - English
+        * `sw` - Kiswahili
+    LanguageF0bEnum:
       enum:
       - en
       - sw
@@ -5375,7 +5438,7 @@ components:
           default: true
         language:
           allOf:
-          - $ref: '#/components/schemas/LanguageEnum'
+          - $ref: '#/components/schemas/LanguageF0bEnum'
           default: en
         source:
           type: string
@@ -6193,6 +6256,8 @@ components:
           type: string
           minLength: 1
           maxLength: 32
+        language:
+          $ref: '#/components/schemas/LanguageCb0Enum'
         notes:
           type: string
         status:
@@ -6893,6 +6958,8 @@ components:
             maxLength: 254
           - type: string
             maxLength: 0
+        language:
+          $ref: '#/components/schemas/LanguageCb0Enum'
         occasion:
           type: string
           maxLength: 40
@@ -8736,6 +8803,8 @@ components:
             maxLength: 254
           - type: string
             maxLength: 0
+        language:
+          $ref: '#/components/schemas/LanguageCb0Enum'
         occasion:
           type: string
           maxLength: 40
@@ -8810,6 +8879,10 @@ components:
             format: email
           - type: string
             maxLength: 0
+        language:
+          allOf:
+          - $ref: '#/components/schemas/LanguageCb0Enum'
+          default: en
         occasion:
           type: string
           maxLength: 40
@@ -8869,6 +8942,8 @@ components:
             maxLength: 254
           - type: string
             maxLength: 0
+        language:
+          $ref: '#/components/schemas/LanguageCb0Enum'
         occasion:
           type: string
           maxLength: 40

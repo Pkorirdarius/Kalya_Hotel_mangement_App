@@ -1,7 +1,7 @@
 # Acceptance report — `feat/finish-frontend`
 
-**Audit date:** 14 November 2026; report updated 17 November 2026  
-**Branch tip at audit:** `230e6a9`; pre-C7 security work proceeds from `2883310`  
+**Audit date:** 14 November 2026; report updated 19 November 2026  
+**Branch tip at audit:** `230e6a9`; C7 work proceeds from `c5047d2`  
 **Target:** `v0.1.0-rc1` release candidate (no merge, no production deploy)  
 **Scope:** prove the definition of done, close gaps, stage and package the release. No new guest features and no UI redesign.
 
@@ -29,6 +29,11 @@ All commands were run from the repository root unless stated. Backend commands r
 | 7 | `npm run check:brand` | `Brand check passed: no hard-coded brand strings in code or tests.` |
 | 8 | `USE_SQLITE=false ... python -m pytest -q` (Postgres 16 in Docker) | **104 passed** in 22.72s (after B6), including `test_concurrency.py` (8 threads, 1 room, exactly 1 booking). Two Postgres-only defects fixed first: notification `entity_type` truncation and `select_for_update` over nullable joins. The pre-C7 suite is proven on Postgres by CI run [44046794171](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/44046794171). |
 | 9 | `python -m pytest -q apps/common/tests/test_throttles.py apps/accounts/tests/test_role_boundaries.py apps/common/tests/test_seed_users.py` | **19 passed** in 3.43s (B6 security tests plus browse/lookup throttle coverage). |
+| 10 | `..\.venv\Scripts\python.exe -m pytest -q` (after C7) | **156 passed, 1 skipped** in 8.17s. Skip remains `apps/bookings/tests/test_concurrency.py:30 — Row-lock concurrency needs Postgres`. |
+| 11 | `..\.venv\Scripts\python.exe manage.py makemigrations --check --dry-run` | No changes detected after adding `facilities/0004_alter_conferenceenquiry_language_and_more.py`; the earlier `0003_guest_language` used `preserve_default=False`, and `0004` restores the model default in migration state. |
+| 12 | `npm run check` (after C7) | Typecheck and lint passed; **80 passed** across **18 test files**; `Brand check passed: no hard-coded brand strings in code or tests.` |
+| 13 | `npm run build` (after C7) | Passed. Vite 6.4.5 transformed 221 modules and emitted `dist/index.html`, `dist/robots.txt`, `dist/sitemap.xml` and hashed assets. |
+| 14 | `..\.venv\Scripts\python.exe manage.py check` (after C7) | `System check identified no issues (0 silenced).` |
 
 **Not run (therefore unverified):** Docker/Compose staging stack, Playwright browser suite, Lighthouse, `manage.py check --deploy`, live M-Pesa/card/SMTP calls, backup/restore drill. The Postgres-backed suite now runs locally and in CI. Docker Desktop is not running in this environment, so local Postgres proof is currently unavailable; CI is the Postgres proof instead.
 
@@ -45,9 +50,37 @@ The workflow runs on every push to `main` and `feat/**`: backend (Postgres 16 se
 
 **Cause:** the workflow installed only `backend/requirements.txt`, which is the production set and does not include pytest, so `python -m pytest -q` exited 1. `25e500a` adds `backend/requirements-dev.txt` and installs it in CI; the production image still uses `requirements.txt`. The frontend job passed on every run. Run `44046794171` is green on both jobs, including `test_concurrency.py` against Postgres.
 
+### 1.2 C7 verification — guest language for facilities
+
+C7 stores the form language on `TableBooking` and `ConferenceEnquiry`
+(`GUEST_LANGUAGE_CHOICES`, `language` default `en`, indexed; migration
+`0003_guest_language` backfills existing rows to `en`, and `0004` restores the
+model default in migration state). The active UI language is sent by
+`DiningPage`/`ConferencePage`; `frontend/src/pages/DiningPage.test.tsx` and
+`ConferencePage.test.tsx` assert both `en` and `sw` payloads. Unknown values are
+rejected by the API and normalized to `en` by the services; `guest_language()`
+also falls back to `en` for old rows.
+
+Guest messages now use the stored language with an English fallback:
+confirmation, decline and next-day reminders for both tables and conferences
+(email **and** SMS), plus room-booking confirmation/cancellation/reminder.
+Swahili conference messages translate session and layout labels through
+`conference_labels()` instead of Django's English choice labels, and Swahili
+date strings avoid English month/day names. `setup_schedules` registers
+`send_facility_reminders` as a daily job. `backend/apps/notifications/tests/test_facility_emails.py`
+covers EN, SW, invalid-language fallback, both statuses, SMS capture and the
+reminder job; `test_booking_emails.py` covers localized booking dates.
+
+Generated artifacts are committed too: `backend/openapi.yaml` (including the
+previously missing `FormGuardEvent`/form-guard summary schemas) and
+`frontend/src/lib/api-schema.d.ts` were regenerated with `manage.py spectacular`
+and `npm run api:types`.
+
+CI for C7: **link to be added after the push**.
+
 ## 2. Acceptance table
 
-**Status after A1–A3, B4–B6 and the pre-C7 anti-spam/throttle item:** **35 Done**, **6 Partial**, **13 Missing**, **1 Unverified**, **1 Pending** (56 rows). Remaining P0 work is tracked in the Step 2 order below.
+**Status after A1–A3, B4–B6, the pre-C7 anti-spam/throttle item and C7:** **36 Done**, **5 Partial**, **13 Missing**, **1 Unverified**, **1 Pending** (56 rows). Remaining P0 work is tracked in the Step 2 order below.
 
 ### 2.1 Booking and payments
 
@@ -86,8 +119,8 @@ The workflow runs on every push to `main` and `feat/**`: backend (Postgres 16 se
 | Undo (with closing window) | **Done** | `frontdesk/services.py:230-293`; `hooks.ts:379`; `test_frontdesk_api.py::test_booking_confirm_marks_bank_transfer_paid_and_undo_reverses`, `::test_undo_is_rejected_after_the_window_closes`. | None. |
 | Activity log | **Done** | `frontdesk/services.py:364-389`; `test_frontdesk_api.py::test_activity_returns_recent_actions`; rendered in `DashboardPage.tsx`. | None. |
 | 8-minute escalation | **Done** (code/test) | `HotelSetting.frontdesk_escalate_minutes` default 8 (`common/models.py:73`); `frontdesk/services.py:395-464`; `test_frontdesk_api.py::test_escalation_alerts_manager_once_for_overdue_items`; schedule in `common/management/commands/setup_schedules.py:30`. | The scheduled job was not run end to end; verify in staging (Step 3). |
-| Booking confirmation/cancellation/reminder notifications | **Done** | `notifications/services.py:111-193`, `reminders.py`; `test_booking_emails.py::test_booking_confirmation_email_includes_manage_link`; EN/SW templates. | Live SMTP test pending. |
-| Table/conference guest notifications | **Partial** | `notifications/services.py:216-261` explicitly documents English-only because `TableBooking`/`ConferenceEnquiry` have no language field; tests `test_facility_emails.py`. | Add `language` fields, migration, templates and tests (Step 2.3). |
+| Booking confirmation/cancellation/reminder notifications | **Done** | `notifications/services.py`, `reminders.py`; `test_booking_emails.py::test_booking_confirmation_email_includes_manage_link` and `test_facility_emails.py::test_booking_cancellation_uses_the_stored_language`; EN/SW templates. C7 also replaced English month/day names in the Swahili templates/SMS with numeric dates and uses the Swahili room name when available. | Live SMTP test pending. |
+| Table/conference guest notifications | **Done** | `GUEST_LANGUAGE_CHOICES` and indexed `language` fields on `TableBooking`/`ConferenceEnquiry` (`facilities/models.py`), migrations `0003_guest_language` (explicit `en` backfill) and `0004`, create serializers/services/views, and admin filters. EN/SW confirmation, decline and reminder email/SMS templates in `backend/templates/emails`; `notifications/services.py` (`guest_language`, `conference_labels`, `notify_table_booking`, `notify_table_booking_reminder`, `notify_conference_enquiry`, `notify_conference_enquiry_reminder`) and `reminders.py::send_facility_reminders`, registered daily in `setup_schedules.py`. Tests: `facilities/tests/test_table_booking_venue.py`, `test_conference_language.py`, `notifications/tests/test_facility_emails.py` (EN, SW, fallback, confirmation/decline/reminder, SMS) plus frontend payload assertions in `DiningPage.test.tsx`/`ConferencePage.test.tsx`. | Native Swahili review and live SMTP/SMS delivery remain launch blockers; gym day-pass messages remain English-only because no gym language is collected. |
 | Exports (payments, occupancy, HotelPlus) | **Done** | `integrations/views.py:87-271`; `test_reports.py` (10 tests); role gate `CanExportGuestData` (`accounts/permissions.py:49-50`). | Confirm the accounting format with finance in UAT. |
 
 ### 2.4 Language, SEO and content
@@ -139,8 +172,8 @@ may not claim a persisted outcome without a successful API call.
 | --- | --- | --- |
 | `NewsletterForm` | `POST /marketing/newsletter/` | Calls the API; guard fields added; API failure shows the server message. |
 | `ContactPage` message | `POST /marketing/contact/` | **Fixed:** previously waited 800 ms and faked success. Now calls the API, shows the returned `CM-…` reference, and shows an error without clearing the form on failure. `ContactPage.test.tsx` covers both paths. |
-| `DiningPage` table request | `POST /facilities/restaurant/bookings/` | Calls the API, shows the returned `TB-…` reference; coffee shop has no form. |
-| `ConferencePage` enquiry | `POST /facilities/conference/enquiries/` | Calls the API; shows the returned reference and API field errors. |
+| `DiningPage` table request | `POST /facilities/restaurant/bookings/` | Calls the API, shows the returned `TB-…` reference; coffee shop has no form. `DiningPage.test.tsx` asserts the active UI `language` (`en`/`sw`) is sent. |
+| `ConferencePage` enquiry | `POST /facilities/conference/enquiries/` | Calls the API; shows the returned reference and API field errors. `ConferencePage.test.tsx` asserts the active UI `language` (`en`/`sw`) is sent. |
 | `GymPage` day pass | `POST /facilities/gym/day-passes/` | Calls the API; shows the returned reference and API field errors. |
 | `BookingPage` room booking | `POST /bookings/`, `/bookings/quote/`, `/payments/…` | Calls the API for quote, booking and payment. The “simulate payment” control calls the sandbox completion endpoint and is rendered only in sandbox mode; production flags force it off. |
 | `BookingManagePage` lookup | `GET /bookings/<ref>/?email|phone` | Calls the API; guard fields added to the query. Shows not-found generically. |
@@ -163,8 +196,7 @@ guard fields.
 2. No prerendering, no blog index.
 3. No CSP, axe tests, reduced-motion test or Lighthouse evidence.
 4. No Playwright, staging stack, backup/restore, monitoring or content-confirmation page.
-5. Missing table/conference guest language fields.
-6. No UAT script, changelog, PR or tag.
+5. No UAT script, changelog, PR or tag.
 
 ## 4. Hotel decisions that remain unresolved (not decided by engineering)
 
@@ -179,4 +211,4 @@ guard fields.
 
 ## 5. Next steps (after approval)
 
-Proceed in this order: Step 2.1–2.11 (privacy/terms + consent, gym price, language fields + `/sw/`, route manifest/sitemap, prerender, CSP, accessibility/motion/Lighthouse, Postgres/Playwright/CI, security tests), then Step 3 staging/operations, Step 4 UAT kit, Step 5 PR + `v0.1.0-rc1` tag. No merge and no production deployment.
+C7 (guest language on table/conference records and localized guest messages) is complete. Proceed in this order: C8 `/sw/` routing, C9 route manifest/sitemap/robots, C10 prerender, then motion/accessibility/Lighthouse, Playwright and CSP, then Step 3 staging/operations, Step 4 UAT kit, Step 5 PR + `v0.1.0-rc1` tag. No merge and no production deployment.

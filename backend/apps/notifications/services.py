@@ -92,6 +92,32 @@ def guest_language(value: str | None) -> str:
     return value if value in ("en", "sw") else "en"
 
 
+CONFERENCE_SESSION_SW = {
+    "breakfast": "Mkutano wa kifungua kinywa",
+    "half_day": "Nusu siku",
+    "full_day": "Siku nzima",
+}
+CONFERENCE_LAYOUT_SW = {
+    "classroom": "Darasa",
+    "boardroom": "Bodi",
+    "ushape": "Umbo la U",
+    "theatre": "Ukumbi",
+}
+
+
+def conference_labels(enquiry, language: str) -> tuple[str, str]:
+    """Return session/layout labels in the guest's language."""
+
+    session = enquiry.get_session_display()
+    layout = enquiry.get_layout_display()
+    if language != "sw":
+        return session, layout
+    return (
+        CONFERENCE_SESSION_SW.get(enquiry.session, session),
+        CONFERENCE_LAYOUT_SW.get(enquiry.layout, layout),
+    )
+
+
 def notify_new_paid_booking(booking) -> None:
     """Tell the front desk a paid room booking needs review."""
 
@@ -149,7 +175,7 @@ def notify_booking_confirmed(booking, language: str | None = None) -> None:
             f"Check-in {booking.checkin:%d %b %Y}."
             if language == "en"
             else f"{hotel_name}: nafasi {booking.reference} imethibitishwa. "
-            f"Kuingia {booking.checkin:%d %b %Y}."
+            f"Kuingia {booking.checkin:%d/%m/%Y}."
         )
         send_sms(
             kind="booking_confirmation",
@@ -305,11 +331,14 @@ def notify_conference_enquiry(enquiry) -> None:
 
     language = guest_language(enquiry.language)
     confirmed = enquiry.status == "confirmed"
+    session_label, layout_label = conference_labels(enquiry, language)
     context = {
         **_public_context(),
         "enquiry": enquiry,
         "confirmed": confirmed,
         "language": language,
+        "session_label": session_label,
+        "layout_label": layout_label,
     }
     subjects = {
         "en": (
@@ -336,13 +365,13 @@ def notify_conference_enquiry(enquiry) -> None:
         message = (
             f"{hotel_display_name()}: conference request {enquiry.reference} "
             f"{'confirmed' if confirmed else 'could not be confirmed'} for "
-            f"{enquiry.date:%d %b %Y} ({enquiry.get_session_display()})."
+            f"{enquiry.date:%d %b %Y} ({session_label})."
         )
     else:
         message = (
             f"{hotel_display_name()}: ombi la mkutano {enquiry.reference} "
             f"{'limethibitishwa' if confirmed else 'halikuweza kuthibitishwa'} "
-            f"tarehe {enquiry.date:%d/%m/%Y} ({enquiry.get_session_display()})."
+            f"tarehe {enquiry.date:%d/%m/%Y} ({session_label})."
         )
     send_sms(
         kind="conference_enquiry",
@@ -356,7 +385,14 @@ def notify_conference_enquiry_reminder(enquiry) -> None:
     """Remind an enquirer about an upcoming confirmed conference session."""
 
     language = guest_language(enquiry.language)
-    context = {**_public_context(), "enquiry": enquiry, "language": language}
+    session_label, layout_label = conference_labels(enquiry, language)
+    context = {
+        **_public_context(),
+        "enquiry": enquiry,
+        "language": language,
+        "session_label": session_label,
+        "layout_label": layout_label,
+    }
     send_email(
         kind="conference_enquiry_reminder",
         subject=(
@@ -371,10 +407,10 @@ def notify_conference_enquiry_reminder(enquiry) -> None:
     )
     message = (
         f"{hotel_display_name()}: reminder for conference {enquiry.reference} "
-        f"on {enquiry.date:%d %b %Y} ({enquiry.get_session_display()})."
+        f"on {enquiry.date:%d %b %Y} ({session_label})."
         if language == "en"
         else f"{hotel_display_name()}: kumbusho la mkutano {enquiry.reference} "
-        f"tarehe {enquiry.date:%d/%m/%Y} ({enquiry.get_session_display()})."
+        f"tarehe {enquiry.date:%d/%m/%Y} ({session_label})."
     )
     send_sms(
         kind="conference_enquiry_reminder",

@@ -26,3 +26,8 @@ def test_booking_confirmation_email_includes_manage_link(
 
     assert len(mail.outbox) == 1
     assert f"/booking/manage?reference={reference}" in mail.outbox[0].body
+    if language == "sw":
+        assert "Kuingia" in mail.outbox[0].body
+        assert booking.checkin.strftime("%b") not in mail.outbox[0].body
+    else:
+        assert booking.checkin.strftime("%b") in mail.outbox[0].body

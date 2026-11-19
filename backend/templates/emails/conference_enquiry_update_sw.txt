@@ -3,10 +3,10 @@ Habari {{ enquiry.guest_name }},
 {% if confirmed %}Ombi lako la mkutano limethibitishwa.{% else %}Samahani, hatukuweza kuthibitisha ombi hili la mkutano.{% endif %}
 
 Kumbukumbu: {{ enquiry.reference }}
-Tarehe: {{ enquiry.date|date:"D, j M Y" }}
-Kipindi: {{ enquiry.get_session_display }}
+Tarehe: {{ enquiry.date|date:"j/n/Y" }}
+Kipindi: {{ session_label }}
 Wageni: {{ enquiry.people }}
-Mpangilio: {{ enquiry.get_layout_display }}
+Mpangilio: {{ layout_label }}
 {% if enquiry.company %}Kampuni: {{ enquiry.company }}
 {% endif %}{% if enquiry.notes %}Maombi: {{ enquiry.notes }}
 {% endif %}

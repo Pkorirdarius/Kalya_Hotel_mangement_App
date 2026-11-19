@@ -4,9 +4,9 @@ A reminder that your conference session is tomorrow.
 
 Reference: {{ enquiry.reference }}
 Date: {{ enquiry.date|date:"D, j M Y" }}
-Session: {{ enquiry.get_session_display }}
+Session: {{ session_label }}
 Guests: {{ enquiry.people }}
-Layout: {{ enquiry.get_layout_display }}
+Layout: {{ layout_label }}
 
 Our events team will contact you with final arrival details. Call {{ hotel.phone }} if your plans change.
 

@@ -193,6 +193,7 @@ export function ConferencePage() {
         company: company.trim(),
         email: email.trim(),
         phone: normaliseKenyanPhone(phone),
+        language,
         notes: notes.trim(),
         ...guardPayload(),
       });

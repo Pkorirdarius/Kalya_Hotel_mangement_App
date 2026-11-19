@@ -100,10 +100,12 @@ def test_table_confirmation_and_decline_are_swahili_when_requested(
 
     notify_table_booking(table)
 
-    assert "Meza" in mail.outbox[0].subject
+    assert "meza" in mail.outbox[0].subject.lower()
     assert "Habari Grace" in mail.outbox[0].body
     assert expected in sms[0]["message"]
-    assert expected in mail.outbox[0].body
+    assert (
+        "imethibitishwa" if status == TableBooking.Status.CONFIRMED else "kuthibitisha"
+    ) in mail.outbox[0].body
 
 
 def test_table_language_falls_back_to_english(hotel):
@@ -149,7 +151,14 @@ def test_conference_confirmation_and_decline_are_swahili_when_requested(
     assert "mkutano" in mail.outbox[0].subject.lower()
     assert "Habari Peter" in mail.outbox[0].body
     assert expected in sms[0]["message"]
-    assert expected in mail.outbox[0].body
+    assert (
+        "limethibitishwa" if status == ConferenceEnquiry.Status.CONFIRMED else "kuthibitisha"
+    ) in mail.outbox[0].body
+    assert "Nusu siku" in mail.outbox[0].body
+    assert "Bodi" in mail.outbox[0].body
+    assert "Nusu siku" in sms[0]["message"]
+    assert "Half day" not in mail.outbox[0].body
+    assert "Boardroom" not in mail.outbox[0].body
 
 
 def test_conference_language_falls_back_to_english(hotel):
@@ -174,9 +183,16 @@ def test_facility_reminders_use_the_stored_language(hotel, monkeypatch, language
     if language == "sw":
         assert all("Habari" in message.body for message in mail.outbox)
         assert all("kumbusho" in item["message"].lower() for item in sms)
+        assert "Nusu siku" in mail.outbox[1].body
+        assert "Bodi" in mail.outbox[1].body
+        assert "Nusu siku" in sms[1]["message"]
+        assert "Half day" not in mail.outbox[1].body
+        assert "Boardroom" not in mail.outbox[1].body
     else:
         assert all("reminder" in message.body.lower() for message in mail.outbox)
         assert all("reminder" in item["message"].lower() for item in sms)
+        assert "Half day" in mail.outbox[1].body
+        assert "Boardroom" in mail.outbox[1].body
     assert {item["entity"].pk for item in sms} == {table.pk, enquiry.pk}
 
 

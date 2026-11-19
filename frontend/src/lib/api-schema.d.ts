@@ -702,6 +702,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/staff/common/form-guard/summary/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Blocked-submission counts so staff can spot guard false positives. */
+        get: operations["v1_staff_common_form_guard_summary_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/staff/common/settings/": {
         parameters: {
             query?: never;
@@ -1507,7 +1524,7 @@ export interface components {
             country?: string;
             notes?: string;
             /** @default en */
-            language: components["schemas"]["LanguageEnum"];
+            language: components["schemas"]["LanguageF0bEnum"];
             consent_privacy: boolean;
             /** @default false */
             marketing_consent: boolean;
@@ -1619,6 +1636,7 @@ export interface components {
             /** Format: email */
             email: string;
             phone: string;
+            language?: components["schemas"]["LanguageCb0Enum"];
             notes?: string;
             status?: components["schemas"]["StatusC66Enum"];
             status_display: string;
@@ -1647,6 +1665,8 @@ export interface components {
             /** Format: email */
             email: string;
             phone: string;
+            /** @default en */
+            language: components["schemas"]["LanguageCb0Enum"];
             notes?: string;
         };
         ConferenceEnquiryCreateResponse: {
@@ -1670,6 +1690,7 @@ export interface components {
             /** Format: email */
             email: string;
             phone: string;
+            language?: components["schemas"]["LanguageCb0Enum"];
             notes?: string;
             status?: components["schemas"]["StatusC66Enum"];
             status_display: string;
@@ -1707,7 +1728,7 @@ export interface components {
             topic?: string;
             message: string;
             /** @default en */
-            language: components["schemas"]["LanguageEnum"];
+            language: components["schemas"]["LanguageF0bEnum"];
         };
         ContactMessageEnvelope: {
             message: components["schemas"]["ContactMessage"];
@@ -1774,6 +1795,18 @@ export interface components {
         EntityTypeEnum: "booking" | "table_booking" | "conference_enquiry" | "gym_pass";
         EscalateResponse: {
             escalated: number;
+        };
+        FormGuardCount: {
+            form: string;
+            reason: string;
+            count: number;
+        };
+        FormGuardSummary: {
+            window_days: number;
+            /** Format: date-time */
+            since: string;
+            total: number;
+            counts: components["schemas"]["FormGuardCount"][];
         };
         GymAvailability: {
             /** Format: date */
@@ -1878,11 +1911,17 @@ export interface components {
             time: string;
         };
         /**
+         * @description * `en` - English
+         *     * `sw` - Kiswahili
+         * @enum {string}
+         */
+        LanguageCb0Enum: "en" | "sw";
+        /**
          * @description * `en` - en
          *     * `sw` - sw
          * @enum {string}
          */
-        LanguageEnum: "en" | "sw";
+        LanguageF0bEnum: "en" | "sw";
         /**
          * @description * `classroom` - Classroom
          *     * `boardroom` - Boardroom
@@ -2013,7 +2052,7 @@ export interface components {
             /** @default true */
             consent: boolean;
             /** @default en */
-            language: components["schemas"]["LanguageEnum"];
+            language: components["schemas"]["LanguageF0bEnum"];
             source?: string;
         };
         NewsletterSubscribeResponse: {
@@ -2436,6 +2475,7 @@ export interface components {
             /** Format: email */
             email?: string;
             phone?: string;
+            language?: components["schemas"]["LanguageCb0Enum"];
             notes?: string;
             status?: components["schemas"]["StatusC66Enum"];
             status_display?: string;
@@ -2718,6 +2758,7 @@ export interface components {
             last_name?: string;
             phone?: string;
             email?: string;
+            language?: components["schemas"]["LanguageCb0Enum"];
             occasion?: string;
             notes?: string;
             status?: components["schemas"]["StatusC66Enum"];
@@ -3455,6 +3496,7 @@ export interface components {
             last_name: string;
             phone: string;
             email?: string;
+            language?: components["schemas"]["LanguageCb0Enum"];
             occasion?: string;
             notes?: string;
             status?: components["schemas"]["StatusC66Enum"];
@@ -3482,6 +3524,8 @@ export interface components {
             last_name: string;
             phone: string;
             email?: string;
+            /** @default en */
+            language: components["schemas"]["LanguageCb0Enum"];
             occasion?: string;
             notes?: string;
         };
@@ -3503,6 +3547,7 @@ export interface components {
             last_name: string;
             phone: string;
             email?: string;
+            language?: components["schemas"]["LanguageCb0Enum"];
             occasion?: string;
             notes?: string;
             status?: components["schemas"]["StatusC66Enum"];
@@ -4539,6 +4584,25 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["StaffBooking"];
+                };
+            };
+        };
+    };
+    v1_staff_common_form_guard_summary_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FormGuardSummary"];
                 };
             };
         };
