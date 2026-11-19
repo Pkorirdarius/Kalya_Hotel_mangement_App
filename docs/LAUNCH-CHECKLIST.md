@@ -87,8 +87,15 @@ form does not collect a language — confirm with the hotel if that is acceptabl
 
 - [ ] Every page has a unique title and description; dashboard and manage pages
       are `noindex` (verified in `frontend/src/components/Page.tsx`).
+- [ ] Each public page has a language-correct canonical plus `hreflang="en"`,
+      `hreflang="sw"` and `hreflang="x-default"`; `og:url`/`og:locale` match the
+      URL language. Noindex routes have no alternates.
 - [ ] `HOTEL.websiteUrl` is the final domain; `robots.txt` / `sitemap.xml`
       generated at build point at it.
+- [ ] `/sw/…` is served by the SPA fallback (Vercel, Netlify/Cloudflare and
+      nginx) and shows translated copy plus translated 404s, not the English
+      shell. A stored language preference never redirects a crawler away from
+      the requested URL.
 - [ ] JSON-LD `Hotel` block contains the confirmed address and phone.
 - [ ] OG/Twitter cards preview correctly (use a link debugger after deploy).
 - [ ] 404 page, favicon, sharing image and theme colour checked.
@@ -107,6 +114,13 @@ form does not collect a language — confirm with the hotel if that is acceptabl
 - [ ] Confirm consent records are being written for bookings, booking marketing
       opt-ins and newsletter signups, and that the retention period matches the
       hotel's policy.
+
+**C8 note:** the URL now determines the active language. English is unprefixed;
+Kiswahili is under `/sw`, including `/sw/dashboard`. The EN/SW switch preserves
+the current path, query and hash but changes the prefix. LocalStorage is still
+written for convenience, but a stored language never redirects a direct visit
+or a crawler. KES amounts keep the `KES ` prefix and use `sw-KE` number
+formatting in Kiswahili; dates use `sw-KE`/`en-GB`.
 
 ## 6. Accessibility and QA
 

@@ -154,15 +154,24 @@ emits `dist/robots.txt` and `dist/sitemap.xml` from `HOTEL.websiteUrl`, and
 injects the `Hotel` JSON-LD block and OG/Twitter tags into `dist/index.html`.
 
 Serve `frontend/dist` over HTTPS. Because the app uses `BrowserRouter`, unknown
-routes must fall back to `index.html`:
+routes must fall back to `index.html`. This must include the whole Kiswahili
+tree: `/sw`, `/sw/rooms`, `/sw/booking/manage`, `/sw/dashboard` and any other
+`/sw/*` path.
 
-- Netlify / Cloudflare Pages: `frontend/public/_redirects` (copied into the build).
-- Vercel: `frontend/vercel.json`.
+- Netlify / Cloudflare Pages: `frontend/public/_redirects` (`/* /index.html 200`,
+  copied into the build) already covers `/sw/*`.
+- Vercel: `frontend/vercel.json` (`/(.*) → /index.html`) already covers `/sw/*`.
 - nginx: `try_files $uri $uri/ /index.html;`.
 
-Keep `/dashboard` and `/booking/manage` out of search results. The pages mark
-themselves `noindex` and `robots.txt` disallows them, but do not rely on that as
-access control — the staff API still requires a session and the right role.
+Do not add a language redirect at the edge. The URL determines the active
+language: unprefixed paths are English and `/sw` paths are Kiswahili. A stored
+`hotel.language` preference must never redirect a crawler or direct visitor.
+
+Keep `/dashboard`, `/sw/dashboard`, `/booking/manage` and
+`/sw/booking/manage` out of search results. The pages mark themselves `noindex`
+and `robots.txt` disallows the unprefixed paths (C9 will add the `/sw` variants),
+but do not rely on that as access control — the staff API still requires a
+session and the right role.
 
 ## 5. Reverse proxy notes
 

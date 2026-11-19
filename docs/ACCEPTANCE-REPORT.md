@@ -34,6 +34,9 @@ All commands were run from the repository root unless stated. Backend commands r
 | 12 | `npm run check` (after C7) | Typecheck and lint passed; **80 passed** across **18 test files**; `Brand check passed: no hard-coded brand strings in code or tests.` |
 | 13 | `npm run build` (after C7) | Passed. Vite 6.4.5 transformed 221 modules and emitted `dist/index.html`, `dist/robots.txt`, `dist/sitemap.xml` and hashed assets. |
 | 14 | `..\.venv\Scripts\python.exe manage.py check` (after C7) | `System check identified no issues (0 silenced).` |
+| 15 | `npm run check` (after C8) | Typecheck and lint passed; **97 passed** across **23 test files**; `Brand check passed: no hard-coded brand strings in code or tests.` |
+| 16 | `npm run build` (after C8) | Passed. Vite 6.4.5 transformed 224 modules and emitted `dist/index.html`, `dist/robots.txt`, `dist/sitemap.xml` and hashed assets. The built `index.html` contains `en`, `sw` and `x-default` alternate links. |
+| 17 | `Select-String -Pattern hreflang frontend/dist/index.html` | Built HTML contains `<link rel="alternate" hreflang="en" href="https://westpremierhotel.co.ke/" />`, `hreflang="sw" ... /sw/` and `hreflang="x-default"` (inspection artifact for C8). |
 
 **Not run (therefore unverified):** Docker/Compose staging stack, Playwright browser suite, Lighthouse, `manage.py check --deploy`, live M-Pesa/card/SMTP calls, backup/restore drill. The Postgres-backed suite now runs locally and in CI. Docker Desktop is not running in this environment, so local Postgres proof is currently unavailable; CI is the Postgres proof instead.
 
@@ -80,9 +83,39 @@ and `npm run api:types`.
 
 CI for C7: [run 44588274783](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/44588274783) is **green** on `be29347` (backend + Postgres + frontend). The earlier [run 44587238492](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/44587238492) exposed a Postgres-only test bug: the fallback test used `"unknown"` in a `varchar(2)` column. It now uses `"fr"`, which is two characters and still unsupported.
 
+### 1.3 C8 verification — URL-based language routing
+
+C8 makes the URL the source of truth. Unprefixed paths are English; the same
+route tree is mounted at `/sw` for Kiswahili, including `/sw/dashboard`. The
+language switcher navigates to the equivalent path and preserves the query
+string and hash. A persisted `hotel.language` value is still written for
+non-URL contexts, but it never causes a redirect: direct links and crawlers
+always get the language encoded in the path. `App.routing.test.tsx` proves that
+a stored `sw` preference does not change an unprefixed URL and a stored `en`
+preference does not change a `/sw/*` URL.
+
+All internal `Link` imports now alias `components/LocalizedLink`, which adds or
+removes the `/sw` prefix through the shared helpers in `lib/routes.ts`;
+`BookingSearchForm` uses `useLocalizedNavigate()`. `Header` strips the prefix
+before computing the active nav item, and the 404 page is reachable and
+translated at `/sw/*`.
+
+`usePageMeta` now writes a per-language canonical, `og:url`, `og:locale`,
+`og:locale:alternate` and `rel="alternate"` links for `en`, `sw` and
+`x-default`; private/noindex routes remove the alternates. `index.html` and the
+built `dist/index.html` also seed those tags for non-JS crawlers.
+`Page.test.tsx` covers both languages and the noindex case. `formatMoney()`
+now uses `sw-KE` when the active language is Swahili, while `formatDate()`
+continues to use `sw-KE`/`en-GB`; `i18n.formatting.test.ts` covers both.
+
+Verification: `npm run check` (97 tests, 23 files) and `npm run build` both
+passed locally; the built HTML was inspected for the alternate tags. The shared
+route manifest (`lib/routes.ts`) is in place but the sitemap/robots are not yet
+generated from it — that is C9.
+
 ## 2. Acceptance table
 
-**Status after A1–A3, B4–B6, the pre-C7 anti-spam/throttle item and C7:** **36 Done**, **5 Partial**, **13 Missing**, **1 Unverified**, **1 Pending** (56 rows). Remaining P0 work is tracked in the Step 2 order below.
+**Status after A1–A3, B4–B6, the pre-C7 anti-spam/throttle item, C7 and C8:** **38 Done**, **6 Partial**, **10 Missing**, **1 Unverified**, **1 Pending** (56 rows). Remaining P0 work is tracked in the Step 2 order below.
 
 ### 2.1 Booking and payments
 
@@ -129,17 +162,17 @@ CI for C7: [run 44588274783](https://github.com/Pkorirdarius/Kalya_Hotel_mangeme
 
 | Requirement | Status | Evidence | Action |
 | --- | --- | --- | --- |
-| EN/SW UI and persisted language choice | **Done** | `frontend/src/i18n.ts` (full dictionary, `localStorage`, `hotel:languagechange`), `LanguageSwitch.tsx`; tests in `Page.test.tsx` / page tests. | Native Swahili review remains a hotel blocker. |
-| `/sw/` URL routing on every route | **Missing** | `App.tsx:59-74` has one route table with no language prefix; language is client-side state only. No `/sw/` entry in `dist/sitemap.xml`. | Add URL-based language routing and a shared route manifest (Step 2.3–2.4). |
-| hreflang and per-language canonical URLs | **Missing** | `index.html:13-17` has one canonical; `components/Page.tsx:32-35` rewrites the same canonical; no `rel="alternate"` tags. | Generate canonical + `hreflang` for each route/language. |
-| Per-language sitemap entries | **Missing** | `vite.config.ts:56-66` hard-codes 9 paths; generated `dist/sitemap.xml` has 9 English URLs only. | Generate from the shared route manifest, including `/sw/`. |
-| Sitemap/robots cannot drift from the router | **Missing** | Router list and sitemap list are maintained separately (`App.tsx` vs `vite.config.ts`); no test. | One shared manifest consumed by router, sitemap and tests. |
+| EN/SW UI and persisted language choice | **Done** | `frontend/src/i18n.ts` (full dictionary, `localStorage`, `hotel:languagechange`), `LanguageSwitch.tsx`; the switcher now changes the URL as well as the active language. `App.routing.test.tsx`, `LanguageSwitch.test.tsx` and page tests cover both languages and stored preferences. | Native Swahili review remains a hotel blocker. |
+| `/sw/` URL routing on every route | **Done** | `App.tsx` mounts the full route tree unprefixed and again at `/sw`, including `/sw/dashboard`; `LocalizedLink`, `useLocalizedNavigate()` and `localizedPath()` keep internal links in the active language; the translated 404 works at `/sw/*`. Tests: `routes.test.ts`, `LocalizedLink.test.tsx`, `App.routing.test.tsx`. | Per-language sitemap entries are C9. |
+| hreflang and per-language canonical URLs | **Done** | `index.html` seeds `en`/`sw`/`x-default` alternates; `usePageMeta` rewrites the canonical, `og:url`, `og:locale` and alternates per language and removes alternates on noindex routes. `Page.test.tsx` covers EN, SW and noindex; built `dist/index.html` was inspected. | None for C8; prerendering is C10. |
+| Per-language sitemap entries | **Missing** | `vite.config.ts:56-66` still hard-codes 9 paths; generated `dist/sitemap.xml` has 9 English URLs only. | Generate from the shared route manifest, including `/sw/` (C9). |
+| Sitemap/robots cannot drift from the router | **Partial** | `frontend/src/lib/routes.ts` now defines `SITE_ROUTES`, `INDEXABLE_ROUTES`, `PRIVATE_ROUTES` and the language-path helpers, with `routes.test.ts`. The router still duplicates route declarations and `vite.config.ts` still hard-codes its SEO lists. | Wire router, sitemap and robots to the manifest and add the drift test (C9). |
 | Unique title/description/OG per page | **Done** | `Page.tsx:6-42`; `usePageMeta` on every page; brand injection and JSON-LD in `vite.config.ts:1-49`. | Prerender the tags for crawlers (Step 2.5). |
 | Prerendered marketing pages | **Missing** | SPA with `vercel.json` rewrite to `index.html`; no SSG/prerender dependency or config. | Add `vite-react-ssg` (or equivalent) for Home, Rooms, Facilities, Dining, Conference, Gym, Offers, Blog index, Contact, Privacy, Terms in EN and SW. |
 | Blog index and post pages | **Missing** | API exists (`content/urls.py:11-12`), but no frontend `/blog` route, page or `useBlog` hook. | Add the routes/pages required for prerendering the blog index. |
 | Privacy policy and Terms pages, CMS-editable EN/SW, seeded placeholders | **Done** | New `PolicyPage` model (`content/models.py`), Django admin, public `GET /api/v1/content/policies/<slug>/` (`content/views.py`, `urls.py`); seed creates `/privacy` and `/terms` drafts in EN/SW and sets `privacy_notice_version = 2026-11-draft` (`seed_hotel.py`). Frontend `PolicyPage.tsx` renders CMS text by language, shows a draft badge, and is routed at `/privacy` and `/terms`; footer and the booking consent label link to both. `PolicyPage.test.tsx` covers EN, SW and API failure. Wording is still a draft pending hotel/legal review. | Hotel/legal must approve the wording and clear `needs_confirmation`. |
 | Consent records (what, when, text version) | **Done** | New immutable `ConsentRecord` (`common/models.py`, migration `0005_consentrecord`) stores scope, subject, reference, language, `policy_version`, `policy_url`, optional `text_hash` and `created_at`; read-only in Django admin. `common/consent.py` snapshots the live `HotelSetting` version. Room bookings write `booking_privacy` plus `newsletter` when marketing consent is ticked; newsletter subscribe writes `newsletter`; the frontend newsletter form now calls the API instead of faking success. `test_consent.py` (3 tests) proves the records and the no-consent rejection. | Consent wording/version must be finalised before launch; `text_hash` stays empty until the full policy text is passed to the helper. |
-| Localized dates, numbers and KES | **Done** | `i18n.ts:1370-1390` (`Intl.DateTimeFormat` switches `sw-KE`/`en-GB`, `Intl.NumberFormat('en-KE')`); `formatClock` in `DashboardPage.tsx:75`; tests cover both languages. | Number locale is fixed to `en-KE`; acceptable because Kenyan digit grouping is identical, but review with marketing. |
+| Localized dates, numbers and KES | **Done** | `i18n.ts` (`Intl.DateTimeFormat` switches `sw-KE`/`en-GB`; `Intl.NumberFormat` switches `sw-KE`/`en-KE` for numbers, while pages keep the literal `KES ` prefix); `formatClock` in `DashboardPage.tsx:75`. `i18n.formatting.test.ts` covers both locales. | None. |
 | Analytics is opt-in and does not double count | **Done** | `frontend/src/lib/analytics.ts` (loads only with `VITE_ANALYTICS_DOMAIN`, manual pageviews queued); `analytics.test.ts`; `RouteAnalytics` in `Page.tsx:54-59`. | None. |
 | Production CSP | **Missing** | No `Content-Security-Policy` in settings, proxy config or `vercel.json`; no CSP package in requirements. | Define API/analytics/fonts/maps policy; ship report-only, test, document enforcement (Step 2.6). |
 
@@ -213,4 +246,4 @@ guard fields.
 
 ## 5. Next steps (after approval)
 
-C7 (guest language on table/conference records and localized guest messages) is complete. Proceed in this order: C8 `/sw/` routing, C9 route manifest/sitemap/robots, C10 prerender, then motion/accessibility/Lighthouse, Playwright and CSP, then Step 3 staging/operations, Step 4 UAT kit, Step 5 PR + `v0.1.0-rc1` tag. No merge and no production deployment.
+C7 (guest language on table/conference records and localized guest messages) and C8 (URL-based `/sw/` routing, localized links, hreflang/canonicals and formatting) are complete. Proceed in this order: C9 route manifest/sitemap/robots, C10 prerender, then motion/accessibility/Lighthouse, Playwright and CSP, then Step 3 staging/operations, Step 4 UAT kit, Step 5 PR + `v0.1.0-rc1` tag. No merge and no production deployment.

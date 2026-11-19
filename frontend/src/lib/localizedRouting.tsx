@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import type { NavigateFunction, NavigateOptions, To } from 'react-router-dom';
+import type { NavigateOptions, To } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 import { localizedPath } from './routes';
 import { useI18n } from '../i18n-context';
@@ -9,8 +9,7 @@ export type LocalizedNavigateFunction = (to: To, options?: NavigateOptions) => v
 
 export function toLocalizedPath(to: To, language: Language): To {
   if (typeof to !== 'string' || !to.startsWith('/') || to.startsWith('//')) return to;
-  const relative = relativeRoutePath(to);
-  return localizedPath(relative, language);
+  return localizedPath(to, language);
 }
 
 export function useLocalizedNavigate(): LocalizedNavigateFunction {

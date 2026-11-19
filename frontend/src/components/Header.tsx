@@ -3,6 +3,7 @@ import { useLocation } from 'react-router-dom';
 import { Link } from './LocalizedLink';
 import { HOTEL } from '../config/hotel';
 import { useI18n } from '../i18n-context';
+import { stripLanguagePrefix } from '../lib/routes';
 import type { PageId } from '../types';
 import { LanguageSwitch } from './LanguageSwitch';
 import { Logo } from './Logo';
@@ -54,7 +55,7 @@ function isActive(current: PageId, item: PageId): boolean {
 export function Header() {
   const { t } = useI18n();
   const { pathname } = useLocation();
-  const current = pageFromPath(pathname);
+  const current = pageFromPath(stripLanguagePrefix(pathname));
   const [open, setOpen] = useState(false);
   const closeRef = useRef<HTMLButtonElement>(null);
 
