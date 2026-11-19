@@ -29,7 +29,7 @@ All commands were run from the repository root unless stated. Backend commands r
 | 7 | `npm run check:brand` | `Brand check passed: no hard-coded brand strings in code or tests.` |
 | 8 | `USE_SQLITE=false ... python -m pytest -q` (Postgres 16 in Docker) | **104 passed** in 22.72s (after B6), including `test_concurrency.py` (8 threads, 1 room, exactly 1 booking). Two Postgres-only defects fixed first: notification `entity_type` truncation and `select_for_update` over nullable joins. The pre-C7 suite is proven on Postgres by CI run [44046794171](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/44046794171). |
 | 9 | `python -m pytest -q apps/common/tests/test_throttles.py apps/accounts/tests/test_role_boundaries.py apps/common/tests/test_seed_users.py` | **19 passed** in 3.43s (B6 security tests plus browse/lookup throttle coverage). |
-| 10 | `..\.venv\Scripts\python.exe -m pytest -q` (after C7) | **156 passed, 1 skipped** in 8.17s. Skip remains `apps/bookings/tests/test_concurrency.py:30 — Row-lock concurrency needs Postgres`. |
+| 10 | `..\.venv\Scripts\python.exe -m pytest -q` (after C7) | **156 passed, 1 skipped** in 8.61s. Skip remains `apps/bookings/tests/test_concurrency.py:30 — Row-lock concurrency needs Postgres`. |
 | 11 | `..\.venv\Scripts\python.exe manage.py makemigrations --check --dry-run` | No changes detected after adding `facilities/0004_alter_conferenceenquiry_language_and_more.py`; the earlier `0003_guest_language` used `preserve_default=False`, and `0004` restores the model default in migration state. |
 | 12 | `npm run check` (after C7) | Typecheck and lint passed; **80 passed** across **18 test files**; `Brand check passed: no hard-coded brand strings in code or tests.` |
 | 13 | `npm run build` (after C7) | Passed. Vite 6.4.5 transformed 221 modules and emitted `dist/index.html`, `dist/robots.txt`, `dist/sitemap.xml` and hashed assets. |
@@ -47,6 +47,8 @@ The workflow runs on every push to `main` and `feat/**`: backend (Postgres 16 se
 | [43721258237](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/43721258237) | `2883310` | Failed — same step, 23 s; frontend job passed |
 | [44046536724](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/44046536724) | `0b5ed0f` | Failed — same step |
 | [44046794171](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/44046794171) | `25e500a` | **Passed** — Backend (Postgres) 38 s, Frontend 49 s |
+| [44587238492](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/44587238492) | `8df45f4` | Failed — backend “Tests against Postgres”; frontend passed. One fallback test inserted an unsupported 7-character language into a `varchar(2)` column. |
+| [44588274783](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/44588274783) | `be29347` | **Passed** — Backend (Postgres) and Frontend green after the test used the two-letter unsupported value `fr`. |
 
 **Cause:** the workflow installed only `backend/requirements.txt`, which is the production set and does not include pytest, so `python -m pytest -q` exited 1. `25e500a` adds `backend/requirements-dev.txt` and installs it in CI; the production image still uses `requirements.txt`. The frontend job passed on every run. Run `44046794171` is green on both jobs, including `test_concurrency.py` against Postgres.
 
@@ -76,7 +78,7 @@ previously missing `FormGuardEvent`/form-guard summary schemas) and
 `frontend/src/lib/api-schema.d.ts` were regenerated with `manage.py spectacular`
 and `npm run api:types`.
 
-CI for C7: **link to be added after the push**.
+CI for C7: [run 44588274783](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/44588274783) is **green** on `be29347` (backend + Postgres + frontend). The earlier [run 44587238492](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/44587238492) exposed a Postgres-only test bug: the fallback test used `"unknown"` in a `varchar(2)` column. It now uses `"fr"`, which is two characters and still unsupported.
 
 ## 2. Acceptance table
 
