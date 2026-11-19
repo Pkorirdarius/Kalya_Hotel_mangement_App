@@ -52,6 +52,7 @@ The workflow runs on every push to `main` and `feat/**`: backend (Postgres 16 se
 | [44046794171](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/44046794171) | `25e500a` | **Passed** — Backend (Postgres) 38 s, Frontend 49 s |
 | [44587238492](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/44587238492) | `8df45f4` | Failed — backend “Tests against Postgres”; frontend passed. One fallback test inserted an unsupported 7-character language into a `varchar(2)` column. |
 | [44588274783](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/44588274783) | `be29347` | **Passed** — Backend (Postgres) and Frontend green after the test used the two-letter unsupported value `fr`. |
+| [44594967401](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/44594967401) | `d08fdbd` | **Passed** — C8 backend (Postgres) and frontend jobs green. |
 
 **Cause:** the workflow installed only `backend/requirements.txt`, which is the production set and does not include pytest, so `python -m pytest -q` exited 1. `25e500a` adds `backend/requirements-dev.txt` and installs it in CI; the production image still uses `requirements.txt`. The frontend job passed on every run. Run `44046794171` is green on both jobs, including `test_concurrency.py` against Postgres.
 
@@ -109,8 +110,10 @@ now uses `sw-KE` when the active language is Swahili, while `formatDate()`
 continues to use `sw-KE`/`en-GB`; `i18n.formatting.test.ts` covers both.
 
 Verification: `npm run check` (97 tests, 23 files) and `npm run build` both
-passed locally; the built HTML was inspected for the alternate tags. The shared
-route manifest (`lib/routes.ts`) is in place but the sitemap/robots are not yet
+passed locally; the built HTML was inspected for the alternate tags. CI for C8:
+[run 44594967401](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/44594967401)
+is **green** on `d08fdbd` (backend + Postgres + frontend). The shared route
+manifest (`lib/routes.ts`) is in place but the sitemap/robots are not yet
 generated from it — that is C9.
 
 ## 2. Acceptance table
