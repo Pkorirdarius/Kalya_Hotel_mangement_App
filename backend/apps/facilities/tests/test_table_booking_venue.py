@@ -37,6 +37,23 @@ def test_table_booking_without_venue_defaults_to_restaurant(api):
     assert TableBooking.objects.get(reference=body["reference"]).venue == "restaurant"
 
 
+@pytest.mark.parametrize(
+    ("payload_language", "expected"), [(None, "en"), ("sw", "sw"), ("fr", None)]
+)
+def test_table_booking_records_the_guest_language(api, payload_language, expected):
+    overrides = {} if payload_language is None else {"language": payload_language}
+    response = api.post(BOOKINGS_URL, booking_payload(**overrides), format="json")
+
+    if expected is None:
+        assert response.status_code == 400
+        assert "language" in response.json()["error"]["fields"]
+        return
+    assert response.status_code == 201
+    body = response.json()["booking"]
+    assert body["language"] == expected
+    assert TableBooking.objects.get(reference=body["reference"]).language == expected
+
+
 def test_table_booking_explicit_restaurant_is_accepted(api):
     response = api.post(BOOKINGS_URL, booking_payload(venue="restaurant"), format="json")
 

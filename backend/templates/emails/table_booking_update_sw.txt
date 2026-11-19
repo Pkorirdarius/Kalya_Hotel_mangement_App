@@ -1,0 +1,15 @@
+Habari {{ table.guest_name }},
+
+{% if confirmed %}Meza yako imethibitishwa.{% else %}Samahani, hatukuweza kuthibitisha ombi la meza hili.{% endif %}
+
+Kumbukumbu: {{ table.reference }}
+Tarehe: {{ table.date|date:"D, j M Y" }}
+Muda: {{ table.time|time:"H:i" }}
+Wageni: {{ table.party_size }}
+{% if table.occasion %}Hafla: {{ table.occasion }}
+{% endif %}{% if table.notes %}Maombi: {{ table.notes }}
+{% endif %}
+{% if confirmed %}Tafadhali fika dakika 10 mapema. Kubadilisha au kughairi, piga {{ hotel.phone }}.{% else %}Piga {{ hotel.phone }} na tukusaidie kupata muda mwingine.{% endif %}
+
+{{ hotel.name }}
+{{ hotel.address }}

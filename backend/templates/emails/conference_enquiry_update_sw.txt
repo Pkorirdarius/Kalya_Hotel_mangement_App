@@ -1,0 +1,16 @@
+Habari {{ enquiry.guest_name }},
+
+{% if confirmed %}Ombi lako la mkutano limethibitishwa.{% else %}Samahani, hatukuweza kuthibitisha ombi hili la mkutano.{% endif %}
+
+Kumbukumbu: {{ enquiry.reference }}
+Tarehe: {{ enquiry.date|date:"D, j M Y" }}
+Kipindi: {{ enquiry.get_session_display }}
+Wageni: {{ enquiry.people }}
+Mpangilio: {{ enquiry.get_layout_display }}
+{% if enquiry.company %}Kampuni: {{ enquiry.company }}
+{% endif %}{% if enquiry.notes %}Maombi: {{ enquiry.notes }}
+{% endif %}
+{% if confirmed %}Timu yetu ya mikutano itawasiliana nawe kabla ya mkutano kuthibitisha chakula na muda wa kuwasili.{% else %}Piga {{ hotel.phone }} au jibu barua hii na tutapendekeza tarehe au kipindi kingine.{% endif %}
+
+{{ hotel.name }}
+{{ hotel.address }}

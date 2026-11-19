@@ -1,0 +1,13 @@
+{% autoescape off %}Nafasi yako imeghairiwa
+
+Habari {{ booking.guest_name }},
+
+Nafasi {{ booking.reference }} imeghairiwa.
+
+Chumba: {{ booking.room_type.name_en }}
+Tarehe: {{ booking.checkin|date:"d M Y" }} hadi {{ booking.checkout|date:"d M Y" }}
+
+Kama hukuighairi wewe, tafadhali wasiliana na mapokezi kwa {{ hotel.phone }}.
+
+{{ hotel.name }}
+{% endautoescape %}

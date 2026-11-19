@@ -1,0 +1,13 @@
+Dear {{ table.guest_name }},
+
+A reminder that your table booking is tomorrow.
+
+Reference: {{ table.reference }}
+Date: {{ table.date|date:"D, j M Y" }}
+Time: {{ table.time|time:"H:i" }}
+Guests: {{ table.party_size }}
+
+Please arrive about 10 minutes early. To change or cancel, call {{ hotel.phone }}.
+
+{{ hotel.name }}
+{{ hotel.address }}

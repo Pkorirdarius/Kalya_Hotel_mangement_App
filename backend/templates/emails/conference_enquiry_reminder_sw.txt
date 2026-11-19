@@ -1,0 +1,14 @@
+Habari {{ enquiry.guest_name }},
+
+Hii ni kumbusho la mkutano wako kesho.
+
+Kumbukumbu: {{ enquiry.reference }}
+Tarehe: {{ enquiry.date|date:"D, j M Y" }}
+Kipindi: {{ enquiry.get_session_display }}
+Wageni: {{ enquiry.people }}
+Mpangilio: {{ enquiry.get_layout_display }}
+
+Timu yetu ya mikutano itawasiliana nawe na maelezo ya mwisho ya kuwasili. Piga {{ hotel.phone }} kama mipango yako imebadilika.
+
+{{ hotel.name }}
+{{ hotel.address }}

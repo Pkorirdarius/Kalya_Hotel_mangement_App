@@ -36,6 +36,11 @@ SCHEDULES = [
         "func": "apps.notifications.reminders.send_arrival_reminders",
         "schedule_type": "D",
     },
+    {
+        "name": "Send tomorrow's table and conference reminders",
+        "func": "apps.notifications.reminders.send_facility_reminders",
+        "schedule_type": "D",
+    },
 ]
 
 

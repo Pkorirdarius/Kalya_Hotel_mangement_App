@@ -1,0 +1,14 @@
+Dear {{ enquiry.guest_name }},
+
+A reminder that your conference session is tomorrow.
+
+Reference: {{ enquiry.reference }}
+Date: {{ enquiry.date|date:"D, j M Y" }}
+Session: {{ enquiry.get_session_display }}
+Guests: {{ enquiry.people }}
+Layout: {{ enquiry.get_layout_display }}
+
+Our events team will contact you with final arrival details. Call {{ hotel.phone }} if your plans change.
+
+{{ hotel.name }}
+{{ hotel.address }}

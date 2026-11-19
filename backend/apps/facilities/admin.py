@@ -33,11 +33,12 @@ class TableBookingAdmin(admin.ModelAdmin):
         "date",
         "time",
         "party_size",
+        "language",
         "status",
         "escalated_at",
         "created_at",
     )
-    list_filter = ("status", "date")
+    list_filter = ("status", "language", "date")
     search_fields = ("reference", "first_name", "last_name", "phone", "email")
     readonly_fields = ("reference", "escalated_at", "created_at", "updated_at")
 
@@ -52,10 +53,11 @@ class ConferenceEnquiryAdmin(admin.ModelAdmin):
         "session",
         "people",
         "layout",
+        "language",
         "status",
         "created_at",
     )
-    list_filter = ("status", "session", "layout", "date")
+    list_filter = ("status", "session", "layout", "language", "date")
     search_fields = ("reference", "first_name", "last_name", "company", "email", "phone")
     readonly_fields = ("reference", "escalated_at", "created_at", "updated_at")
 

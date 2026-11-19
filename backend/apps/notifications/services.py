@@ -86,6 +86,12 @@ def _public_context():
     }
 
 
+def guest_language(value: str | None) -> str:
+    """Return a supported guest language, falling back to English."""
+
+    return value if value in ("en", "sw") else "en"
+
+
 def notify_new_paid_booking(booking) -> None:
     """Tell the front desk a paid room booking needs review."""
 
@@ -111,7 +117,7 @@ def manage_booking_url(booking) -> str:
 
 
 def notify_booking_confirmed(booking, language: str | None = None) -> None:
-    language = language or booking.language or "en"
+    language = guest_language(language or booking.language)
     context = {
         **_public_context(),
         "booking": booking,
@@ -174,13 +180,20 @@ def notify_payment_review(payment, *, reason: str) -> None:
 
 
 def notify_booking_cancelled(booking) -> None:
-    context = {**_public_context(), "booking": booking}
+    language = guest_language(booking.language)
+    context = {**_public_context(), "booking": booking, "language": language}
     if booking.email:
         send_email(
             kind="booking_cancelled",
-            subject=f"Booking cancelled · {booking.reference}",
+            subject=(
+                f"Booking cancelled · {booking.reference}"
+                if language == "en"
+                else f"Nafasi imeghairiwa · {booking.reference}"
+            ),
             recipient=booking.email,
-            template="booking_cancelled_en",
+            template=(
+                "booking_cancelled_en" if language == "en" else "booking_cancelled_sw"
+            ),
             context=context,
             entity=booking,
         )
@@ -213,36 +226,76 @@ def notify_gym_pass(gym_pass) -> None:
 
 
 def notify_table_booking(table) -> None:
-    """Tell a guest whether their restaurant table was confirmed or declined.
+    """Tell a guest whether their restaurant table was confirmed or declined."""
 
-    Table bookings do not currently store a language, so these messages are
-    sent in English. Marketing should review this once the form captures the
-    guest's language (see docs/LAUNCH-CHECKLIST.md).
-    """
-
+    language = guest_language(table.language)
     confirmed = table.status == "confirmed"
-    context = {**_public_context(), "table": table, "confirmed": confirmed}
+    context = {**_public_context(), "table": table, "confirmed": confirmed, "language": language}
+    subjects = {
+        "en": (
+            f"Table confirmed · {table.reference}"
+            if confirmed
+            else f"Table booking update · {table.reference}"
+        ),
+        "sw": (
+            f"Meza imethibitishwa · {table.reference}"
+            if confirmed
+            else f"Taarifa ya meza · {table.reference}"
+        ),
+    }
     if table.email:
         send_email(
             kind="table_booking",
-            subject=(
-                f"Table confirmed · {table.reference}"
-                if confirmed
-                else f"Table booking update · {table.reference}"
-            ),
+            subject=subjects[language],
             recipient=table.email,
-            template="table_booking_update_en",
+            template=f"table_booking_update_{language}",
             context=context,
             entity=table,
         )
-    send_sms(
-        kind="table_booking",
-        recipient=table.phone,
-        message=(
+    if language == "en":
+        message = (
             f"{hotel_display_name()}: table {table.reference} "
             f"{'confirmed' if confirmed else 'could not be confirmed'} for "
             f"{table.date:%d %b %Y} at {table.time:%H:%M}."
-        ),
+        )
+    else:
+        message = (
+            f"{hotel_display_name()}: meza {table.reference} "
+            f"{'imethibitishwa' if confirmed else 'haikuweza kuthibitishwa'} "
+            f"tarehe {table.date:%d/%m/%Y} saa {table.time:%H:%M}."
+        )
+    send_sms(kind="table_booking", recipient=table.phone, message=message, entity=table)
+
+
+def notify_table_booking_reminder(table) -> None:
+    """Remind a guest about an upcoming confirmed table booking."""
+
+    language = guest_language(table.language)
+    context = {**_public_context(), "table": table, "language": language}
+    if table.email:
+        send_email(
+            kind="table_booking_reminder",
+            subject=(
+                f"Table booking reminder · {table.reference}"
+                if language == "en"
+                else f"Kumbusho la meza · {table.reference}"
+            ),
+            recipient=table.email,
+            template=f"table_booking_reminder_{language}",
+            context=context,
+            entity=table,
+        )
+    message = (
+        f"{hotel_display_name()}: reminder for table {table.reference} "
+        f"on {table.date:%d %b %Y} at {table.time:%H:%M}."
+        if language == "en"
+        else f"{hotel_display_name()}: kumbusho la meza {table.reference} "
+        f"tarehe {table.date:%d/%m/%Y} saa {table.time:%H:%M}."
+    )
+    send_sms(
+        kind="table_booking_reminder",
+        recipient=table.phone,
+        message=message,
         entity=table,
     )
 
@@ -250,28 +303,83 @@ def notify_table_booking(table) -> None:
 def notify_conference_enquiry(enquiry) -> None:
     """Tell an enquirer whether their conference request was confirmed."""
 
+    language = guest_language(enquiry.language)
     confirmed = enquiry.status == "confirmed"
-    context = {**_public_context(), "enquiry": enquiry, "confirmed": confirmed}
-    send_email(
-        kind="conference_enquiry",
-        subject=(
+    context = {
+        **_public_context(),
+        "enquiry": enquiry,
+        "confirmed": confirmed,
+        "language": language,
+    }
+    subjects = {
+        "en": (
             f"Conference confirmed · {enquiry.reference}"
             if confirmed
             else f"Conference enquiry update · {enquiry.reference}"
         ),
-        recipient=enquiry.email,
-        template="conference_enquiry_update_en",
-        context=context,
-        entity=enquiry,
-    )
-    send_sms(
-        kind="conference_enquiry",
-        recipient=enquiry.phone,
-        message=(
+        "sw": (
+            f"Mkutano umethibitishwa · {enquiry.reference}"
+            if confirmed
+            else f"Taarifa ya mkutano · {enquiry.reference}"
+        ),
+    }
+    if enquiry.email:
+        send_email(
+            kind="conference_enquiry",
+            subject=subjects[language],
+            recipient=enquiry.email,
+            template=f"conference_enquiry_update_{language}",
+            context=context,
+            entity=enquiry,
+        )
+    if language == "en":
+        message = (
             f"{hotel_display_name()}: conference request {enquiry.reference} "
             f"{'confirmed' if confirmed else 'could not be confirmed'} for "
             f"{enquiry.date:%d %b %Y} ({enquiry.get_session_display()})."
+        )
+    else:
+        message = (
+            f"{hotel_display_name()}: ombi la mkutano {enquiry.reference} "
+            f"{'limethibitishwa' if confirmed else 'halikuweza kuthibitishwa'} "
+            f"tarehe {enquiry.date:%d/%m/%Y} ({enquiry.get_session_display()})."
+        )
+    send_sms(
+        kind="conference_enquiry",
+        recipient=enquiry.phone,
+        message=message,
+        entity=enquiry,
+    )
+
+
+def notify_conference_enquiry_reminder(enquiry) -> None:
+    """Remind an enquirer about an upcoming confirmed conference session."""
+
+    language = guest_language(enquiry.language)
+    context = {**_public_context(), "enquiry": enquiry, "language": language}
+    send_email(
+        kind="conference_enquiry_reminder",
+        subject=(
+            f"Conference reminder · {enquiry.reference}"
+            if language == "en"
+            else f"Kumbusho la mkutano · {enquiry.reference}"
         ),
+        recipient=enquiry.email,
+        template=f"conference_enquiry_reminder_{language}",
+        context=context,
+        entity=enquiry,
+    )
+    message = (
+        f"{hotel_display_name()}: reminder for conference {enquiry.reference} "
+        f"on {enquiry.date:%d %b %Y} ({enquiry.get_session_display()})."
+        if language == "en"
+        else f"{hotel_display_name()}: kumbusho la mkutano {enquiry.reference} "
+        f"tarehe {enquiry.date:%d/%m/%Y} ({enquiry.get_session_display()})."
+    )
+    send_sms(
+        kind="conference_enquiry_reminder",
+        recipient=enquiry.phone,
+        message=message,
         entity=enquiry,
     )
 

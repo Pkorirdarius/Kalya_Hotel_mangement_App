@@ -6,6 +6,7 @@ from apps.common.serializers import KesField, PublicFormSerializer
 from apps.common.utils import normalise_kenyan_phone
 
 from .models import (
+    GUEST_LANGUAGE_CHOICES,
     ConferenceBlock,
     ConferenceEnquiry,
     GymDayPass,
@@ -28,6 +29,9 @@ class TableBookingCreateSerializer(PublicFormSerializer):
     last_name = serializers.CharField(max_length=80)
     phone = serializers.CharField(max_length=32)
     email = serializers.EmailField(required=False, allow_blank=True)
+    language = serializers.ChoiceField(
+        choices=GUEST_LANGUAGE_CHOICES, default="en", required=False
+    )
     occasion = serializers.CharField(max_length=40, required=False, allow_blank=True)
     notes = serializers.CharField(required=False, allow_blank=True, max_length=1000)
 
@@ -64,6 +68,7 @@ class TableBookingSerializer(serializers.ModelSerializer):
             "last_name",
             "phone",
             "email",
+            "language",
             "occasion",
             "notes",
             "status",
@@ -90,6 +95,9 @@ class ConferenceEnquiryCreateSerializer(PublicFormSerializer):
     company = serializers.CharField(max_length=120, required=False, allow_blank=True)
     email = serializers.EmailField()
     phone = serializers.CharField(max_length=32)
+    language = serializers.ChoiceField(
+        choices=GUEST_LANGUAGE_CHOICES, default="en", required=False
+    )
     notes = serializers.CharField(required=False, allow_blank=True, max_length=2000)
 
     def validate_phone(self, value):
@@ -122,6 +130,7 @@ class ConferenceEnquirySerializer(serializers.ModelSerializer):
             "company",
             "email",
             "phone",
+            "language",
             "notes",
             "status",
             "status_display",

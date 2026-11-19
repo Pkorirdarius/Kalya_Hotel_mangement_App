@@ -80,6 +80,7 @@ def create_table_booking(
     last_name: str,
     phone: str,
     email: str = "",
+    language: str = "en",
     occasion: str = "",
     notes: str = "",
     venue: str = TableBooking.Venue.RESTAURANT,
@@ -118,6 +119,7 @@ def create_table_booking(
         last_name=last_name.strip(),
         phone=phone,
         email=email.strip(),
+        language=language if language in ("en", "sw") else "en",
         occasion=occasion,
         notes=notes.strip(),
         created_by=created_by,
@@ -171,6 +173,7 @@ def create_conference_enquiry(
     company: str,
     email: str,
     phone: str,
+    language: str = "en",
     notes: str = "",
     created_by=None,
 ) -> ConferenceEnquiry:
@@ -198,6 +201,7 @@ def create_conference_enquiry(
         company=company.strip(),
         email=email.strip(),
         phone=phone,
+        language=language if language in ("en", "sw") else "en",
         notes=notes.strip(),
         created_by=created_by,
     )
