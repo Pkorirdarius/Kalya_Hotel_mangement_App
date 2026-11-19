@@ -109,7 +109,7 @@ def test_table_confirmation_and_decline_are_swahili_when_requested(
 
 
 def test_table_language_falls_back_to_english(hotel):
-    table = _table(TableBooking.Status.CONFIRMED, language="")
+    table = _table(TableBooking.Status.CONFIRMED, language="fr")
 
     notify_table_booking(table)
 
@@ -162,7 +162,7 @@ def test_conference_confirmation_and_decline_are_swahili_when_requested(
 
 
 def test_conference_language_falls_back_to_english(hotel):
-    enquiry = _enquiry(ConferenceEnquiry.Status.CONFIRMED, language="unknown")
+    enquiry = _enquiry(ConferenceEnquiry.Status.CONFIRMED, language="fr")
 
     notify_conference_enquiry(enquiry)
 
