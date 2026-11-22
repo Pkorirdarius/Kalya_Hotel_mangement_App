@@ -61,6 +61,7 @@ The workflow runs on every push to `main` and `feat/**`: backend (Postgres 16 se
 | [44588274783](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/44588274783) | `be29347` | **Passed** — Backend (Postgres) and Frontend green after the test used the two-letter unsupported value `fr`. |
 | [44594967401](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/44594967401) | `d08fdbd` | **Passed** — C8 backend (Postgres) and frontend jobs green. |
 | [44599206435](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/44599206435) | `173c932` | **Passed** — C9 backend (Postgres) and frontend jobs green. |
+| [45002723727](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45002723727) | `2830252` | **Passed** — C10 backend (Postgres) and frontend jobs green; the frontend build generated 24 prerendered pages. |
 
 **Cause:** the workflow installed only `backend/requirements.txt`, which is the production set and does not include pytest, so `python -m pytest -q` exited 1. `25e500a` adds `backend/requirements-dev.txt` and installs it in CI; the production image still uses `requirements.txt`. The frontend job passed on every run. Run `44046794171` is green on both jobs, including `test_concurrency.py` against Postgres.
 
@@ -182,6 +183,10 @@ The 12 critical pages are `/`, `/rooms`, `/booking`, `/facilities`, `/dining`,
 `/conference`, `/gym`, `/offers`, `/blog`, `/contact`, `/privacy` and `/terms`,
 plus their `/sw` variants. `/blog/:slug` is dynamic and is deliberately not
 prerendered; it still renders client-side from the CMS.
+
+CI for C10: [run 45002723727](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45002723727)
+is **green** on `2830252` (backend + Postgres + frontend); the frontend job runs
+the full build including the prerender step.
 
 ## 2. Acceptance table
 
