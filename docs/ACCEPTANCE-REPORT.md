@@ -56,6 +56,7 @@ The workflow runs on every push to `main` and `feat/**`: backend (Postgres 16 se
 | [44587238492](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/44587238492) | `8df45f4` | Failed — backend “Tests against Postgres”; frontend passed. One fallback test inserted an unsupported 7-character language into a `varchar(2)` column. |
 | [44588274783](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/44588274783) | `be29347` | **Passed** — Backend (Postgres) and Frontend green after the test used the two-letter unsupported value `fr`. |
 | [44594967401](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/44594967401) | `d08fdbd` | **Passed** — C8 backend (Postgres) and frontend jobs green. |
+| [44599206435](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/44599206435) | `173c932` | **Passed** — C9 backend (Postgres) and frontend jobs green. |
 
 **Cause:** the workflow installed only `backend/requirements.txt`, which is the production set and does not include pytest, so `python -m pytest -q` exited 1. `25e500a` adds `backend/requirements-dev.txt` and installs it in CI; the production image still uses `requirements.txt`. The frontend job passed on every run. Run `44046794171` is green on both jobs, including `test_concurrency.py` against Postgres.
 
@@ -140,8 +141,9 @@ real posts are published, and `sitemapPaths(['first-post'])` is tested for
 dynamic expansion.
 
 Verification: `npm run check` (105 tests, 25 files) and `npm run build` passed;
-the built robots and sitemap were inspected. CI link will be recorded after the
-push.
+the built robots and sitemap were inspected. CI for C9:
+[run 44599206435](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/44599206435)
+is **green** on `173c932` (backend + Postgres + frontend).
 
 ## 2. Acceptance table
 
