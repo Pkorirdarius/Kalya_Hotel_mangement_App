@@ -4,8 +4,14 @@ import { Footer } from './components/Footer';
 import { Header } from './components/Header';
 import { ScrollToTop, RouteAnalytics } from './components/Page';
 import { useI18n } from './i18n-context';
-import { ROUTE_COMPONENTS } from './lib/routeComponents';
-import { SITE_ROUTES, SW_PATH_PREFIX, languageFromPath, relativeRoutePath } from './lib/routes';
+import { ROUTE_COMPONENTS, type RouteComponent } from './lib/routeComponents';
+import {
+  SITE_ROUTES,
+  SW_PATH_PREFIX,
+  languageFromPath,
+  relativeRoutePath,
+  type RouteComponentId,
+} from './lib/routes';
 
 const NotFoundPage = lazy(() =>
   import('./pages/NotFoundPage').then((module) => ({ default: module.NotFoundPage })),
@@ -34,18 +40,20 @@ function SiteLayout() {
   );
 }
 
+type RouteComponentMap = Record<RouteComponentId, RouteComponent>;
+
 /** Page routes are generated from the manifest so the router cannot drift. */
-function sitePageRoutes() {
+function sitePageRoutes(components: RouteComponentMap) {
   return SITE_ROUTES.filter((route) => route.id !== 'dashboard').map((route) => {
-    const Component = ROUTE_COMPONENTS[route.id];
+    const Component = components[route.id];
     return <Route key={route.id} path={relativeRoutePath(route.path)} element={<Component />} />;
   });
 }
 
 /** The dashboard stays outside the public site layout, in both languages. */
-function dashboardRoutes(prefix: '' | '/sw') {
+function dashboardRoutes(prefix: '' | '/sw', components: RouteComponentMap) {
   return SITE_ROUTES.filter((route) => route.id === 'dashboard').map((route) => {
-    const Component = ROUTE_COMPONENTS[route.id];
+    const Component = components[route.id];
     return (
       <Route
         key={`${prefix || 'en'}-${route.id}`}
@@ -73,7 +81,15 @@ function LanguageFromUrl() {
   return null;
 }
 
-export function App() {
+interface AppProps {
+  /**
+   * Direct page components are injected by the prerender build. The browser
+   * keeps the lazy map so guests only download the route they open.
+   */
+  components?: RouteComponentMap;
+}
+
+export function App({ components = ROUTE_COMPONENTS }: AppProps) {
   return (
     <>
       <LanguageFromUrl />
@@ -83,17 +99,17 @@ export function App() {
         <Routes>
           {/* English: unprefixed URLs. */}
           <Route path="/" element={<SiteLayout />}>
-            {sitePageRoutes()}
+            {sitePageRoutes(components)}
             <Route path="*" element={<NotFoundPage />} />
           </Route>
-          {dashboardRoutes('')}
+          {dashboardRoutes('', components)}
 
           {/* Kiswahili: identical tree under /sw. */}
           <Route path={SW_PATH_PREFIX} element={<SiteLayout />}>
-            {sitePageRoutes()}
+            {sitePageRoutes(components)}
             <Route path="*" element={<NotFoundPage />} />
           </Route>
-          {dashboardRoutes(SW_PATH_PREFIX)}
+          {dashboardRoutes(SW_PATH_PREFIX, components)}
         </Routes>
       </Suspense>
     </>

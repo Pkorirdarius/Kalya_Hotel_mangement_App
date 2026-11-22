@@ -150,18 +150,33 @@ npm run build
 ```
 
 `npm run check` runs typecheck, lint, tests and the brand check. The build also
-emits `dist/robots.txt` and `dist/sitemap.xml` from `HOTEL.websiteUrl`, and
-injects the `Hotel` JSON-LD block and OG/Twitter tags into `dist/index.html`.
+emits `dist/robots.txt` and `dist/sitemap.xml` from `HOTEL.websiteUrl`, injects
+the `Hotel` JSON-LD block and OG/Twitter tags, and then runs
+`node scripts/prerender.mjs`.
 
-Serve `frontend/dist` over HTTPS. Because the app uses `BrowserRouter`, unknown
-routes must fall back to `index.html`. This must include the whole Kiswahili
-tree: `/sw`, `/sw/rooms`, `/sw/booking/manage`, `/sw/dashboard` and any other
-`/sw/*` path.
+The prerender step loads the real `App` and router through Vite SSR and writes
+one static HTML file for each of the 12 indexable routes in both languages:
+`/`, `/rooms`, `/booking`, `/facilities`, `/dining`, `/conference`, `/gym`,
+`/offers`, `/blog`, `/contact`, `/privacy` and `/terms`, plus their `/sw`
+variants — 24 pages and `dist/prerender-report.json`. Each page contains the
+rendered H1 in the body, a unique title/description/canonical/OG URL and a
+`WebPage` JSON-LD node with a unique `@id`. The static copy is also the fallback
+when the API is unreachable; React Query refreshes CMS data after hydration.
+Dynamic `/blog/{slug}` pages are deliberately not prerendered and use the SPA
+fallback. No routes were dropped.
 
-- Netlify / Cloudflare Pages: `frontend/public/_redirects` (`/* /index.html 200`,
-  copied into the build) already covers `/sw/*`.
-- Vercel: `frontend/vercel.json` (`/(.*) → /index.html`) already covers `/sw/*`.
-- nginx: `try_files $uri $uri/ /index.html;`.
+Serve `frontend/dist` over HTTPS. The host must serve an existing nested
+`index.html` before applying the SPA fallback; unknown routes then fall back to
+`dist/index.html`. This must include the whole Kiswahili tree: `/sw`,
+`/sw/rooms`, `/sw/booking/manage`, `/sw/dashboard` and any other `/sw/*` path.
+
+- Netlify / Cloudflare Pages: `frontend/public/_redirects`
+  (`/* /index.html 200`, copied into the build) supplies the fallback for
+  `/sw/*`; verify it is not marked as forced/shadowing so prerendered files win.
+- Vercel: `frontend/vercel.json` (`/(.*) → /index.html`) supplies the fallback;
+  verify the filesystem check happens before the rewrite.
+- nginx: `index index.html; try_files $uri $uri/index.html /index.html;` serves
+  nested prerendered files before the fallback.
 
 Do not add a language redirect at the edge. The URL determines the active
 language: unprefixed paths are English and `/sw` paths are Kiswahili. A stored
@@ -171,12 +186,18 @@ Keep `/dashboard`, `/sw/dashboard`, `/booking/manage` and
 `/sw/booking/manage` out of search results. The pages mark themselves `noindex`
 and the generated `robots.txt` disallows all four paths, but do not rely on that
 as access control — the staff API still requires a session and the right role.
+They are not prerendered.
 
 The sitemap and robots files are generated from `frontend/src/lib/routes.ts`, so
-adding a page there updates all three. Blog post URLs are dynamic: after
-publishing posts in the CMS, run `python scripts/refresh_blog_routes.py` with
-`SITE_API_URL` pointing at the public API before `npm run build`, so
-`/blog/{slug}` and `/sw/blog/{slug}` are included in the sitemap.
+adding a page there updates the router, sitemap and prerender target set. Re-run
+the full `npm run build` (not just `vite build`) after changing routes, page
+copy, metadata keys, translations or layout; `npm run prerender` alone only
+regenerates HTML from the existing `dist/index.source.html`. CI runs the full
+build on every push and fails if a critical page loses its H1 or metadata.
+Blog post URLs are dynamic: after publishing posts in the CMS, run
+`python scripts/refresh_blog_routes.py` with `SITE_API_URL` pointing at the
+public API before `npm run build`, so `/blog/{slug}` and `/sw/blog/{slug}` are
+included in the sitemap.
 
 ## 5. Reverse proxy notes
 
@@ -245,6 +266,9 @@ Then walk the manual list:
 - [ ] `GET https://api.example.com/api/v1/health/` returns 200.
 - [ ] `/admin/` loads over HTTPS and an admin can sign in.
 - [ ] Home page loads, fonts and images resolve, no console errors.
+- [ ] `GET /rooms` and `GET /sw/rooms` return prerendered HTML with the H1 and
+      metadata before JavaScript runs; a dynamic `/blog/{slug}` falls back to
+      the app shell and loads from the CMS.
 - [ ] Language switch EN ⇄ SW works on every page.
 - [ ] Availability + quote works for a future date; a test booking reaches
       `pending_payment`.

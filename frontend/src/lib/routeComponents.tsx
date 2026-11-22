@@ -2,7 +2,7 @@ import { lazy, type ComponentType, type LazyExoticComponent } from 'react';
 
 import type { RouteComponentId } from './routes';
 
-type RouteComponent = LazyExoticComponent<ComponentType>;
+export type RouteComponent = ComponentType | LazyExoticComponent<ComponentType>;
 
 export const ROUTE_COMPONENTS: Record<RouteComponentId, RouteComponent> = {
   home: lazy(() => import('../pages/HomePage').then((m) => ({ default: m.HomePage }))),

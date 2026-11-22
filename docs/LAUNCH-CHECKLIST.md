@@ -127,6 +127,34 @@ written for convenience, but a stored language never redirects a direct visit
 or a crawler. KES amounts keep the `KES ` prefix and use `sw-KE` number
 formatting in Kiswahili; dates use `sw-KE`/`en-GB`.
 
+- [ ] `npm run build` produces 24 prerendered `index.html` files: the 12 static
+      indexable routes in EN and under `/sw`. `dist/prerender-report.json`
+      lists each path, language, title, description, canonical, hreflang set,
+      H1 and JSON-LD `@id`.
+- [ ] Every prerendered page has one H1 in the body, a unique EN/SW title,
+      description, canonical, OG title/URL and JSON-LD `@id`, plus reciprocal
+      `hreflang="en"`, `hreflang="sw"` and `x-default` links. The build fails if
+      a critical page is missing or its metadata/H1 is empty or duplicated.
+- [ ] The host serves the existing prerendered `index.html` for exact paths such
+      as `/rooms`, `/sw/rooms` and `/sw/booking` **before** the SPA fallback;
+      unknown paths still fall back to `dist/index.html`.
+- [ ] Static copy is the fallback when the CMS/API is unreachable. After
+      hydration, React Query refreshes live rooms, offers, blog and policy
+      content; test this with the API blocked and then available.
+- [ ] Dynamic `/blog/{slug}` pages are intentionally not prerendered. They use
+      the SPA fallback and CMS data after hydration; refresh concrete slugs with
+      `python scripts/refresh_blog_routes.py` before the build so they enter the
+      sitemap. No route was dropped.
+- [ ] Re-run `npm run build` after changing routes, page copy, metadata keys,
+      translations or layout; `npm run prerender` only regenerates HTML from an
+      existing `dist/index.source.html`. CI runs the full build on every push.
+
+**C10 note:** the prerender set comes from
+`INDEXABLE_ROUTES.filter((route) => !route.dynamic)`: `/`, `/rooms`, `/booking`,
+`/facilities`, `/dining`, `/conference`, `/gym`, `/offers`, `/blog`, `/contact`,
+`/privacy` and `/terms`, plus their `/sw` variants. Private routes
+(`/dashboard`, `/booking/manage`) are not prerendered or indexable.
+
 ## 6. Accessibility and QA
 
 - [ ] Keyboard-only pass: header, booking form, dialogs, dashboard actions.

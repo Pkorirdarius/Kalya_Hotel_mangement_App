@@ -1228,7 +1228,7 @@ const entries: Record<string, Entry> = {
     en: 'Hire {hallName} at {name} in {town}. Flexible layouts for 8–120 guests, fibre Wi-Fi, projector, sound and catering. Check availability or request a quote.',
     sw: 'Kodi {hallName} kwenye {name} huko {town}. Mpangilio unaobadilika kwa wageni 8–120, Wi-Fi ya fibre, projekta, sauti na huduma ya chakula. Angalia upatikanaji au ombi bei.',
   },
-  'meta.gym.title': { en: '{gymName} — {name}, {town}', sw: '{gymName} — {name}, {town}' },
+  'meta.gym.title': { en: '{gymName} — {name}, {town}', sw: '{gymName} — Mazoezi, {name}, {town}' },
   'meta.gym.description': {
     en: '{gymName} in {town}. Day passes, monthly and annual memberships, cardio, weights and group classes. Open early and late for guests and residents.',
     sw: '{gymName} huko {town}. Pasi za siku, uanachama wa mwezi na mwaka, mazoezi ya moyo, uzito na madarasa ya kikundi. Wazi asubuhi na jioni kwa wageni na wakazi.',
@@ -1400,6 +1400,10 @@ function translateElement(element: HTMLElement, language: Language): void {
 
 export function applyLanguage(language: Language): void {
   currentLanguage = language;
+
+  // Prerendering calls this on the server; there is no DOM to translate there.
+  if (typeof document === 'undefined') return;
+
   document.documentElement.lang = language;
 
   document.querySelectorAll<HTMLElement>('[data-i18n]').forEach((element) => {
@@ -1427,15 +1431,17 @@ export function applyLanguage(language: Language): void {
 
 export function setLanguage(language: Language, notify = true): void {
   currentLanguage = language;
-  try {
-    window.localStorage.setItem(STORAGE_KEY, language);
-  } catch {
-    // Storage may be unavailable in private browsing.
+  if (typeof window !== 'undefined') {
+    try {
+      window.localStorage.setItem(STORAGE_KEY, language);
+    } catch {
+      // Storage may be unavailable in private browsing.
+    }
   }
 
   applyLanguage(language);
 
-  if (notify) {
+  if (notify && typeof document !== 'undefined') {
     const detail: LanguageChangeDetail = { language };
     document.dispatchEvent(new CustomEvent<LanguageChangeDetail>(LANGUAGE_CHANGE_EVENT, { detail }));
   }
