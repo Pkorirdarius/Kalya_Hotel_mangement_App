@@ -140,7 +140,7 @@ function RoomCard({ room, detail }: { room: RoomType; detail: RoomDetail }) {
               <img
                 src={detail.images[activeImage].src}
                 alt={detail.images[activeImage].alt}
-                className="h-full w-full object-cover transition duration-500"
+                className="h-full w-full object-cover transition-[transform,opacity] duration-300 ease-out"
               />
               <span className={`pill absolute left-4 top-4 ${detail.pill}`}>
                 <span className="material-symbols-outlined text-[14px]" aria-hidden="true">

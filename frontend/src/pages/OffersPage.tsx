@@ -265,7 +265,7 @@ export function OffersPage() {
                 <img
                   src={article.image}
                   alt={t(article.alt)}
-                  className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
+                  className="h-full w-full object-cover transition-[transform,opacity] duration-300 ease-out group-hover:scale-105"
                   loading="lazy"
                 />
                 <span

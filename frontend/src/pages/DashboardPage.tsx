@@ -696,7 +696,7 @@ function FrontDeskBoard({ user }: { user: User }) {
               </Link>
               <div className="hidden h-8 w-px bg-white/10 md:block" />
               <div className="hidden items-center gap-2 md:flex">
-                <span className="h-2 w-2 animate-gentle-pulse rounded-full bg-[#3DDC84]" />
+                <span className="h-2 w-2 rounded-full bg-[#3DDC84]" />
                 <span className="text-[11px] font-bold uppercase tracking-[0.16em] text-white/60">
                   {t('dash.live')}
                 </span>

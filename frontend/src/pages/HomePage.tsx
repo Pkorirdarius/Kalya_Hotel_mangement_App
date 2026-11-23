@@ -306,7 +306,7 @@ export function HomePage() {
                       <img
                         src={room.image}
                         alt={t(room.nameKey)}
-                        className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
+                        className="h-full w-full object-cover transition-[transform,opacity] duration-300 ease-out group-hover:scale-105"
                         loading="lazy"
                       />
                       {badge ? (
@@ -400,7 +400,7 @@ export function HomePage() {
                 <img
                   src={facility.image}
                   alt={t(facility.alt)}
-                  className="aspect-[4/5] w-full object-cover opacity-85 transition duration-700 group-hover:scale-105 group-hover:opacity-100"
+                  className="aspect-[4/5] w-full object-cover opacity-85 transition-[transform,opacity] duration-300 ease-out group-hover:scale-105 group-hover:opacity-100"
                   loading="lazy"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-forest-dark via-forest-dark/20 to-transparent" />

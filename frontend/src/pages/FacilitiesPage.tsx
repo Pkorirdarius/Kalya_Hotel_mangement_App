@@ -123,7 +123,7 @@ export function FacilitiesPage() {
                   <img
                     src={facility.image}
                     alt={t(facility.alt)}
-                    className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
+                    className="h-full w-full object-cover transition-[transform,opacity] duration-300 ease-out group-hover:scale-105"
                     loading="lazy"
                   />
                   <span className={`pill absolute left-4 top-4 ${facility.pillClass}`}>

@@ -707,8 +707,8 @@ export function BookingPage() {
             <div className="relative">
               <div className="absolute left-5 right-5 top-5 h-px bg-line" aria-hidden="true" />
               <div
-                className="absolute left-5 top-5 h-px bg-forest transition-all duration-300"
-                style={{ width: `${((step - 1) / 4) * 100}%` }}
+                className="absolute left-5 right-5 top-5 h-px origin-left bg-forest transition-transform duration-300 ease-out"
+                style={{ transform: `scaleX(${(step - 1) / 4})` }}
                 aria-hidden="true"
               />
               <ol className="relative flex items-start justify-between gap-1">

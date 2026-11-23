@@ -36,9 +36,8 @@ const config: Config = {
         '8xl': '88rem',
       },
       animation: {
-        'fade-up': 'fadeUp 700ms cubic-bezier(0.22, 1, 0.36, 1) both',
-        'fade-in': 'fadeIn 500ms ease-out both',
-        'gentle-pulse': 'gentlePulse 2.4s ease-in-out infinite',
+        'fade-up': 'fadeUp 300ms ease-out both',
+        'fade-in': 'fadeIn 300ms ease-out both',
       },
       keyframes: {
         fadeUp: {
@@ -48,10 +47,6 @@ const config: Config = {
         fadeIn: {
           '0%': { opacity: '0' },
           '100%': { opacity: '1' },
-        },
-        gentlePulse: {
-          '0%, 100%': { opacity: '1' },
-          '50%': { opacity: '0.55' },
         },
       },
     },
