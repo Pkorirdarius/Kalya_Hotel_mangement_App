@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
+import { gotoApp } from './helpers';
 import { installApiMocks } from './mocks';
 
 const require = createRequire(import.meta.url);
@@ -43,7 +44,7 @@ test('(f) axe finds no WCAG A/AA violations on the home page', async ({ page }) 
 });
 
 test('(f) keyboard users can skip directly to main content', async ({ page }) => {
-  await page.goto('/');
+  await gotoApp(page, '/');
   await page.keyboard.press('Tab');
   await expect(page.locator(':focus')).toHaveAttribute('href', '#main');
   await page.keyboard.press('Enter');

@@ -22,20 +22,28 @@ test('(e) front desk signs in, works the queue and can undo an action', async ({
   await page.getByRole('button', { name: 'Confirm Asha Njoroge' }).click();
   await expect(page.getByRole('button', { name: /Undo/i })).toBeVisible();
 
-  const action = calls.find(
-    (call: ApiCall) =>
-      call.method === 'POST' && call.path === '/staff/frontdesk/actions/',
-  );
-  expect((action?.body as Record<string, unknown> | undefined)?.action).toBe('confirm');
+  await expect
+    .poll(() =>
+      calls.some(
+        (call: ApiCall) =>
+          call.method === 'POST' &&
+          call.path === '/staff/frontdesk/actions/' &&
+          (call.body as Record<string, unknown> | undefined)?.action === 'confirm',
+      ),
+    )
+    .toBe(true);
 
   await page.getByRole('button', { name: /Undo/i }).click();
-  const undo = calls.find(
-    (call: ApiCall) =>
-      call.method === 'POST' &&
-      call.path === '/staff/frontdesk/actions/' &&
-      (call.body as Record<string, unknown> | undefined)?.action === 'undo',
-  );
-  expect(undo).toBeDefined();
+  await expect
+    .poll(() =>
+      calls.some(
+        (call: ApiCall) =>
+          call.method === 'POST' &&
+          call.path === '/staff/frontdesk/actions/' &&
+          (call.body as Record<string, unknown> | undefined)?.action === 'undo',
+      ),
+    )
+    .toBe(true);
 });
 
 test('(e) role capabilities control the reports panel', async ({ page }) => {

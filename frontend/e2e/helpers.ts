@@ -3,6 +3,12 @@ import { expect, type Page } from '@playwright/test';
 /** Navigate without waiting on third-party fonts/images to finish loading. */
 export async function gotoApp(page: Page, url: string): Promise<void> {
   await page.goto(url, { waitUntil: 'domcontentloaded' });
+  // The prerendered HTML is interactive only after React attaches. Waiting for
+  // the root container's React handle avoids racing keyboard focus and handlers.
+  await page.waitForFunction(() => {
+    const root = document.getElementById('root');
+    return !!root && Object.keys(root).some((key) => key.startsWith('__reactContainer'));
+  });
 }
 
 /** Walk the real booking wizard from dates through to the payment step. */
