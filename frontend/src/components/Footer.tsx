@@ -63,7 +63,7 @@ export function Footer() {
             <Logo dark />
             <p className="mt-6 max-w-xs text-sm leading-relaxed">{t('footer.about')}</p>
             <div className="mt-6">
-              <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-white/40">
+              <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-white/70">
                 {t('footer.social')}
               </p>
               <div className="mt-3 flex items-center gap-2">
@@ -93,7 +93,7 @@ export function Footer() {
           </div>
 
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-white/40">
+            <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-white/70">
               {t('footer.explore')}
             </p>
             <ul className="mt-4 space-y-1">
@@ -119,7 +119,7 @@ export function Footer() {
           </div>
 
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-white/40">
+            <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-white/70">
               {t('footer.facilities')}
             </p>
             <ul className="mt-4 space-y-1">
@@ -142,7 +142,7 @@ export function Footer() {
           </div>
 
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-white/40">
+            <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-white/70">
               {t('footer.contact')}
             </p>
             <ul className="mt-4 space-y-3 text-sm">

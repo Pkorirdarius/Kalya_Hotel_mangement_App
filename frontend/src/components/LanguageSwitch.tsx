@@ -23,7 +23,7 @@ export function LanguageSwitch({ className = '' }: LanguageSwitchProps) {
       type="button"
       data-language-switch
       onClick={switchLanguage}
-      aria-label={t('header.language')}
+      aria-label={`EN | SW — ${t('header.language')}`}
       className={`inline-flex min-h-[44px] items-center gap-1.5 rounded-full bg-forest px-3 text-[11px] font-bold uppercase tracking-[0.14em] text-white shadow-sm transition hover:bg-forest-light ${className}`}
     >
       <span className={language === 'en' ? 'text-gold' : 'text-white/60'}>EN</span>

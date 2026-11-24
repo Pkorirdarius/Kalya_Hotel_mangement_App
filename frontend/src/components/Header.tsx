@@ -166,6 +166,7 @@ export function Header() {
           open ? 'translate-x-0' : 'translate-x-full'
         }`}
         aria-hidden={!open}
+        inert={!open}
         aria-label="Mobile navigation"
       >
         <div className="flex items-center justify-between border-b border-line px-5 py-4">

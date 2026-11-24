@@ -482,7 +482,7 @@ export function HomePage() {
                 <div className="p-6">
                   <h3 className="font-serif text-2xl text-white">{t(offer.title)}</h3>
                   <p className="mt-2 text-sm leading-relaxed text-white/60">{t(offer.description)}</p>
-                  <p className="mt-4 text-sm font-bold text-gold">{t(offer.price)}</p>
+                  <p className="mt-4 text-sm font-bold text-gold-deep">{t(offer.price)}</p>
                   <Link to={offer.href} className="btn-gold btn-sm mt-5 w-full">
                     {t(offer.cta)}
                   </Link>
@@ -538,7 +538,7 @@ export function HomePage() {
                   <figcaption className="mt-5 border-t border-line pt-4">
                     <p className="text-[13px] font-bold text-forest">{t(review.name)}</p>
                     <p className="mt-0.5 text-[11px] text-muted">{t(review.role)}</p>
-                    <p className="mt-2 inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-muted/70">
+                    <p className="mt-2 inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-muted">
                       <span className="material-symbols-outlined text-[13px] text-forest" aria-hidden="true">
                         verified
                       </span>

@@ -1,6 +1,5 @@
 import { Link } from './LocalizedLink';
 import { HOTEL } from '../config/hotel';
-import { useI18n } from '../i18n-context';
 
 interface LogoProps {
   dark?: boolean;
@@ -8,7 +7,6 @@ interface LogoProps {
 }
 
 export function Logo({ dark = false, onClick }: LogoProps) {
-  const { t } = useI18n();
   const wordmark = dark ? 'text-white' : 'text-forest-dark';
   const sub = dark ? 'text-white/55' : 'text-muted';
 
@@ -17,9 +15,9 @@ export function Logo({ dark = false, onClick }: LogoProps) {
       to="/"
       onClick={onClick}
       className="group flex items-center gap-3"
-      aria-label={t('common.homeLabel')}
     >
       <span
+        aria-hidden="true"
         className={`relative flex h-11 w-11 items-center justify-center rounded-full shadow-soft transition group-hover:scale-[1.03] ${
           dark ? 'bg-white/10 ring-1 ring-white/20' : 'bg-forest'
         }`}
