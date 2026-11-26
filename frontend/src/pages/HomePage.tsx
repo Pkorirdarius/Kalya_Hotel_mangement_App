@@ -381,7 +381,7 @@ export function HomePage() {
         </div>
       </section>
 
-      <section data-content-defer="" className="section">
+      <section className="section">
         <div className="container-page">
           <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
             <div className="max-w-2xl">
@@ -505,7 +505,7 @@ export function HomePage() {
         </div>
       </section>
 
-      <section data-content-defer="" className="section bg-sand/70">
+      <section className="section bg-sand/70">
         <div className="container-page">
           <div className="grid gap-10 lg:grid-cols-[0.8fr_1.2fr]">
             <div>
