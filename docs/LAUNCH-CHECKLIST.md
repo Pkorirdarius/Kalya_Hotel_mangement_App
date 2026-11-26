@@ -119,6 +119,12 @@ form does not collect a language — confirm with the hotel if that is acceptabl
 - [ ] Confirm consent records are being written for bookings, booking marketing
       opt-ins and newsletter signups, and that the retention period matches the
       hotel's policy.
+- [x] Staff “Content needing confirmation” page is available at
+      `/content-review` (and `/sw/content-review`), linked from the dashboard and
+      `noindex`. Its read-only API is restricted to `CanManageContent`; it lists
+      all `needs_confirmation` rows without changing them. Green CI
+      [45790520902](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45790520902).
+      Use this page to drive the P0 decisions above.
 
 **C8 note:** the URL now determines the active language. English is unprefixed;
 Kiswahili is under `/sw`, including `/sw/dashboard`. The EN/SW switch preserves
@@ -176,34 +182,52 @@ formatting in Kiswahili; dates use `sw-KE`/`en-GB`.
 - [x] All five automated checks green:
       `npm run typecheck`, `npm run lint`, `npm test`, `npm run build`,
       `npm run check:brand`; backend `..\.venv\Scripts\python.exe -m pytest -q`.
-      Latest: frontend 122 tests / 28 files, backend 158 passed / 1 skipped.
+      Latest: frontend 124 tests / 29 files, backend 171 passed / 1 skipped.
 
 **Group D CI evidence:** motion [45211085265](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45211085265), axe/keyboard [45385570039](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45385570039), Playwright a–g [45403334223](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45403334223), Lighthouse/D4 [45781024001](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45781024001) and [45784395555](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45784395555), report-only CSP [45782053634](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45782053634). All three CI jobs (backend/Postgres, frontend, E2E) are green on each run. Full scores and audit notes are in `docs/ACCEPTANCE-REPORT.md` §§1.6–1.10.
 
+**Group E CI evidence:** staging stack [45785986169](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45785986169), backup/restore drill and retention/monitoring [45790178207](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45790178207), staff content review [45790520902](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45790520902), UAT kit and axe stabilization [45795777125](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45795777125). All three jobs are green on each of these runs.
+
 ## 7. Operations
 
-- [x] Report-only CSP is present on every frontend route (`frontend/vercel.json`)
-      and on API/admin responses (`apps/common/middleware.py`). Enforcement is
-      deliberately off; review violations before enabling it.
+- [x] Report-only CSP is present on every frontend route (`frontend/vercel.json`),
+      on API/admin responses (`apps/common/middleware.py`) and on the staging
+      nginx proxy. Enforcement is deliberately off; review violations before
+      enabling it.
 - [ ] HTTPS enforced at the proxy; HSTS enabled; certificate renewal monitored.
-- [ ] `NUM_PROXIES` set to the exact number of proxies in front of Django (see
-      `docs/DEPLOYMENT.md`), and `python scripts/staging_smoke.py
-      --api-base https://api.staging.example.com` passes: same client 429,
-      different client 401, spoofed left-hand `X-Forwarded-For` ignored.
+      The staging example uses plain HTTP locally; set the four secure flags to
+      true behind real TLS (see `docs/DEPLOYMENT.md`).
+- [x] `NUM_PROXIES=1` matches the single staging nginx proxy that appends
+      `X-Forwarded-For`; `scripts/staging_smoke.py` verifies the real client IP
+      on a live stack.
+- [ ] Run `python scripts/staging_smoke.py --api-base <staging API> --site-base
+      <staging site>` against deployed staging: same client 429, different client
+      401, spoofed left-hand `X-Forwarded-For` ignored. No live stack was
+      available locally; this remains a UAT/ops task.
 - [ ] Throttle counters use a shared `CACHES` backend, so limits are not
       multiplied by the number of web workers.
 - [ ] Blocked forms watched after launch: check
       `GET /api/v1/staff/common/form-guard/summary/?days=7` (or the read-only
       admin list) and investigate a sudden `too_fast` rise, which means real
       guests are being asked to retry.
-- [ ] Postgres backups scheduled and **restore tested**.
-- [ ] `python manage.py qcluster` supervised (systemd/container) and restarting.
-- [ ] Logs and health check (`/api/v1/health/`) monitored; alert on failures.
-- [ ] Error tracking chosen (Sentry or host equivalent) and verified without
-      leaking guest data.
-- [ ] Data retention (`HotelSetting.data_retention_months`, default 24) agreed
-      with the hotel and a deletion/anonymisation routine exists; include
-      `FormGuardEvent` and `AuditLog` in the prune.
+- [x] `scripts/postgres_backup_restore.py` provides backup/restore commands and
+      a scratch-database drill; Postgres 16 CI proof on
+      [45790178207](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45790178207).
+- [ ] Schedule production/staging backups and run one real restore drill
+      against a scratch database before launch.
+- [x] `python manage.py qcluster` is a supervised `worker` service in
+      `docker-compose.staging.yml` with one queue cluster.
+- [ ] Verify the worker restarts after a container/host failure in live staging.
+- [x] `/api/v1/health/` exists; `LOG_FORMAT=json` produces safe structured logs
+      and `SENTRY_DSN` is an opt-in hook (off by default).
+- [ ] Point logs/health at the host's alarm system and choose an error-tracking
+      project; verify alerts without leaking guest data.
+- [x] `manage.py apply_retention` exists and is dry-run by default; it deletes
+      expired `FormGuardEvent` rows and anonymises `AuditLog`/`NotificationLog`
+      rows only with `--apply`. CI dry run passed on
+      [45790178207](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45790178207).
+- [ ] Hotel must agree `HotelSetting.data_retention_months` (default 24) before
+      the first `--apply` run.
 
 ## 8. Out of scope for this release
 
@@ -218,9 +242,16 @@ These were explicitly excluded and must not be implied on the site:
 
 ## Sign-off
 
+Execute `docs/UAT-SCRIPT.md` before signing. The script records scenario-level
+results and the go/no-go decision; this table records the final acceptance.
+
 | Role | Name | Date |
 | --- | --- | --- |
 | Hotel director | | |
 | Front desk lead | | |
 | Marketing / translations | | |
 | ICT / deployment | | |
+
+**Release decision:** ☐ Go / ☐ No-go. The release PR and tag are deliberately
+not created while any P0 blocker above is open. No merge to `main` and no
+production deploy are part of this release-candidate work.

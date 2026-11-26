@@ -305,7 +305,96 @@ Then walk the manual list:
       console violation reports.
 - [ ] Sentry/host logs show no startup warnings or 5xx responses.
 
-## 7. Rollback
+## 7. Staging stack
+
+`docker-compose.staging.yml` is the production-like rehearsal stack: one
+`postgres:16-alpine` database, one gunicorn web process (`config.settings.staging`,
+`DEBUG=False`), one supervised `python manage.py qcluster` worker and one nginx
+proxy on port 8080. Staging deliberately has no live payment, SMTP or SMS
+credentials: `.env.staging.example` keeps sandbox/stub settings and the hotel
+decision flags false.
+
+```powershell
+Copy-Item .env.staging.example .env.staging
+docker compose -f docker-compose.staging.yml up --build -d
+python scripts/check_staging_stack.py
+python scripts/staging_smoke.py --api-base http://localhost:8080 --site-base http://localhost:8080
+```
+
+The proxy config `ops/nginx-staging.conf` serves prerendered nested `index.html`
+files before the SPA fallback (`try_files $uri $uri/index.html /index.html;`),
+so `/rooms`, `/sw/rooms` and other static routes are delivered as HTML without
+JavaScript. It appends `X-Forwarded-For`, so `NUM_PROXIES=1` in staging settings
+and `.env.staging`. Behind real TLS, set `SECURE_SSL_REDIRECT`,
+`SECURE_HSTS_SECONDS`, `SESSION_COOKIE_SECURE` and `CSRF_COOKIE_SECURE` to their
+secure values.
+
+`scripts/check_staging_stack.py` validates the manifest statically and CI runs
+`python manage.py check --settings=config.settings.staging` plus
+`docker compose -f docker-compose.staging.yml config --quiet`. Green CI evidence:
+[45785986169](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45785986169).
+Docker Desktop was unavailable for a live local Compose run, so the deployed
+smoke test remains an operational sign-off item in `docs/UAT-SCRIPT.md`.
+
+## 8. Backup and restore
+
+`scripts/postgres_backup_restore.py` uses pg_dump/pg_restore (already installed
+with the backend dependencies) and psycopg for scratch-database administration.
+
+```powershell
+# Operational custom-format backup and restore
+python scripts/postgres_backup_restore.py backup --db hotel --file backups/hotel.dump
+python scripts/postgres_backup_restore.py restore --db hotel_restore --file backups/hotel.dump --clean
+
+# CI-safe rehearsal: creates and drops hotel_backup_source / hotel_backup_restore
+python scripts/postgres_backup_restore.py drill
+```
+
+`drill` never touches the application database. It writes a marker row, dumps
+the scratch source with plain SQL, restores it into the scratch target with
+`psql -v ON_ERROR_STOP=1`, verifies the marker and drops both databases. Newer
+pg_dump clients can emit `SET transaction_timeout = 0;`, which older servers
+reject; the drill removes that client-only setting. Postgres 16 CI proof:
+[45790178207](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45790178207).
+
+Schedule backups outside this repository (host snapshot plus logical dumps),
+retain them according to the hotel's policy, and perform one real restore drill
+against a scratch database before launch. Do not restore into a live database
+without a recorded payment replay window; see Rollback below.
+
+## 9. Monitoring, logs and retention
+
+- `SENTRY_DSN` is empty by default. Set it (optionally with `SENTRY_RELEASE` and
+  `SENTRY_ENVIRONMENT`) to opt into error reporting; no SDK call or network
+  request is made while it is empty.
+- `LOG_FORMAT=json` switches Django logging to `SafeJSONFormatter`, which emits
+  one JSON object per record with a request ID. Structured extras are redacted
+  for sensitive keys (`password`, `token`, `phone`, `email`, `card`, …) and
+  obvious email/number identifiers.
+- Monitor `GET /api/v1/health/` and the `qcluster` worker; alert on failed health
+  checks, 5xx spikes and a stopped worker. The staging stack exposes the health
+  endpoint through the proxy.
+
+Retention is run explicitly; nothing is written by default:
+
+```powershell
+python manage.py apply_retention --dry-run
+python manage.py apply_retention --apply
+```
+
+The period comes from `HotelSetting.data_retention_months` (default 24 months)
+and can be overridden per run. `--apply` deletes expired `FormGuardEvent` rows,
+anonymises old `AuditLog` rows (actor, IP, request ID and metadata) and clears
+recipient/subject/error on old `NotificationLog` rows. Business records are kept
+for evidence; guest identifiers are removed. CI proves the dry run on
+[45790178207](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45790178207).
+The hotel must approve the period before the first `--apply` run.
+
+Staff can review every `needs_confirmation` row at `/content-review` (also
+`/sw/content-review`), linked from the dashboard. The page is private,
+`noindex` and read-only; its API requires `CanManageContent`.
+
+## 10. Rollback
 
 1. Keep the previous frontend `dist` and backend release directory.
 2. Roll back the code, then run `migrate` only if the previous release's
@@ -316,7 +405,7 @@ Then walk the manual list:
 5. Restore the Postgres backup only as a last resort; record the time window of
    any payments that will be replayed.
 
-## 8. Local development
+## 11. Local development
 
 From `backend/`:
 

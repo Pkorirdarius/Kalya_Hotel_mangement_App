@@ -1,9 +1,9 @@
 # Acceptance report — `feat/finish-frontend`
 
 **Audit date:** 14 November 2026; report updated 26 November 2026  
-**Branch tip at audit:** `ce358f2` (`feat/finish-frontend`); C7 work proceeded from `c5047d2`  
+**Branch under test:** `feat/finish-frontend` (code tip `e3035ee`; documentation finalized in the following commit). C7 work proceeded from `c5047d2`.  
 **Target:** `v0.1.0-rc1` release candidate (no merge, no production deploy)  
-**Scope:** prove the definition of done, close gaps, stage and package the release. No new guest features and no UI redesign.
+**Scope:** prove the definition of done, close gaps, stage and package the release. No new guest features beyond the required C9 blog routes and E4 staff content-confirmation page. No UI redesign.
 
 Status legend:
 
@@ -52,8 +52,13 @@ All commands were run from the repository root unless stated. Backend commands r
 | 29 | `npm run check` + `npm run build` (after D4 font subset/deferral follow-up) | **122 passed** across **28 test files**; build passed and generated 24 prerendered pages. CI [45784395555](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45784395555). |
 | 30 | Lighthouse 13.6.0, mobile, against the gzipped production `dist` | Home **88** and **93** performance in two final runs, Rooms **88**, Booking **90**; accessibility, best practices and SEO were **100** in the stable runs. LCP 2.9 s on Home, TBT 150–300 ms, CLS 0; no failing `target-size` or `color-contrast` audit. One earlier Rooms run showed transient footer contrast failures before CSS settled; the repeat run passed. |
 | 31 | Backend + frontend tests after D5 | Backend `..\.venv\Scripts\python.exe -m pytest -q`: **158 passed, 1 skipped** (Postgres row-lock skip locally). Targeted CSP suites: **2 passed** backend and **2 passed** frontend. `npm run check`: **122 passed** across **28 test files**. CI [45782053634](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45782053634). |
+| 32 | E1 staging validation | `python scripts/check_staging_stack.py`, `python manage.py check --settings=config.settings.staging` and `docker compose -f docker-compose.staging.yml config --quiet` all passed locally and in CI [45785986169](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45785986169). |
+| 33 | E2 backup/restore drill | `python scripts/postgres_backup_restore.py drill` passed in CI on `8067a98` after removing a client/server version mismatch: newer `pg_dump` emitted `SET transaction_timeout = 0;`, which the Postgres 16 service rejects. The drill uses two scratch databases, never the application DB. Green CI [45790178207](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45790178207). |
+| 34 | E3 monitoring/retention checks | Backend suite **171 passed, 1 skipped**; `python manage.py apply_retention --dry-run` passed in CI and wrote nothing. `LOG_FORMAT=json` uses `SafeJSONFormatter` with redacted extras; `SENTRY_DSN` stays empty by default. Green CI [45790178207](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45790178207). |
+| 35 | E4 content confirmation | Backend suite **171 passed, 1 skipped** including 4 new endpoint tests; `npm run check`: **124 passed** across **29 test files** including 2 page tests; `npm run build` prerendered 24 pages. Green CI [45790520902](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45790520902). |
+| 36 | E5 UAT kit | Added `docs/UAT-SCRIPT.md` and `CHANGELOG.md`; stabilized the axe scan so it evaluates settled contrast after entrance animations. Green CI [45795777125](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45795777125). |
 
-**Not run (therefore unverified):** Docker/Compose staging stack, `manage.py check --deploy` with real production env, live M-Pesa/card/SMTP calls, backup/restore drill, native Swahili review, and the CSP violation review needed before switching from report-only to enforcement. The Postgres-backed suite now runs locally and in CI. Docker Desktop is not running in this environment, so local Compose proof is unavailable; CI's `postgres:16-alpine` job is the Postgres proof instead. Playwright and Lighthouse are no longer unverified: both were run locally and in CI (Playwright), with recorded reports for Lighthouse.
+**Not run (therefore unverified):** a live deployed staging smoke run (Docker Desktop is unavailable locally, so E1 proof is static manifest/config validation plus CI), `manage.py check --deploy` with real production env, live M-Pesa/card/SMTP/SMS calls, native Swahili review, and the CSP violation review needed before switching from report-only to enforcement. The Postgres-backed suite and the backup/restore drill now run in CI. Playwright and Lighthouse are no longer unverified: both were run locally and in CI (Playwright), with recorded reports for Lighthouse.
 
 ### 1.1 GitHub Actions — `ci.yml`
 
@@ -76,6 +81,12 @@ The workflow runs on every push to `main` and `feat/**`: backend (Postgres 16 se
 | [45781024001](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45781024001) | `8883481` | **Passed** — D4 asset optimization; backend, frontend and E2E green. |
 | [45782053634](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45782053634) | `2b26881` | **Passed** — D5 report-only CSP; backend, frontend and E2E green. |
 | [45784395555](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45784395555) | `ce358f2` | **Passed** — D4 icon-font subset and deferral-scope follow-up; backend, frontend and E2E green. |
+| [45785986169](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45785986169) | `ab22df9` | **Passed** — E1 staging stack, settings check and Compose validation; all jobs green. |
+| [45786225329](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45786225329), [45787349157](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45787349157), [45787378955](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45787378955), [45789319573](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45789319573), [45789740582](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45789740582) | `b12d7f3` → `d5ac152` | Failed — E2 `Postgres backup/restore drill`; frontend and E2E jobs stayed green. Diagnosis was exposed as a public check annotation. |
+| [45790178207](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45790178207) | `8067a98` | **Passed** — E2/E3 green after stripping the newer client's `transaction_timeout` setting; staging checks, retention dry run and all three jobs green. |
+| [45790520902](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45790520902) | `9932a9b` | **Passed** — E4 staff content confirmation; backend, frontend and E2E green. |
+| [45793922355](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45793922355) | `5b60707` | Failed — E2E axe `color-contrast` on three offer CTAs while fade-up opacity was still animating; backend and frontend green. |
+| [45795777125](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45795777125) | `e3035ee` | **Passed** — E5 UAT kit plus reduced-motion axe stabilization; backend, frontend and E2E green. |
 
 **Cause:** the workflow installed only `backend/requirements.txt`, which is the production set and does not include pytest, so `python -m pytest -q` exited 1. `25e500a` adds `backend/requirements-dev.txt` and installs it in CI; the production image still uses `requirements.txt`. The frontend job passed on every run. Run `44046794171` is green on both jobs, including `test_concurrency.py` against Postgres.
 
@@ -239,9 +250,10 @@ motion and (g) the staff dashboard. Hydration-safe waits were added to the
 booking/manage and metadata specs. Locally, with `PLAYWRIGHT_CHANNEL` unset and
 `CI=true`, the bundled Chromium run reported **15 passed**. The CI job
 "Frontend E2E (Playwright)" installs Chromium and runs the same specs; final CI
-[45403334223](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45403334223)
-is **green** on backend, frontend and E2E. `PLAYWRIGHT_CHANNEL` is only an
-opt-in for using an installed Chrome locally.
+[45795777125](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45795777125)
+is **green** on backend, frontend and E2E. The axe run uses reduced motion so
+color-contrast is measured after entrance animations settle.
+`PLAYWRIGHT_CHANNEL` is only an opt-in for using an installed Chrome locally.
 
 ### 1.9 D4 verification — Lighthouse mobile
 
@@ -280,15 +292,88 @@ audit-only pattern to API and Django admin responses from
 `settings.CSP_REPORT_ONLY_POLICY`, which allows the inline styles/scripts the
 built-in admin needs. Backend tests assert the header on `/api/v1/health/` and
 on an admin request; frontend tests assert the Vercel config and the preserved
-SPA rewrite. Targeted suites: 2 passed on each side, with the full suites at
-158 passed / 1 skipped (backend) and 122 passed / 28 files (frontend). CI
+SPA rewrite. Targeted suites: 2 passed on each side; the suites at that point
+were 158 passed / 1 skipped (backend) and 122 passed / 28 files (frontend),
+reaching 171 passed / 1 skipped and 124 passed / 29 files by E4/E5. CI
 [45782053634](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45782053634)
 is **green**. Enforcement is intentionally deferred until real violations are
 reviewed.
 
+### 1.11 E1 verification — production-like staging stack
+
+`docker-compose.staging.yml` defines four services: `db` (`postgres:16-alpine`),
+`web` (gunicorn, `config.settings.staging`, `DEBUG=False`), `worker` (exactly one
+supervised `python manage.py qcluster`) and `proxy` (one nginx). `NUM_PROXIES=1`
+matches the single proxy that appends `X-Forwarded-For`. No live payment, SMTP or
+SMS credentials are present; `.env.staging.example` keeps
+`PAYMENTS_SANDBOX=true`, console email and stub SMS.
+
+`ops/nginx-staging.conf` proxies `/api/`, `/admin/`, `/static/` and `/media/` to
+Django and serves the frontend with
+`try_files $uri $uri/index.html /index.html;`, so prerendered nested HTML wins
+over the SPA fallback (including `/sw/*`). It also sends the report-only CSP.
+`scripts/check_staging_stack.py` checks the manifest statically,
+`scripts/staging_smoke.py` checks a live stack, and CI runs
+`python manage.py check --settings=config.settings.staging` plus
+`docker compose ... config --quiet`. Green CI:
+[45785986169](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45785986169).
+A live Compose run was not possible locally because Docker Desktop is
+unavailable; this is recorded as an operational caveat, not a missing artifact.
+
+### 1.12 E2 verification — backup and restore drill
+
+`scripts/postgres_backup_restore.py` provides `backup` and `restore` commands
+using pg_dump custom format, and a CI-safe `drill` that creates
+`hotel_backup_source` and `hotel_backup_restore`, writes a marker row, dumps it
+with plain SQL, restores it with `psql -v ON_ERROR_STOP=1`, verifies the token
+and drops both scratch databases. It never connects to the application DB for
+writes.
+
+The first five CI attempts failed instantly. A public check annotation exposed
+the real error: the runner's newer `pg_dump` emitted
+`SET transaction_timeout = 0;`, which the Postgres 16 service rejects. The
+drill now removes that client-only setting before restoring. Green CI:
+[45790178207](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45790178207).
+
+### 1.13 E3 verification — monitoring, safe logs and retention
+
+`SENTRY_DSN` is empty by default: no SDK hook or network call is made unless a
+project explicitly opts in. `LOG_FORMAT=json` switches Django logging to
+`SafeJSONFormatter`, which adds a request ID and redacts sensitive keys and
+obvious email/number identifiers from extras. `apply_retention` is dry-run by
+default; only `--apply` deletes expired `FormGuardEvent` rows and anonymises old
+`AuditLog`/`NotificationLog` rows (30 days per configured month), recording an
+audit event. CI ran migrations, the full backend suite (171 passed, 1 skipped)
+and the retention dry run. Green CI:
+[45790178207](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45790178207).
+
+### 1.14 E4 verification — staff content confirmation
+
+`GET /api/v1/staff/common/content-confirmation/` is read-only and gated by
+`CanManageContent`. It aggregates every `needs_confirmation=True` row from blog
+posts, offers, policy pages, reviews, room types and menu items, returns counts
+plus newest-first items, and accepts a bounded `limit` (1–500). Four backend
+tests prove coverage, permission denial, authentication and limiting;
+`openapi.yaml` and `api-schema.d.ts` were regenerated.
+
+The frontend `/content-review` page (also `/sw/content-review`) is private and
+`noindex`, linked from the dashboard, and renders outside the public site
+layout. It shows counts, item labels, kind, last-updated date (or “Inactive”)
+and IDs, with loading/error/empty states. Two frontend tests cover a signed-in
+staff user and the sign-in gate. No flag is changed by this page. Green CI:
+[45790520902](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45790520902).
+
+### 1.15 E5 verification — UAT kit
+
+`docs/UAT-SCRIPT.md` gives executable scenarios for public content/language,
+booking, facilities, front desk, notifications, the content-confirmation page,
+operations, accessibility and performance, with a role-based sign-off table.
+`CHANGELOG.md` records C7–C10, D1–D5 and E1–E5 for `0.1.0-rc1` and explicitly
+notes that no production release has been made. Green CI: [45795777125](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45795777125).
+
 ## 2. Acceptance table
 
-**Status after A1–A3, B4–B6, the pre-C7 anti-spam/throttle item, C7–C10 and D1–D5:** **49 Done**, **2 Partial**, **5 Missing**, **0 Unverified**, **1 Pending** (57 rows). Remaining work is staging/operations, UAT and the hotel decisions.
+**Status after A1–A3, B4–B6, the pre-C7 anti-spam/throttle item, C7–C10, D1–D5 and E1–E5:** **55 Done**, **0 Partial**, **1 Missing**, **0 Unverified**, **1 Pending** (57 rows). The remaining Missing row is the optional new-item sound opt-in; the Pending row is the release PR/tag. UAT and hotel decisions are sign-off gates, not engineering gaps.
 
 ### 2.1 Booking and payments
 
@@ -362,15 +447,15 @@ reviewed.
 | Throttles and honeypots | **Done** | Scoped throttles are configured in `config/settings/base.py` with env overrides: `browse` 1200/hour (availability, quote, rooms, meal plans, menu, restaurant slots, conference/gym availability), `booking` 20/hour, `hold` 40/hour, `enquiry` 10/hour (contact, table booking, conference enquiry, gym pass), `newsletter` 10/hour, `lookup` 30/hour, `payment` 30/hour, `login` 10/min. `NUM_PROXIES` makes throttle keys use the forwarded client IP; `docs/DEPLOYMENT.md` "Choosing `NUM_PROXIES`" explains the count and failure modes, and `scripts/staging_smoke.py` proves on staging that the bucket follows the real client (same client 429, other client 401, spoofed left-hand XFF ignored). Hidden `website` honeypot plus `form_started_at` minimum time (`FORM_MIN_SUBMIT_SECONDS`, default 2 s, configurable) guard newsletter, contact, table booking, conference enquiry, gym pass, room booking, booking lookup and payment initiation. Newsletter and contact answer any block with a generic 201 and no write; the other forms keep the honeypot as a bot-only generic response but answer a too-fast submit with a retryable `400 too_fast` so autofilled bookings are not silently lost. Future timestamps are treated as clock skew; a missing timestamp is allowed. Every block is logged without personal data and counted in `FormGuardEvent`, visible in read-only admin and at `GET /api/v1/staff/common/form-guard/summary/`. Honeypot inputs carry password-manager ignore attributes. Tests: `apps/common/tests/test_anti_spam.py` (33 tests, including autofill-at-3s, bot, clock skew and staff counts), `test_throttles.py`, plus guard-payload assertions in the frontend form tests. Policies, values and key semantics are documented in `docs/SECURITY.md` §5. | None. |
 | Demo users cannot exist in production | **Done** | `ALLOW_DEMO_USERS` defaults to false (`base.py`), is forced false in `prod.py`, and `seed_hotel --demo-users` raises `CommandError` unless explicitly enabled. `test_seed_users.py` proves a plain seed creates zero users, the flag is refused by default, and five demo users appear only under `override_settings(ALLOW_DEMO_USERS=True)`. | None. |
 | Production guards: DEBUG off, ALLOWED_HOSTS, real email backend | **Done** (code) | `config/settings/prod.py:9-17,35-52`; `test_production_settings.py`. | Exercise `manage.py check --deploy` with the production env in staging. |
-| CI runs backend, frontend and Postgres concurrency tests | **Done** | `.github/workflows/ci.yml` runs a backend job against a `postgres:16-alpine` service (system checks, migration drift, full `pytest`) and a frontend job (`npm ci`, typecheck, lint, unit tests, brand check, production build). The Postgres concurrency test passes in CI; latest backend result is 158 passed, 1 skipped locally. Green runs are listed in §1.1. | None. |
-| Playwright E2E specs | **Done** | `frontend/playwright.config.ts` + seven specs (a–g) run against `vite preview` with deterministic API mocks; 15 tests passed locally and in CI job "Frontend E2E (Playwright)". Final green CI [45403334223](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45403334223). | None. |
-| Production-like staging (app, Postgres, qcluster, proxy) | **Missing** | No `docker-compose*.yml`, Dockerfile or proxy config in the repo. | Build staging stack and smoke script (Step 3). |
-| Backup/restore tested | **Missing** | Documented as a launch checklist item (`docs/LAUNCH-CHECKLIST.md:108`), no script or drill. | Add backup/restore procedure and execute a restore (Step 3). |
-| Error monitoring and structured safe logs | **Missing** | No Sentry hook; standard Django logging only. | Add Sentry-compatible hooks (off by default) and structured logs without guest/card data (Step 3). |
-| Data retention and guest export/delete procedure | **Partial** | `HotelSetting.data_retention_months` default 24 (`common/models.py:119`); procedure not documented or automated. | Document and test export/delete routine (Step 3). |
-| Staff "Content needing confirmation" page | **Missing** | `needs_confirmation` flags exist on CMS/facility models; no staff page aggregates them. | Add the staff page (Step 3). |
-| Documentation | **Partial** | `README.md`, `docs/LAUNCH-CHECKLIST.md`, `docs/DEPLOYMENT.md`, `docs/SECURITY.md` exist; this acceptance report is new. No UAT script or changelog yet. | Add `docs/UAT-SCRIPT.md` and `CHANGELOG` in Steps 4–5. |
-| Release candidate PR + tag | **Pending** | Branch `feat/finish-frontend` is 12 commits ahead of `main`; no PR/tag yet. | Step 5, only after the gaps above are closed. |
+| CI runs backend, frontend and Postgres concurrency tests | **Done** | `.github/workflows/ci.yml` runs a backend job against a `postgres:16-alpine` service (system checks, migration drift, full `pytest`) and a frontend job (`npm ci`, typecheck, lint, unit tests, brand check, production build). The Postgres concurrency test passes in CI; latest backend result is 171 passed, 1 skipped locally. Green runs are listed in §1.1. | None. |
+| Playwright E2E specs | **Done** | `frontend/playwright.config.ts` + seven specs (a–g) run against `vite preview` with deterministic API mocks; 15 tests passed locally and in CI job "Frontend E2E (Playwright)". Final green CI [45795777125](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45795777125). | None. |
+| Production-like staging (app, Postgres, qcluster, proxy) | **Done** | `docker-compose.staging.yml`, `ops/backend.Dockerfile`, `ops/nginx-staging.conf`, `config.settings.staging`; one nginx proxy; `NUM_PROXIES=1`; prerendered-file-first fallback. `scripts/check_staging_stack.py` and CI Compose validation pass ([45785986169](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45785986169)). | Live staging smoke remains a UAT/ops task (Docker unavailable locally). |
+| Backup/restore tested | **Done** | `scripts/postgres_backup_restore.py` backup/restore commands plus scratch-DB drill; Postgres 16 CI proof on [45790178207](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45790178207). Application DB untouched. | Run the documented drill on the real staging backup before launch. |
+| Error monitoring and structured safe logs | **Done** | Opt-in `SENTRY_DSN` (off by default), `LOG_FORMAT=json` with `SafeJSONFormatter` and redacted structured extras. Tests cover redaction and the opt-in hook. | Choose the host/Sentry project and verify alerts in staging. |
+| Data retention and guest export/delete procedure | **Done** | `HotelSetting.data_retention_months` default 24; `manage.py apply_retention` is dry-run by default and `--apply` deletes `FormGuardEvent` rows and anonymises `AuditLog`/`NotificationLog` rows. CI dry run passed. | Hotel must approve the period before the first `--apply` run. |
+| Staff "Content needing confirmation" page | **Done** | Read-only `GET /api/v1/staff/common/content-confirmation/` (`CanManageContent`) and private `/content-review` page linked from the dashboard; 4 backend + 2 frontend tests. Green CI [45790520902](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45790520902). | None; hotel uses it to clear flags after sign-off. |
+| Documentation | **Done** | `README.md`, `docs/SECURITY.md`, `docs/DEPLOYMENT.md`, `docs/LAUNCH-CHECKLIST.md`, `docs/UAT-SCRIPT.md`, `CHANGELOG.md` and this report. | Complete UAT sign-off and hotel decisions. |
+| Release candidate PR + tag | **Pending** | Branch `feat/finish-frontend` has no PR/tag; no merge and no production deploy. | Step 5, only after UAT and hotel sign-off. |
 
 ### 2.12 Frontend form and mutation audit (pre-C7 item 3)
 
@@ -399,12 +484,14 @@ guard fields.
 
 ## 3. Verdict
 
-**Not ready for `v0.1.0-rc1`.** The core booking, payment, front-desk and reporting logic is implemented and covered by the existing suites; C7–C10 closed guest language, URL language, SEO manifest and prerender gaps, and D1–D5 closed motion, accessibility automation, Lighthouse, E2E and report-only CSP. The release definition of done is still blocked by:
+**Engineering for `v0.1.0-rc1` is complete and CI-green; the release is still NOT ready to merge or deploy.** The core booking, payment, front-desk and reporting logic is covered by the suites; C7–C10 closed guest language, URL language, SEO manifest and prerender gaps; D1–D5 closed motion, accessibility automation, Lighthouse, E2E and report-only CSP; E1–E5 added the staging stack, backup/restore drill, opt-in monitoring and safe logs, retention command, staff content-confirmation page and UAT kit. Release remains blocked by:
 
-1. No staging stack/smoke run, backup/restore drill, monitoring hook or retention routine.
-2. No staff "Content needing confirmation" page.
-3. No UAT script, changelog, PR or tag.
-4. The unresolved hotel decisions in section 4, including native Swahili review, confirmed prices and live credentials.
+1. Hotel decisions in section 4: location/contact, facility names, prices, claims, conference mapping and native Swahili review.
+2. Live payment, SMTP, SMS and DNS/TLS credentials, plus a real low-value payment test.
+3. UAT execution and sign-off in `docs/UAT-SCRIPT.md`, including a live staging smoke run and CSP violation review.
+4. The release PR and `v0.1.0-rc1` tag, which are deliberately not created here.
+
+No merge to `main` and no production deployment were performed.
 
 ## 4. Hotel decisions that remain unresolved (not decided by engineering)
 
@@ -419,4 +506,4 @@ guard fields.
 
 ## 5. Next steps (after approval)
 
-C7–C10 (guest language, URL language, SEO manifest and 24 prerendered pages) and D1–D5 (motion, accessibility, E2E, Lighthouse and report-only CSP) are complete. Proceed with Step 3 staging/operations, Step 4 UAT kit, then Step 5 PR + `v0.1.0-rc1` tag. No merge and no production deployment.
+C7–C10, D1–D5 and E1–E5 are complete and CI-green. Proceed with hotel sign-off, live credentials, a real staging smoke run and the UAT script. Only after those pass should a release PR and `v0.1.0-rc1` tag be created and a production deployment scheduled. No merge and no production deployment are part of this work.
