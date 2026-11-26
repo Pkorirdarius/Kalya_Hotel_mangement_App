@@ -53,6 +53,12 @@ jobs:
       - name: Tests against Postgres
         working-directory: backend
         run: python -m pytest -q
+      - name: Apply migrations for ops dry runs
+        working-directory: backend
+        run: python manage.py migrate --noinput
+      - name: Retention policy dry run
+        working-directory: backend
+        run: python manage.py apply_retention --dry-run
       - name: Postgres backup/restore drill
         run: |
           if ! command -v pg_dump >/dev/null 2>&1; then

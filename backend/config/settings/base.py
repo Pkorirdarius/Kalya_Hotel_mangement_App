@@ -28,6 +28,10 @@ env = environ.Env(
     THROTTLE_LOOKUP=(str, "30/hour"),
     THROTTLE_PAYMENT=(str, "30/hour"),
     THROTTLE_LOGIN=(str, "10/min"),
+    LOG_FORMAT=(str, "text"),
+    SENTRY_DSN=(str, ""),
+    SENTRY_RELEASE=(str, ""),
+    SENTRY_ENVIRONMENT=(str, ""),
 )
 
 for candidate in (REPO_ROOT / ".env", BASE_DIR / ".env"):
@@ -421,8 +425,16 @@ Q_CLUSTER = {
 REQUEST_ID_HEADER = "X-Request-ID"
 
 # ---------------------------------------------------------------------------
-# Logging
+# Logging and opt-in error reporting
 # ---------------------------------------------------------------------------
+LOG_FORMAT = env("LOG_FORMAT").lower()
+LOG_HANDLER = "json_console" if LOG_FORMAT == "json" else "console"
+
+# Empty by default: no remote reporting, no SDK dependency and no network calls.
+SENTRY_DSN = env("SENTRY_DSN")
+SENTRY_RELEASE = env("SENTRY_RELEASE")
+SENTRY_ENVIRONMENT = env("SENTRY_ENVIRONMENT")
+
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
@@ -434,6 +446,7 @@ LOGGING = {
             "format": "{levelname} {asctime} {name} [{request_id}] {message}",
             "style": "{",
         },
+        "json": {"()": "apps.common.logging.SafeJSONFormatter"},
     },
     "handlers": {
         "console": {
@@ -441,14 +454,27 @@ LOGGING = {
             "formatter": "verbose",
             "filters": ["request_id"],
         },
+        "json_console": {
+            "class": "logging.StreamHandler",
+            "formatter": "json",
+            "filters": ["request_id"],
+        },
     },
-    "root": {"handlers": ["console"], "level": "INFO"},
+    "root": {"handlers": [LOG_HANDLER], "level": "INFO"},
     "loggers": {
-        "apps": {"handlers": ["console"], "level": "INFO", "propagate": False},
+        "apps": {"handlers": [LOG_HANDLER], "level": "INFO", "propagate": False},
         "django.request": {
-            "handlers": ["console"],
+            "handlers": [LOG_HANDLER],
             "level": "WARNING",
             "propagate": False,
         },
     },
 }
+
+from apps.common.monitoring import configure_monitoring  # noqa: E402
+
+configure_monitoring(
+    dsn=SENTRY_DSN,
+    release=SENTRY_RELEASE,
+    environment=SENTRY_ENVIRONMENT,
+)

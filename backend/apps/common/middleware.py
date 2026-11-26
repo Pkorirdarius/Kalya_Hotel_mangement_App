@@ -6,6 +6,7 @@ import uuid
 from django.conf import settings
 
 from .context import reset_request_id, set_request_id
+from .monitoring import capture_exception
 
 _REQUEST_ID_RE = re.compile(r"^[A-Za-z0-9._-]{1,64}$")
 
@@ -25,6 +26,16 @@ class RequestIDMiddleware:
             reset_request_id(token)
         response[getattr(settings, "REQUEST_ID_HEADER", "X-Request-ID")] = request_id
         return response
+
+    def process_exception(self, request, exception):
+        """Send unexpected failures through the opt-in monitoring hook."""
+        capture_exception(
+            exception,
+            request_id=getattr(request, "request_id", "-"),
+            path=request.path,
+            method=request.method,
+        )
+        return None
 
 
 class CSPReportOnlyMiddleware:
