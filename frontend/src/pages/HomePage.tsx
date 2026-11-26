@@ -8,7 +8,7 @@ import { useI18n } from '../i18n-context';
 import { ROOMS } from '../types';
 
 function thumbnailSrc(src: string): string {
-  return src.replace(/\.jpg$/, '-thumb.jpg');
+  return src.replace(/\.webp$/, '-thumb.webp');
 }
 
 const WHY_CARDS = [
@@ -38,7 +38,7 @@ const ROOM_BADGES: Record<string, { pill: string; icon: string; text: string }> 
 const FACILITIES = [
   {
     to: '/dining?venue=restaurant',
-    image: '/images/facility-restaurant.jpg',
+    image: '/images/facility-restaurant.webp',
     alt: 'home.facilities.restaurantAlt',
     icon: 'restaurant',
     name: 'facility.restaurant.name',
@@ -47,7 +47,7 @@ const FACILITIES = [
   },
   {
     to: '/dining?venue=coffee',
-    image: '/images/facility-cafe.jpg',
+    image: '/images/facility-cafe.webp',
     alt: 'home.facilities.coffeeAlt',
     icon: 'local_cafe',
     name: 'facility.coffee.name',
@@ -56,7 +56,7 @@ const FACILITIES = [
   },
   {
     to: '/conference',
-    image: '/images/facility-conference.jpg',
+    image: '/images/facility-conference.webp',
     alt: 'home.facilities.hallAlt',
     icon: 'co_present',
     name: 'facility.conference.name',
@@ -65,7 +65,7 @@ const FACILITIES = [
   },
   {
     to: '/gym',
-    image: '/images/facility-gym.jpg',
+    image: '/images/facility-gym.webp',
     alt: 'home.facilities.gymAlt',
     icon: 'fitness_center',
     name: 'facility.gym.name',
@@ -76,7 +76,7 @@ const FACILITIES = [
 
 const OFFERS = [
   {
-    image: '/images/offer-longstay.jpg',
+    image: '/images/offer-longstay.webp',
     alt: 'A calm hotel bedroom prepared for a long stay',
     tag: 'offer.longStay.tag',
     tagClass: 'bg-gold text-forest-dark',
@@ -87,7 +87,7 @@ const OFFERS = [
     href: '/booking?offer=long-stay',
   },
   {
-    image: '/images/room-deluxe.jpg',
+    image: '/images/room-deluxe.webp',
     alt: 'King bed in the Deluxe Garden Suite',
     tag: 'offer.ngo.tag',
     tagClass: 'bg-cream text-forest',
@@ -98,7 +98,7 @@ const OFFERS = [
     href: '/booking?offer=ngo',
   },
   {
-    image: '/images/offer-dining.jpg',
+    image: '/images/offer-dining.webp',
     alt: 'Sunday brunch spread with fresh fruit and pastries',
     tag: 'offer.brunch.tag',
     tagClass: 'bg-gold text-forest-dark',
@@ -109,7 +109,7 @@ const OFFERS = [
     href: '/dining?venue=restaurant',
   },
   {
-    image: '/images/offer-meetings.jpg',
+    image: '/images/offer-meetings.webp',
     alt: 'Conference delegates at a workshop in Kilele Hall',
     tag: 'offer.meetings.tag',
     tagClass: 'bg-cream text-forest',
@@ -193,8 +193,8 @@ export function HomePage() {
     <>
       <section className="relative isolate overflow-hidden bg-forest-dark pb-32 pt-16 text-white md:pb-40 md:pt-24">
         <img
-          src="/images/hero-home.jpg"
-          srcSet="/images/hero-home-mobile.jpg 600w, /images/hero-home-900.jpg 900w, /images/hero-home.jpg 1200w"
+          src="/images/hero-home.webp"
+          srcSet="/images/hero-home-mobile.webp 600w, /images/hero-home-900.webp 900w, /images/hero-home.webp 1200w"
           sizes="100vw"
           alt={t('home.hero.imageAlt')}
           fetchPriority="high"
@@ -248,7 +248,7 @@ export function HomePage() {
 
       <BookingSearchForm />
 
-      <section className="section pt-14 md:pt-20">
+      <section data-content-defer="" className="section pt-14 md:pt-20">
         <div className="container-page">
           <div className="grid gap-10 lg:grid-cols-[0.75fr_1.25fr] lg:items-end">
             <div>
@@ -283,7 +283,7 @@ export function HomePage() {
         </div>
       </section>
 
-      <section className="section bg-sand/60">
+      <section data-content-defer="" className="section bg-sand/60">
         <div className="container-page">
           <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
             <div className="max-w-2xl">
@@ -381,7 +381,7 @@ export function HomePage() {
         </div>
       </section>
 
-      <section className="section">
+      <section data-content-defer="" className="section">
         <div className="container-page">
           <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
             <div className="max-w-2xl">
@@ -432,7 +432,7 @@ export function HomePage() {
         </div>
       </section>
 
-      <section className="section overflow-hidden bg-forest text-white">
+      <section data-content-defer="" className="section overflow-hidden bg-forest text-white">
         <div className="container-page">
           <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
             <div className="max-w-2xl">
@@ -494,7 +494,7 @@ export function HomePage() {
                 <div className="p-6">
                   <h3 className="font-serif text-2xl text-white">{t(offer.title)}</h3>
                   <p className="mt-2 text-sm leading-relaxed text-white/60">{t(offer.description)}</p>
-                  <p className="mt-4 text-sm font-bold text-gold-deep">{t(offer.price)}</p>
+                  <p className="mt-4 text-sm font-bold text-gold-soft">{t(offer.price)}</p>
                   <Link to={offer.href} className="btn-gold btn-sm mt-5 w-full">
                     {t(offer.cta)}
                   </Link>
@@ -505,7 +505,7 @@ export function HomePage() {
         </div>
       </section>
 
-      <section className="section bg-sand/70">
+      <section data-content-defer="" className="section bg-sand/70">
         <div className="container-page">
           <div className="grid gap-10 lg:grid-cols-[0.8fr_1.2fr]">
             <div>
@@ -542,7 +542,7 @@ export function HomePage() {
 
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {REVIEWS.map((review) => (
-                <figure key={review.name} className="card-flat flex h-full flex-col p-5">
+                <figure key={review.name} className="card-flat flex h-full flex-col bg-white p-5">
                   <Stars size={15} />
                   <blockquote className="mt-4 flex-1 text-[13px] leading-relaxed text-ink/85">
                     {t(review.quote)}
@@ -564,7 +564,7 @@ export function HomePage() {
         </div>
       </section>
 
-      <section className="section bg-forest-dark text-white">
+      <section data-content-defer="" className="section bg-forest-dark text-white">
         <div className="container-page">
           <div className="grid items-center gap-10 lg:grid-cols-2">
             <div>
@@ -589,7 +589,7 @@ export function HomePage() {
         </div>
       </section>
 
-      <section className="bg-cream py-14">
+      <section data-content-defer="" className="bg-cream py-14">
         <div className="container-page">
           <div className="flex flex-col items-start justify-between gap-5 rounded-3xl border border-line bg-white p-6 shadow-soft sm:flex-row sm:items-center sm:p-8">
             <div>

@@ -12,8 +12,12 @@ interface PageMetadata {
   h1Count: number;
 }
 
-async function readMetadata(page: import('@playwright/test').Page): Promise<PageMetadata> {
-  // `domcontentloaded` returns before React finishes rendering the h1.
+async function readMetadata(
+  page: import('@playwright/test').Page,
+  canonical: RegExp,
+): Promise<PageMetadata> {
+  // `domcontentloaded` returns before React finishes updating the document head.
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', canonical);
   await page.locator('main h1').first().waitFor({ state: 'visible' });
   return page.evaluate(() => ({
     title: document.title,
@@ -34,7 +38,7 @@ test('(g) prerendered marketing pages carry unique, localized head metadata', as
   await installApiMocks(page);
 
   await gotoApp(page, '/');
-  const home = await readMetadata(page);
+  const home = await readMetadata(page, /westpremierhotel\.co\.ke\/$/);
   expect(home.title).toContain('West Premier Hotel');
   expect(home.description.length).toBeGreaterThan(40);
   expect(home.canonical).toMatch(/westpremierhotel\.co\.ke\/$/);
@@ -44,14 +48,14 @@ test('(g) prerendered marketing pages carry unique, localized head metadata', as
   expect(home.h1Count).toBe(1);
 
   await gotoApp(page, '/rooms');
-  const rooms = await readMetadata(page);
+  const rooms = await readMetadata(page, /westpremierhotel\.co\.ke\/rooms$/);
   expect(rooms.title).not.toBe(home.title);
   expect(rooms.description).not.toBe(home.description);
   expect(rooms.canonical).toMatch(/westpremierhotel\.co\.ke\/rooms$/);
   expect(rooms.h1Count).toBe(1);
 
   await gotoApp(page, '/sw/rooms');
-  const swRooms = await readMetadata(page);
+  const swRooms = await readMetadata(page, /westpremierhotel\.co\.ke\/sw\/rooms$/);
   expect(swRooms.title).not.toBe(rooms.title);
   expect(swRooms.canonical).toMatch(/westpremierhotel\.co\.ke\/sw\/rooms$/);
   expect(swRooms.hreflang).toEqual(expect.arrayContaining(['en', 'sw']));

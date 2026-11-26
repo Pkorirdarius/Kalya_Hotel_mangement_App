@@ -292,9 +292,8 @@ html[lang='en'] .lang-sw {
 }
 
 @supports (content-visibility: auto) {
-  main > section:not(:first-child),
-  footer {
+  [data-content-defer] {
     content-visibility: auto;
-    contain-intrinsic-size: auto 720px;
+    contain-intrinsic-size: auto 600px;
   }
 }

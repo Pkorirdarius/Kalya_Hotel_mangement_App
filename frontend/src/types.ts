@@ -35,7 +35,7 @@ export const ROOMS: RoomType[] = [
     size: 28,
     bedKey: 'room.standard.bed',
     image:
-      '/images/room-standard.jpg',
+      '/images/room-standard.webp',
   },
   {
     id: 'deluxe-garden-suite',
@@ -45,7 +45,7 @@ export const ROOMS: RoomType[] = [
     size: 42,
     bedKey: 'room.deluxe.bed',
     image:
-      '/images/room-deluxe.jpg',
+      '/images/room-deluxe.webp',
   },
   {
     id: 'mara-residence',
@@ -55,7 +55,7 @@ export const ROOMS: RoomType[] = [
     size: 58,
     bedKey: 'room.mara.bed',
     image:
-      '/images/room-mara.jpg',
+      '/images/room-mara.webp',
   },
 ];
 

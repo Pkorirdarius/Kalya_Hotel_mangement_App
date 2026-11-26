@@ -924,7 +924,7 @@ export function BookingPage() {
                           />
                           <div className="flex gap-3 rounded-2xl border border-line p-3 transition peer-checked:border-forest peer-checked:bg-forest-50 peer-checked:ring-1 peer-checked:ring-forest/25">
                             <img
-                              src={item.image.replace(/\.jpg$/, '-thumb.jpg')}
+                              src={item.image.replace(/\.webp$/, '-thumb.webp')}
                               alt=""
                               className="h-20 w-24 shrink-0 rounded-xl object-cover"
                               loading="lazy"
@@ -1646,7 +1646,7 @@ export function BookingPage() {
               <div className="bg-forest p-5 text-white">
                 <div className="flex items-center justify-between gap-3">
                   <h2 className="font-serif text-xl">{t('summary.title')}</h2>
-                  <span className="pill bg-white/10 text-gold ring-1 ring-white/15">
+                  <span className="pill bg-white/10 text-gold-soft ring-1 ring-white/15">
                     <span className="material-symbols-outlined text-[13px]" aria-hidden="true">
                       event_available
                     </span>
@@ -1665,7 +1665,7 @@ export function BookingPage() {
                     <button
                       type="button"
                       onClick={() => goToStep(1)}
-                      className="mt-2 inline-flex min-h-[36px] items-center gap-1 text-[11px] font-semibold text-gold transition hover:text-gold-soft"
+                      className="mt-2 inline-flex min-h-[36px] items-center gap-1 text-[11px] font-semibold text-gold-soft transition hover:text-white"
                     >
                       <span className="material-symbols-outlined text-[14px]" aria-hidden="true">
                         edit_calendar

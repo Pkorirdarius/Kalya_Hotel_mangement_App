@@ -24,19 +24,19 @@ const ROOM_DETAILS: RoomDetail[] = [
     pillKey: 'room.popular',
     images: [
       {
-        src: '/images/room-standard.jpg',
+        src: '/images/room-standard.webp',
         alt: 'Standard Executive room with queen bed and writing desk',
       },
       {
-        src: '/images/offer-longstay.jpg',
+        src: '/images/offer-longstay.webp',
         alt: 'Standard Executive room in warm evening light',
       },
       {
-        src: '/images/room-gallery-3.jpg',
+        src: '/images/room-gallery-3.webp',
         alt: 'Standard Executive bathroom and bed detail',
       },
       {
-        src: '/images/room-gallery-4.jpg',
+        src: '/images/room-gallery-4.webp',
         alt: 'Standard Executive room seating corner',
       },
     ],
@@ -59,19 +59,19 @@ const ROOM_DETAILS: RoomDetail[] = [
     pillKey: 'room.garden',
     images: [
       {
-        src: '/images/room-deluxe.jpg',
+        src: '/images/room-deluxe.webp',
         alt: 'Deluxe Garden Suite with king bed and garden-facing windows',
       },
       {
-        src: '/images/room-deluxe-2.jpg',
+        src: '/images/room-deluxe-2.webp',
         alt: 'Deluxe Garden Suite reading corner',
       },
       {
-        src: '/images/room-deluxe-3.jpg',
+        src: '/images/room-deluxe-3.webp',
         alt: 'Deluxe Garden Suite bathroom detail',
       },
       {
-        src: '/images/room-deluxe-4.jpg',
+        src: '/images/room-deluxe-4.webp',
         alt: 'Deluxe Garden Suite seating area',
       },
     ],
@@ -94,19 +94,19 @@ const ROOM_DETAILS: RoomDetail[] = [
     pillKey: 'room.longStay',
     images: [
       {
-        src: '/images/room-mara.jpg',
+        src: '/images/room-mara.webp',
         alt: 'Mara Residence living area with sofa and kitchenette',
       },
       {
-        src: '/images/room-mara-2.jpg',
+        src: '/images/room-mara-2.webp',
         alt: 'Mara Residence bedroom',
       },
       {
-        src: '/images/room-mara-3.jpg',
+        src: '/images/room-mara-3.webp',
         alt: 'Mara Residence kitchenette and dining table',
       },
       {
-        src: '/images/room-deluxe-4.jpg',
+        src: '/images/room-deluxe-4.webp',
         alt: 'Mara Residence seating and work corner',
       },
     ],
@@ -124,7 +124,7 @@ const ROOM_DETAILS: RoomDetail[] = [
 ];
 
 function thumbnailSrc(src: string): string {
-  return src.replace(/\.jpg$/, '-thumb.jpg');
+  return src.replace(/\.webp$/, '-thumb.webp');
 }
 
 function RoomCard({ room, detail }: { room: RoomType; detail: RoomDetail }) {
@@ -135,6 +135,7 @@ function RoomCard({ room, detail }: { room: RoomType; detail: RoomDetail }) {
   return (
     <article
       id={room.id}
+      data-content-defer=""
       className="overflow-hidden rounded-[28px] border border-line bg-white shadow-soft scroll-mt-24"
     >
       <div className="grid lg:grid-cols-[1.08fr_1fr]">
@@ -143,6 +144,8 @@ function RoomCard({ room, detail }: { room: RoomType; detail: RoomDetail }) {
             <div className="relative aspect-[16/11] overflow-hidden rounded-2xl bg-sand">
               <img
                 src={detail.images[activeImage].src}
+                srcSet={`${thumbnailSrc(detail.images[activeImage].src)} 600w, ${detail.images[activeImage].src.replace(/\.webp$/, '-800.webp')} 800w, ${detail.images[activeImage].src} 1200w`}
+                sizes="(min-width: 1024px) 55vw, 100vw"
                 alt={detail.images[activeImage].alt}
                 className="h-full w-full object-cover transition-[transform,opacity] duration-300 ease-out"
                 loading="lazy"
@@ -315,8 +318,8 @@ export function RoomsPage() {
           <div className="relative">
             <div className="overflow-hidden rounded-[28px] shadow-lift">
               <img
-                src="/images/hero-rooms.jpg"
-                srcSet="/images/hero-rooms-mobile.jpg 600w, /images/hero-rooms-900.jpg 900w, /images/hero-rooms.jpg 1000w"
+                src="/images/hero-rooms.webp"
+                srcSet="/images/hero-rooms-mobile.webp 600w, /images/hero-rooms-900.webp 900w, /images/hero-rooms.webp 1000w"
                 sizes="(min-width: 1024px) 45vw, 100vw"
                 alt={t('rooms.heroAlt')}
                 fetchPriority="high"
@@ -338,7 +341,7 @@ export function RoomsPage() {
         </div>
       </section>
 
-      <section id="room-list" className="section scroll-mt-24">
+      <section data-content-defer="" id="room-list" className="section scroll-mt-24">
         <div className="container-page">
           <div className="mx-auto max-w-2xl text-center">
             <p className="eyebrow">{t('rooms.list.eyebrow')}</p>
@@ -355,7 +358,7 @@ export function RoomsPage() {
         </div>
       </section>
 
-      <section className="bg-sand/70 py-14">
+      <section data-content-defer="" className="bg-sand/70 py-14">
         <div className="container-page grid gap-6 md:grid-cols-3">
           {[
             { icon: 'wifi', title: 'amenities.wifi', text: 'rooms.wifi.text' },
@@ -377,7 +380,7 @@ export function RoomsPage() {
         </div>
       </section>
 
-      <section className="section bg-cream">
+      <section data-content-defer="" className="section bg-cream">
         <div className="container-page">
           <div className="mx-auto max-w-2xl text-center">
             <p className="eyebrow">{t('rooms.help.title')}</p>

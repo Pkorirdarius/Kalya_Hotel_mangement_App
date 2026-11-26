@@ -5,6 +5,9 @@ import { installApiMocks, TEST_BOOKING_REFERENCE, type ApiCall } from './mocks';
 test('(c) looks up a booking and cancels it with confirmation', async ({ page }) => {
   const { calls } = await installApiMocks(page, { bookingStatus: 'confirmed' });
   await gotoApp(page, `/booking/manage?reference=${TEST_BOOKING_REFERENCE}`);
+  // The prerendered page hydrates from the query string. Wait for the reference
+  // to appear before typing so hydration cannot reset the email field.
+  await expect(page.locator('#reference')).toHaveValue(TEST_BOOKING_REFERENCE);
 
   await page.getByLabel('Email address').fill('guest@example.test');
   await page.getByRole('button', { name: /Find booking/i }).click();
@@ -39,6 +42,9 @@ test('(c) looks up a booking and cancels it with confirmation', async ({ page })
 test('(c) shows a clear message when the booking is not found', async ({ page }) => {
   await installApiMocks(page, { bookingNotFound: true });
   await gotoApp(page, `/booking/manage?reference=${TEST_BOOKING_REFERENCE}`);
+  // The prerendered page hydrates from the query string. Wait for the reference
+  // to appear before typing so hydration cannot reset the email field.
+  await expect(page.locator('#reference')).toHaveValue(TEST_BOOKING_REFERENCE);
 
   await page.getByLabel('Email address').fill('guest@example.test');
   await page.getByRole('button', { name: /Find booking/i }).click();
