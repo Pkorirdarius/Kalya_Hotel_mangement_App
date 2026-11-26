@@ -22,8 +22,8 @@ Update all three, then run `npm run check:brand` from `frontend/`.
 | 1 | **Location is contradictory** — the source material contains both a Westlands/Nairobi address and a Westlands/Kapenguria address. The site currently renders Kapenguria, West Pokot placeholders. | **BLOCKER** | Confirm town, county, street address and map pin. Update `HOTEL_TOWN`, `HOTEL_COUNTY`, `HOTEL_ADDRESS`, `HOTEL.location.*`, `HotelSetting`, maps embed and `HOTEL.location.mapQuery`. |
 | 2 | **Phone, WhatsApp and email are placeholders** (`+254 20 765 4321`, `254712345678`, `stay@westpremierhotel.co.ke`). | **BLOCKER** | Update `HOTEL_PHONE`, `HOTEL_PHONE_HREF`, `HOTEL_EMAIL`, `HotelSetting`, `HOTEL.contact`, and test a real call + email. |
 | 3 | **Social links point at generic domains** (`facebook.com`, `instagram.com`, `x.com`, `linkedin.com`). | **BLOCKER** | Replace `HOTEL.socials` with the hotel's real profiles, or remove the accounts that do not exist. |
-| 4 | **Gym name is unconfirmed** — Westside Fitness. Confirmed by the hotel: Tamarind Restaurant, C&K café, and three conference halls (Kopoch Hall, The Attelo Hall, Executive Board Room). | OPEN | Confirm the gym name and spelling. Facility names stay translatable (`facility.*` keys); Swahili copy still needs marketing approval. |
-| 5 | **Sample prices are unconfirmed** — room rates, menu items (`needs_confirmation=True`), offers, conference half/full day (8,000 / 15,000) and gym day pass. The site currently shows "prices pending" placeholders in several cards. | **BLOCKER** | Confirm every amount, then clear `needs_confirmation` / replace placeholder labels. |
+| 4 | **Gym name is unconfirmed** — Westside Fitness. Confirmed by the hotel: Tamarind Restaurant, C&K café, three conference halls (Kopoch Hall, The Attelo Hall, Executive Board Room) and four room types (Superior, Deluxe, Twin, En-suite). | OPEN | Confirm the gym name and spelling. Facility names stay translatable (`facility.*` keys); Swahili copy still needs marketing approval. |
+| 5 | **Sample prices are unconfirmed** — tier rates (Superior/Twin 8,500; Deluxe 12,800; En-suite 18,500), menu items (`needs_confirmation=True`), offers, conference half/full day (8,000 / 15,000) and gym day pass. The site currently shows "prices pending" placeholders in several cards. | **BLOCKER** | Confirm every amount, then clear `needs_confirmation` / replace placeholder labels. |
 | 6 | **Gym price needs confirmation** — the site, seed and backend now use one value: KES 500 per day (`HotelSetting.gym_day_pass_price`, `frontend/src/config/prices.ts`). | **BLOCKER** | Confirm KES 500 is the current rate; change it only in `HotelSetting`, the seed and the frontend fallback together. `test_gym_price.py` fails if the values drift. |
 | 7 | **Unverified marketing claims** — "best rate guaranteed", airport transfers, review scores and similar copy are gated behind `claims_verified=False`. | **BLOCKER** | Marketing/legal approve each claim, then set `HOTEL_CLAIMS_VERIFIED=true` and `HotelSetting.claims_verified`. |
 | 8 | **Swahili is machine-translated** — all `sw` strings in `frontend/src/i18n.ts` and seed content. | **BLOCKER** | A native Swahili speaker / marketing must review every string before launch. |
@@ -54,7 +54,12 @@ Update all three, then run `npm run check:brand` from `frontend/`.
 - [ ] Cancellation cutoff (`HOTEL_CANCELLATION_CUTOFF_HOURS`), hold TTL
       (`HOTEL_HOLD_TTL_MINUTES`), front desk target and escalation minutes
       confirmed in admin.
-- [ ] Room allotments and rates per room type checked.
+- [x] Room inventory uses the confirmed four types: 2 Superior (201, 202; room 202
+      is multipurpose), 6 Deluxe, 1 Twin and 1 En-suite (203). Migration
+      `rooms/0002_confirmed_room_slugs.py` renames legacy rows in place so existing
+      bookings, rate plans and blocks keep their foreign keys; re-run `seed_hotel`
+      after deploying to refresh copy and rates.
+- [ ] Tier rates confirmed with the hotel and `needs_confirmation` cleared.
 - [ ] Guest booking lookup tested with reference + email and reference + phone.
 - [ ] Front desk queue walks `pending_payment → pending_confirmation → confirmed`
       correctly, including undo.
@@ -72,7 +77,10 @@ Update all three, then run `npm run check:brand` from `frontend/`.
       emails reach the right inboxes.
 - [ ] Table and conference guest emails **and SMS** tested in EN and SW for
       confirmation, decline and next-day reminders. New submissions carry the
-      active UI language; legacy/unknown values fall back to English.
+      active UI language; legacy/unknown values fall back to English. Conference
+      messages include the selected hall (available in staff views and the API);
+      historical enquiries backfilled to Kopoch Hall by
+      `facilities/0005_conferenceenquiry_hall.py`.
 - [ ] `send_facility_reminders` is registered by `manage.py setup_schedules`
       and a dry run sends only tomorrow's confirmed tables/conferences.
 - [ ] Swahili messages reviewed by a native speaker: session/layout labels and
@@ -182,7 +190,7 @@ formatting in Kiswahili; dates use `sw-KE`/`en-GB`.
 - [x] All five automated checks green:
       `npm run typecheck`, `npm run lint`, `npm test`, `npm run build`,
       `npm run check:brand`; backend `..\.venv\Scripts\python.exe -m pytest -q`.
-      Latest: frontend 124 tests / 29 files, backend 171 passed / 1 skipped.
+      Latest: frontend 125 tests / 29 files, backend 174 passed / 1 skipped.
 
 **Group D CI evidence:** motion [45211085265](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45211085265), axe/keyboard [45385570039](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45385570039), Playwright a–g [45403334223](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45403334223), Lighthouse/D4 [45781024001](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45781024001) and [45784395555](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45784395555), report-only CSP [45782053634](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45782053634). All three CI jobs (backend/Postgres, frontend, E2E) are green on each run. Full scores and audit notes are in `docs/ACCEPTANCE-REPORT.md` §§1.6–1.10.
 

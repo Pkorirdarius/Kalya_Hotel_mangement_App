@@ -22,7 +22,7 @@ test('(a) searches availability, quotes, reserves and confirms a booking', async
     (call) => call.method === 'POST' && call.path === '/bookings/quote/',
   );
   expect(callBody(quote)).toMatchObject({
-    room_type: 'standard-executive',
+    room_type: 'superior',
     meal_plan: 'breakfast',
     guests: 2,
   });

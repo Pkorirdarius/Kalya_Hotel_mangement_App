@@ -9,6 +9,17 @@ here. The format follows Keep a Changelog; versions use semantic versioning.
   three bookable conference halls (Kopoch Hall, The Attelo Hall and Executive
   Board Room). Placeholder names were replaced across the brand config,
   translations, page copy and launch docs.
+- Room catalog now matches the hotel's four confirmed types: Superior (2 rooms,
+  201/202), Deluxe (6 rooms), Twin (1 room) and En-suite (1 room, 203), with the
+  confirmed amenities, bed types and guest fit. The exact note about room 202 is
+  preserved. Tier prices are provisional and still marked "prices pending".
+  `rooms/0002_confirmed_room_slugs.py` renames legacy slugs in place so existing
+  bookings, rates and blocks keep their foreign keys.
+- Conference enquiries now require a hall choice. The selected hall is stored,
+  returned by the public and staff APIs, shown in staff views and included in
+  EN/SW guest emails and SMS. Availability stays global by date/session, as
+  before; `facilities/0005_conferenceenquiry_hall.py` backfills older rows to
+  Kopoch Hall.
 - No production release has been made. This branch is a release candidate only:
   no merge to `main`, no production deploy.
 - Launch blockers remain tracked in `docs/LAUNCH-CHECKLIST.md` and must be

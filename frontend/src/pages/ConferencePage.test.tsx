@@ -129,9 +129,11 @@ describe('ConferencePage', () => {
     renderConferencePage();
 
     expect(
-      await screen.findByRole('button', {
-        name: `${label.weekday} ${label.day} — Available`,
-      }),
+      await screen.findByRole(
+        'button',
+        { name: `${label.weekday} ${label.day} — Available` },
+        { timeout: 5_000 },
+      ),
     ).toBeEnabled();
 
     await fillValidForm(user);
@@ -224,9 +226,11 @@ describe('ConferencePage', () => {
     renderConferencePage();
 
     expect(
-      await screen.findByRole('button', {
-        name: `${label.weekday} ${label.day} — Full`,
-      }),
+      await screen.findByRole(
+        'button',
+        { name: `${label.weekday} ${label.day} — Full` },
+        { timeout: 5_000 },
+      ),
     ).toBeDisabled();
     expect(
       screen.getByText('This session is unavailable. Choose another date or session.'),

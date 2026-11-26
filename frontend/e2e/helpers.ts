@@ -18,7 +18,7 @@ export async function reachPaymentStep(page: Page): Promise<void> {
 
   await page.getByRole('button', { name: /Choose a room/i }).click();
   await expect(page.getByRole('heading', { name: /Pick your room and meal plan/i })).toBeVisible();
-  await expect(page.getByText('Standard Executive').first()).toBeVisible();
+  await expect(page.getByText('Superior Room').first()).toBeVisible();
 
   await page.getByRole('button', { name: /Add guest details/i }).click();
   await expect(page.getByRole('heading', { name: /Who is staying with us/i })).toBeVisible();

@@ -129,8 +129,8 @@ function bookingFixture(status: string, paymentStatus: PaymentStatus) {
     reference: TEST_BOOKING_REFERENCE,
     status,
     status_display: status.replace(/_/g, ' '),
-    room_type: 'standard-executive',
-    room_type_name: 'Standard Executive',
+    room_type: 'superior',
+    room_type_name: 'Superior Room',
     room_type_image: '',
     rate_plan: 'flexible',
     meal_plan: 'breakfast',
@@ -168,8 +168,8 @@ function quoteFixture(body: Record<string, unknown>) {
   const checkout = String(body.checkout ?? dateFromNow(9));
   const guests = Number(body.guests ?? 2);
   return {
-    room_type: String(body.room_type ?? 'standard-executive'),
-    room_type_name: 'Standard Executive',
+    room_type: String(body.room_type ?? 'superior'),
+    room_type_name: 'Superior Room',
     rate_plan: 'flexible',
     meal_plan: String(body.meal_plan ?? 'breakfast'),
     checkin,
@@ -336,8 +336,8 @@ export async function installApiMocks(
     if (method === 'GET' && path === '/rooms/') {
       await json(route, 200, [
         {
-          slug: 'standard-executive',
-          name: 'Standard Executive',
+          slug: 'superior',
+          name: 'Superior Room',
           description: 'A calm, comfortable room.',
           price: 18000,
           sleeps: 2,
@@ -360,24 +360,24 @@ export async function installApiMocks(
     if (method === 'GET' && path === '/bookings/availability/') {
       await json(route, 200, [
         {
-          room_type: 'standard-executive',
-          name: 'Standard Executive',
+          room_type: 'superior',
+          name: 'Superior Room',
           available_rooms: 4,
           sleeps: 2,
           fits_guests: true,
           from_price: 18000,
         },
         {
-          room_type: 'deluxe-garden-suite',
-          name: 'Deluxe Garden Suite',
+          room_type: 'deluxe',
+          name: 'Deluxe Room',
           available_rooms: 3,
           sleeps: 3,
           fits_guests: true,
           from_price: 26000,
         },
         {
-          room_type: 'mara-residence',
-          name: 'Mara Residence',
+          room_type: 'en-suite',
+          name: 'En-suite Room',
           available_rooms: 2,
           sleeps: 4,
           fits_guests: true,

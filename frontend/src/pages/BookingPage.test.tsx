@@ -59,7 +59,7 @@ const availability = [
     room_type: 'en-suite',
     name: 'En-suite Room',
     available_rooms: 3,
-    sleeps: 4,
+    sleeps: 2,
     fits_guests: true,
     from_price: 18500,
   },

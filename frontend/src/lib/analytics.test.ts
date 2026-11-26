@@ -40,11 +40,11 @@ describe('analytics', () => {
     expect(scripts[0].getAttribute('data-domain')).toBe('hotel.example');
 
     trackPageview('/rooms');
-    trackEvent('booking_started', { room: 'standard-executive' });
+    trackEvent('booking_started', { room: 'superior' });
 
     expect(queue()).toEqual([
       ['pageview', { u: `${window.location.origin}/rooms` }],
-      ['booking_started', { props: { room: 'standard-executive' } }],
+      ['booking_started', { props: { room: 'superior' } }],
     ]);
   });
 });
