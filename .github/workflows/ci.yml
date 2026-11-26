@@ -53,6 +53,13 @@ jobs:
       - name: Tests against Postgres
         working-directory: backend
         run: python -m pytest -q
+      - name: Postgres backup/restore drill
+        run: |
+          if ! command -v pg_dump >/dev/null 2>&1; then
+            sudo apt-get update
+            sudo apt-get install -y postgresql-client
+          fi
+          python scripts/postgres_backup_restore.py drill
       - name: Staging settings check
         working-directory: backend
         run: python manage.py check --settings=config.settings.staging
