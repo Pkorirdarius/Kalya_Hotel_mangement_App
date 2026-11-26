@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import argparse
 import os
+import re
 import subprocess
 import sys
 import tempfile
@@ -134,6 +135,22 @@ def sql_dump(dbname: str, destination: Path) -> None:
     print(f"[ok]   dumped {dbname} to {destination}")
 
 
+def sanitize_sql_dump(source: Path) -> None:
+    """Remove session settings newer than the target server.
+
+    A newer pg_dump can emit ``SET transaction_timeout = 0;``, which older
+    servers (including the Postgres 16 CI service) reject. It is a client-only
+    session default and is safe to drop from a logical restore.
+    """
+    text = source.read_text(encoding="utf-8")
+    cleaned = re.sub(
+        r"(?im)^\s*SET\s+transaction_timeout\s*=.*?;\s*$", "", text
+    )
+    if cleaned != text:
+        source.write_text(cleaned, encoding="utf-8")
+        print("[ok]   removed unsupported transaction_timeout setting")
+
+
 def sql_restore(dbname: str, source: Path) -> None:
     command(
         [
@@ -189,6 +206,7 @@ def drill(source: str, target: str) -> int:
         with tempfile.TemporaryDirectory(prefix="hotel-backup-drill-") as directory:
             dump = Path(directory) / "drill.sql"
             sql_dump(source, dump)
+            sanitize_sql_dump(dump)
             sql_restore(target, dump)
 
         with psycopg.connect(conninfo(target)) as connection:
