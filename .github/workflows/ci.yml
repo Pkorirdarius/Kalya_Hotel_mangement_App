@@ -53,6 +53,15 @@ jobs:
       - name: Tests against Postgres
         working-directory: backend
         run: python -m pytest -q
+      - name: Staging settings check
+        working-directory: backend
+        run: python manage.py check --settings=config.settings.staging
+      - name: Staging stack manifest check
+        run: python scripts/check_staging_stack.py
+      - name: Validate staging Compose file
+        run: |
+          cp .env.staging.example .env.staging
+          docker compose -f docker-compose.staging.yml config --quiet
 
   frontend:
     name: Frontend
