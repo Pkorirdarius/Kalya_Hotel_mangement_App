@@ -25,3 +25,23 @@ class RequestIDMiddleware:
             reset_request_id(token)
         response[getattr(settings, "REQUEST_ID_HEADER", "X-Request-ID")] = request_id
         return response
+
+
+class CSPReportOnlyMiddleware:
+    """Add the audit-only CSP header to API and admin responses.
+
+    The policy is deliberately report-only: monitoring comes first, enforcement
+    is a later change once real traffic and Django admin usage have been reviewed.
+    """
+
+    HEADER = "Content-Security-Policy-Report-Only"
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        response = self.get_response(request)
+        policy = getattr(settings, "CSP_REPORT_ONLY_POLICY", "")
+        if policy and not response.has_header(self.HEADER):
+            response[self.HEADER] = policy
+        return response

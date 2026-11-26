@@ -144,6 +144,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "apps.common.middleware.RequestIDMiddleware",
     "apps.accounts.middleware.CurrentUserMiddleware",
+    "apps.common.middleware.CSPReportOnlyMiddleware",
 ]
 
 ROOT_URLCONF = "config.urls"
@@ -314,6 +315,22 @@ CSRF_COOKIE_SECURE = env("CSRF_COOKIE_SECURE")
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
 SECURE_CROSS_ORIGIN_OPENER_POLICY = "same-origin"
+
+# Step 2.6: collect CSP violations before switching to enforcement. Django admin
+# needs inline styles/scripts, and the API is JSON-only, so this policy is
+# intentionally permissive where the built-in admin still requires it.
+CSP_REPORT_ONLY_POLICY = (
+    "default-src 'self'; "
+    "base-uri 'self'; "
+    "object-src 'none'; "
+    "frame-ancestors 'none'; "
+    "form-action 'self'; "
+    "img-src 'self' data: https:; "
+    "font-src 'self' data:; "
+    "style-src 'self' 'unsafe-inline'; "
+    "script-src 'self' 'unsafe-inline'; "
+    "connect-src 'self'"
+)
 X_FRAME_OPTIONS = "DENY"
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
