@@ -110,7 +110,7 @@ const OFFERS = [
   },
   {
     image: '/images/offer-meetings.webp',
-    alt: 'Conference delegates at a workshop in Kilele Hall',
+    alt: 'Conference delegates at a workshop',
     tag: 'offer.meetings.tag',
     tagClass: 'bg-cream text-forest',
     title: 'offer.meetings.title',

@@ -5,6 +5,10 @@ here. The format follows Keep a Changelog; versions use semantic versioning.
 
 ## [Unreleased]
 
+- Confirmed facility names from the hotel: Tamarind Restaurant, C&K café, and
+  three bookable conference halls (Kopoch Hall, The Attelo Hall and Executive
+  Board Room). Placeholder names were replaced across the brand config,
+  translations, page copy and launch docs.
 - No production release has been made. This branch is a release candidate only:
   no merge to `main`, no production deploy.
 - Launch blockers remain tracked in `docs/LAUNCH-CHECKLIST.md` and must be

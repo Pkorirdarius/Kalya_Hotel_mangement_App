@@ -235,7 +235,7 @@ describe('DiningPage', () => {
     renderDiningPage('/dining?venue=coffee');
 
     expect(await screen.findByText('No booking needed.')).toBeInTheDocument();
-    await user.click(screen.getByRole('tab', { name: 'Tulia Restaurant' }));
+    await user.click(screen.getByRole('tab', { name: 'Tamarind Restaurant' }));
 
     expect(await screen.findByRole('button', { name: 'Request table' })).toBeInTheDocument();
     expect(screen.queryByText('No booking needed.')).not.toBeInTheDocument();

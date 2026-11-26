@@ -55,7 +55,10 @@ export interface BrandConfig {
   facilities: {
     restaurantName: string;
     cafeName: string;
+    /** Primary hall used in image alt text and search metadata. */
     hallName: string;
+    /** All conference halls guests can book. */
+    hallNames: string[];
     gymName: string;
   };
   socials: SocialLink[];
@@ -101,9 +104,10 @@ export const HOTEL: BrandConfig = {
     email: 'stay@westpremierhotel.co.ke',
   },
   facilities: {
-    restaurantName: 'Tulia Restaurant',
-    cafeName: 'Jacaranda Café',
-    hallName: 'Kilele Hall',
+    restaurantName: 'Tamarind Restaurant',
+    cafeName: 'C&K',
+    hallName: 'Kopoch Hall',
+    hallNames: ['Kopoch Hall', 'The Attelo Hall', 'Executive Board Room'],
     gymName: 'Westside Fitness',
   },
   socials: [
@@ -141,6 +145,13 @@ export function whatsappDisplay(hotel: BrandConfig = HOTEL): string {
   return raw;
 }
 
+/** Join a list for prose, e.g. "A, B and C". */
+function listWithAnd(items: string[]): string {
+  if (items.length === 0) return '';
+  if (items.length === 1) return items[0];
+  return `${items.slice(0, -1).join(', ')} and ${items[items.length - 1]}`;
+}
+
 /** Values available to every i18n template as {name}, {town}, … */
 export function brandTemplateVars(hotel: BrandConfig = HOTEL): Record<string, string> {
   return {
@@ -162,6 +173,8 @@ export function brandTemplateVars(hotel: BrandConfig = HOTEL): Record<string, st
     restaurantName: hotel.facilities.restaurantName,
     cafeName: hotel.facilities.cafeName,
     hallName: hotel.facilities.hallName,
+    hallNames: hotel.facilities.hallNames.join(', '),
+    hallList: listWithAnd(hotel.facilities.hallNames),
     gymName: hotel.facilities.gymName,
   };
 }

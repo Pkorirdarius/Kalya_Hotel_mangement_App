@@ -498,7 +498,7 @@ No merge to `main` and no production deployment were performed.
 | Flag | Current state | Do not change without the hotel |
 | --- | --- | --- |
 | Location/contact | Kapenguria placeholders in `config/hotel.ts`; source material also says Westlands/Nairobi | Address, town, county, map pin, phone, WhatsApp, email |
-| Facility names | Tulia Restaurant, Jacaranda Café, Kilele Hall, Westside Fitness | Names and spellings |
+| Facility names | Confirmed: Tamarind Restaurant, C&K café, Kopoch Hall / The Attelo Hall / Executive Board Room. Unconfirmed: Westside Fitness (gym) | Gym name and Swahili copy |
 | Prices and claims | `claims_verified=False`; prices marked "pending" | Every room/menu/offer/conference/gym price |
 | Conference half/full day | 8,000 / 15,000 look swapped | Correct mapping |
 | Swahili | `sw` strings are machine-translated | Native speaker review |

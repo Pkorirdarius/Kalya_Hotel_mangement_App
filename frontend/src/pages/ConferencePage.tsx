@@ -3,7 +3,7 @@ import { HoneypotField } from '../components/HoneypotField';
 import { usePageMeta } from '../components/Page';
 import { useToast } from '../components/ToastProvider';
 import { useI18n } from '../i18n-context';
-import { whatsappHref } from '../config/hotel';
+import { HOTEL, whatsappHref } from '../config/hotel';
 import type { ConferenceEnquiry } from '../lib/api/types';
 import { useFormGuard } from '../lib/forms/useFormGuard';
 import { errorMessage, fieldErrors } from '../lib/query/errors';
@@ -273,6 +273,29 @@ export function ConferencePage() {
             className="aspect-[5/4] w-full rounded-[28px] object-cover shadow-lift"
             fetchPriority="high"
           />
+        </div>
+      </section>
+
+      <section className="container-page section">
+        <div className="max-w-2xl">
+          <p className="eyebrow">{t('conference.halls.eyebrow')}</p>
+          <h2 className="heading mt-3">{t('conference.halls.title')}</h2>
+          <p className="mt-3 text-sm leading-relaxed text-muted">{t('conference.halls.text')}</p>
+        </div>
+        <div className="mt-7 grid gap-4 sm:grid-cols-3">
+          {HOTEL.facilities.hallNames.map((name) => (
+            <div key={name} className="card p-5">
+              <span className="icon-tile">
+                <span className="material-symbols-outlined" aria-hidden="true">
+                  co_present
+                </span>
+              </span>
+              <h3 className="mt-4 text-[15px] font-bold text-forest">{name}</h3>
+              <p className="mt-2 text-[12px] leading-relaxed text-muted">
+                {t('conference.halls.cardText')}
+              </p>
+            </div>
+          ))}
         </div>
       </section>
 
