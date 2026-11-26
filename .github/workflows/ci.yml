@@ -65,7 +65,8 @@ jobs:
             sudo apt-get update
             sudo apt-get install -y postgresql-client
           fi
-          python scripts/postgres_backup_restore.py drill
+          set -o pipefail
+          python scripts/postgres_backup_restore.py drill 2>&1 | tee -a "$GITHUB_STEP_SUMMARY"
       - name: Staging settings check
         working-directory: backend
         run: python manage.py check --settings=config.settings.staging

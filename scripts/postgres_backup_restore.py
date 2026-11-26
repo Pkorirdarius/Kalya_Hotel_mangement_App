@@ -21,6 +21,7 @@ import os
 import subprocess
 import sys
 import tempfile
+import traceback
 import uuid
 from pathlib import Path
 
@@ -55,6 +56,7 @@ def psql_env() -> dict[str, str]:
 
 
 def command(args: list[str]) -> None:
+    print(f"[run] {' '.join(args)}", file=sys.stderr)
     subprocess.run(args, check=True, env=psql_env())
 
 
@@ -109,13 +111,52 @@ def restore(dbname: str, source: Path, *, clean: bool = False) -> None:
     print(f"[ok]   restored {source} into {dbname}")
 
 
+def sql_dump(dbname: str, destination: Path) -> None:
+    """Create a portable plain-SQL dump for the scratch restore drill.
+
+    The operational ``backup``/``restore`` commands use pg_dump's custom format.
+    The drill deliberately uses plain SQL so it can restore with ``psql`` alone
+    and does not depend on pg_restore's extension/owner handling.
+    """
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    command(
+        [
+            "pg_dump",
+            "--format=plain",
+            "--no-owner",
+            "--no-privileges",
+            "--no-tablespaces",
+            *common_args(dbname),
+            "--file",
+            str(destination),
+        ]
+    )
+    print(f"[ok]   dumped {dbname} to {destination}")
+
+
+def sql_restore(dbname: str, source: Path) -> None:
+    command(
+        [
+            "psql",
+            "--no-psqlrc",
+            "--set",
+            "ON_ERROR_STOP=1",
+            "--quiet",
+            *common_args(dbname),
+            "--file",
+            str(source),
+        ]
+    )
+    print(f"[ok]   restored {source} into {dbname}")
+
+
 def drop_database(name: str) -> None:
+    # Scratch databases have no long-lived connections. Avoid WITH (FORCE),
+    # which requires elevated privileges on some deployments.
     with psycopg.connect(conninfo(ADMIN_DB), autocommit=True) as connection:
         with connection.cursor() as cursor:
             cursor.execute(
-                sql.SQL("DROP DATABASE IF EXISTS {} WITH (FORCE)").format(
-                    sql.Identifier(name)
-                )
+                sql.SQL("DROP DATABASE IF EXISTS {}").format(sql.Identifier(name))
             )
 
 
@@ -146,9 +187,9 @@ def drill(source: str, target: str) -> int:
             connection.commit()
 
         with tempfile.TemporaryDirectory(prefix="hotel-backup-drill-") as directory:
-            dump = Path(directory) / "drill.dump"
-            backup(source, dump)
-            restore(target, dump)
+            dump = Path(directory) / "drill.sql"
+            sql_dump(source, dump)
+            sql_restore(target, dump)
 
         with psycopg.connect(conninfo(target)) as connection:
             with connection.cursor() as cursor:
@@ -203,6 +244,9 @@ def main() -> int:
     except psycopg.Error as exc:
         print(f"[FAIL] Postgres error: {exc}", file=sys.stderr)
         return 2
+    except Exception:
+        traceback.print_exc(file=sys.stderr)
+        return 1
 
 
 if __name__ == "__main__":
