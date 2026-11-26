@@ -211,6 +211,7 @@ class ConferenceEnquiryCreateView(APIView):
             enquiry = create_conference_enquiry(
                 date_value=data["date"],
                 session=data["session"],
+                hall=data["hall"],
                 people=data["people"],
                 layout=data["layout"],
                 catering=data.get("catering", []),

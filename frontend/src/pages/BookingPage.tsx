@@ -18,7 +18,7 @@ import {
   useQuoteMutation,
   useRoomAvailability,
 } from '../lib/query/hooks';
-import { MEAL_PLANS, ROOMS, type MealPlanId } from '../types';
+import { MEAL_PLANS, ROOMS, roomInventory, type MealPlanId } from '../types';
 import {
   addDaysISO,
   newRequestId,
@@ -937,7 +937,7 @@ export function BookingPage() {
                                 </p>
                               </div>
                               <p className="mt-1 text-[11px] text-muted">
-                                {t(`room.sleeps${item.sleeps}`)} · {item.size} m² · {t(item.bedKey)}
+                                {roomInventory(item, t)} · {t(`room.sleeps${item.sleeps}`)}
                               </p>
                               {availability ? (
                                 <p

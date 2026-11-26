@@ -51,13 +51,14 @@ class ConferenceEnquiryAdmin(admin.ModelAdmin):
         "company",
         "date",
         "session",
+        "hall",
         "people",
         "layout",
         "language",
         "status",
         "created_at",
     )
-    list_filter = ("status", "session", "layout", "language", "date")
+    list_filter = ("status", "session", "hall", "layout", "language", "date")
     search_fields = ("reference", "first_name", "last_name", "company", "email", "phone")
     readonly_fields = ("reference", "escalated_at", "created_at", "updated_at")
 

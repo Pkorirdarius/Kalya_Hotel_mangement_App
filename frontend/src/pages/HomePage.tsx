@@ -5,7 +5,7 @@ import { NewsletterForm } from '../components/NewsletterForm';
 import { usePageMeta } from '../components/Page';
 import { whatsappHref } from '../config/hotel';
 import { useI18n } from '../i18n-context';
-import { ROOMS } from '../types';
+import { ROOMS, roomInventory } from '../types';
 
 function thumbnailSrc(src: string): string {
   return src.replace(/\.webp$/, '-thumb.webp');
@@ -18,20 +18,25 @@ const WHY_CARDS = [
 ];
 
 const ROOM_BADGES: Record<string, { pill: string; icon: string; text: string }> = {
-  'standard-executive': {
+  superior: {
     pill: 'bg-cream/95 text-forest',
     icon: 'star',
     text: 'room.popular',
   },
-  'deluxe-garden-suite': {
+  deluxe: {
     pill: 'bg-gold text-forest-dark',
-    icon: 'local_florist',
-    text: 'room.garden',
+    icon: 'check_circle',
+    text: 'room.spacious',
   },
-  'mara-residence': {
+  twin: {
     pill: 'bg-cream/95 text-forest',
+    icon: 'group',
+    text: 'room.shared',
+  },
+  'en-suite': {
+    pill: 'bg-gold text-forest-dark',
     icon: 'work',
-    text: 'room.longStay',
+    text: 'room.vip',
   },
 };
 
@@ -88,7 +93,7 @@ const OFFERS = [
   },
   {
     image: '/images/room-deluxe.webp',
-    alt: 'King bed in the Deluxe Garden Suite',
+    alt: 'Queen bed in a Deluxe Room',
     tag: 'offer.ngo.tag',
     tagClass: 'bg-cream text-forest',
     title: 'offer.ngo.title',
@@ -299,7 +304,7 @@ export function HomePage() {
             </Link>
           </div>
 
-          <div className="mt-10 grid gap-6 lg:grid-cols-3">
+          <div className="mt-10 grid gap-6 md:grid-cols-2 xl:grid-cols-4">
             {ROOMS.map((room) => {
               const badge = ROOM_BADGES[room.id];
               const prefix = room.nameKey.replace('.name', '');
@@ -338,23 +343,23 @@ export function HomePage() {
                       <div className="mt-4 flex flex-wrap gap-x-4 gap-y-2 text-[12px] font-semibold text-forest">
                         <span className="inline-flex items-center gap-1.5">
                           <span className="material-symbols-outlined text-[16px] text-gold-deep" aria-hidden="true">
+                            meeting_room
+                          </span>
+                          <span>{roomInventory(room, t)}</span>
+                        </span>
+                        <span className="inline-flex items-center gap-1.5">
+                          <span className="material-symbols-outlined text-[16px] text-gold-deep" aria-hidden="true">
                             group
                           </span>
                           <span>{t(`room.sleeps${room.sleeps}`)}</span>
                         </span>
-                        <span className="inline-flex items-center gap-1.5">
-                          <span className="material-symbols-outlined text-[16px] text-gold-deep" aria-hidden="true">
-                            square_foot
-                          </span>
-                          {room.size} m²
-                        </span>
-                        <span className="inline-flex items-center gap-1.5">
-                          <span className="material-symbols-outlined text-[16px] text-gold-deep" aria-hidden="true">
-                            bed
-                          </span>
-                          <span>{t(room.bedKey)}</span>
-                        </span>
                       </div>
+                      <p className="mt-3 text-[12px] font-semibold text-gold-deep">
+                        {t(room.bestForKey)}
+                      </p>
+                      {room.noteKey ? (
+                        <p className="mt-1 text-[11px] font-medium text-muted">{t(room.noteKey)}</p>
+                      ) : null}
                       <div className="mt-5 flex items-center justify-between border-t border-line pt-4">
                         <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-gold-deep">
                           <span className="material-symbols-outlined text-[15px]" aria-hidden="true">

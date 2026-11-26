@@ -1749,6 +1749,18 @@ paths:
         schema:
           type: string
           format: date
+      - in: query
+        name: hall
+        schema:
+          type: string
+          enum:
+          - attelo
+          - boardroom
+          - kopoch
+        description: |-
+          * `kopoch` - Kopoch Hall
+          * `attelo` - The Attelo Hall
+          * `boardroom` - Executive Board Room
       - name: ordering
         required: false
         in: query
@@ -4349,6 +4361,10 @@ components:
           $ref: '#/components/schemas/SessionEnum'
         session_display:
           type: string
+        hall:
+          $ref: '#/components/schemas/HallEnum'
+        hall_display:
+          type: string
         people:
           type: integer
           maximum: 9223372036854775807
@@ -4395,6 +4411,8 @@ components:
       - email
       - first_name
       - guest_name
+      - hall
+      - hall_display
       - last_name
       - layout
       - layout_display
@@ -4425,6 +4443,8 @@ components:
           format: date
         session:
           $ref: '#/components/schemas/SessionEnum'
+        hall:
+          $ref: '#/components/schemas/HallEnum'
         people:
           type: integer
           maximum: 120
@@ -4467,6 +4487,7 @@ components:
       - date
       - email
       - first_name
+      - hall
       - last_name
       - layout
       - people
@@ -4491,6 +4512,10 @@ components:
         session:
           $ref: '#/components/schemas/SessionEnum'
         session_display:
+          type: string
+        hall:
+          $ref: '#/components/schemas/HallEnum'
+        hall_display:
           type: string
         people:
           type: integer
@@ -4542,6 +4567,8 @@ components:
       - email
       - first_name
       - guest_name
+      - hall
+      - hall_display
       - last_name
       - layout
       - layout_display
@@ -5122,6 +5149,16 @@ components:
         * `new` - New
         * `contacted` - Contacted
         * `closed` - Closed
+    HallEnum:
+      enum:
+      - kopoch
+      - attelo
+      - boardroom
+      type: string
+      description: |-
+        * `kopoch` - Kopoch Hall
+        * `attelo` - The Attelo Hall
+        * `boardroom` - Executive Board Room
     Health:
       type: object
       properties:
@@ -6278,6 +6315,11 @@ components:
         session:
           $ref: '#/components/schemas/SessionEnum'
         session_display:
+          type: string
+          minLength: 1
+        hall:
+          $ref: '#/components/schemas/HallEnum'
+        hall_display:
           type: string
           minLength: 1
         people:

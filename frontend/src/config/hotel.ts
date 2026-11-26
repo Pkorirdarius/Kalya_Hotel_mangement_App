@@ -20,6 +20,22 @@ export interface SocialLink {
   href: string;
 }
 
+/**
+ * Conference halls guests can select. The ids are also the backend choice
+ * values, so keep this list in sync with `ConferenceEnquiry.Hall`.
+ */
+export const CONFERENCE_HALLS = [
+  { id: 'kopoch', name: 'Kopoch Hall' },
+  { id: 'attelo', name: 'The Attelo Hall' },
+  { id: 'boardroom', name: 'Executive Board Room' },
+] as const;
+
+export type ConferenceHallId = (typeof CONFERENCE_HALLS)[number]['id'];
+
+export const CONFERENCE_HALL_IDS = CONFERENCE_HALLS.map(
+  (hall) => hall.id,
+) as [ConferenceHallId, ...ConferenceHallId[]];
+
 export interface BrandConfig {
   /** Full hotel name, e.g. used in the footer copyright and JSON-LD. */
   name: string;
@@ -106,8 +122,8 @@ export const HOTEL: BrandConfig = {
   facilities: {
     restaurantName: 'Tamarind Restaurant',
     cafeName: 'C&K',
-    hallName: 'Kopoch Hall',
-    hallNames: ['Kopoch Hall', 'The Attelo Hall', 'Executive Board Room'],
+    hallName: CONFERENCE_HALLS[0].name,
+    hallNames: CONFERENCE_HALLS.map((hall) => hall.name),
     gymName: 'Westside Fitness',
   },
   socials: [

@@ -3,7 +3,7 @@ import { useLocation } from 'react-router-dom';
 import { Link } from '../components/LocalizedLink';
 import { usePageMeta } from '../components/Page';
 import { useI18n } from '../i18n-context';
-import { ROOMS, type RoomType } from '../types';
+import { ROOMS, roomInventory, type RoomType } from '../types';
 
 interface RoomDetail {
   id: string;
@@ -15,9 +15,19 @@ interface RoomDetail {
   amenities: Array<{ icon: string; key: string }>;
 }
 
+const SHARED_AMENITIES: Array<{ icon: string; key: string }> = [
+  { icon: 'wifi', key: 'amenities.wifi' },
+  { icon: 'tv', key: 'amenities.tv' },
+  { icon: 'room_service', key: 'amenities.roomService' },
+  { icon: 'lock', key: 'amenities.safe' },
+  { icon: 'iron', key: 'amenities.ironing' },
+  { icon: 'iron', key: 'amenities.ironingBox' },
+  { icon: 'door_front', key: 'amenities.smartCardDoors' },
+];
+
 const ROOM_DETAILS: RoomDetail[] = [
   {
-    id: 'standard-executive',
+    id: 'superior',
     rating: '4.8',
     pill: 'bg-cream/95 text-forest',
     pillIcon: 'star',
@@ -25,100 +35,130 @@ const ROOM_DETAILS: RoomDetail[] = [
     images: [
       {
         src: '/images/room-standard.webp',
-        alt: 'Standard Executive room with queen bed and writing desk',
+        alt: 'Superior Room with king bed and writing desk',
       },
       {
         src: '/images/offer-longstay.webp',
-        alt: 'Standard Executive room in warm evening light',
+        alt: 'Superior Room in warm evening light',
       },
       {
         src: '/images/room-gallery-3.webp',
-        alt: 'Standard Executive bathroom and bed detail',
+        alt: 'Superior Room bathroom and bed detail',
       },
       {
         src: '/images/room-gallery-4.webp',
-        alt: 'Standard Executive room seating corner',
+        alt: 'Superior Room seating corner',
       },
     ],
     amenities: [
-      { icon: 'wifi', key: 'amenities.wifi' },
-      { icon: 'desk', key: 'amenities.desk' },
-      { icon: 'shower', key: 'amenities.shower' },
-      { icon: 'tv', key: 'amenities.tv' },
-      { icon: 'lock', key: 'amenities.safe' },
-      { icon: 'bolt', key: 'amenities.generator' },
-      { icon: 'coffee', key: 'amenities.tea' },
-      { icon: 'cleaning_services', key: 'amenities.housekeeping' },
+      ...SHARED_AMENITIES,
+      { icon: 'bed', key: 'amenities.orthopedic' },
+      { icon: 'balcony', key: 'amenities.spacious' },
     ],
   },
   {
-    id: 'deluxe-garden-suite',
+    id: 'deluxe',
     rating: '4.9',
     pill: 'bg-gold text-forest-dark',
-    pillIcon: 'local_florist',
-    pillKey: 'room.garden',
+    pillIcon: 'check_circle',
+    pillKey: 'room.spacious',
     images: [
       {
         src: '/images/room-deluxe.webp',
-        alt: 'Deluxe Garden Suite with king bed and garden-facing windows',
+        alt: 'Deluxe Room with queen bed',
       },
       {
         src: '/images/room-deluxe-2.webp',
-        alt: 'Deluxe Garden Suite reading corner',
+        alt: 'Deluxe Room reading corner',
       },
       {
         src: '/images/room-deluxe-3.webp',
-        alt: 'Deluxe Garden Suite bathroom detail',
+        alt: 'Deluxe Room bathroom detail',
       },
       {
         src: '/images/room-deluxe-4.webp',
-        alt: 'Deluxe Garden Suite seating area',
+        alt: 'Deluxe Room seating area',
       },
     ],
     amenities: [
-      { icon: 'deck', key: 'amenities.garden' },
-      { icon: 'bed', key: 'amenities.king' },
-      { icon: 'wifi', key: 'amenities.wifi' },
-      { icon: 'ac_unit', key: 'amenities.ac' },
-      { icon: 'coffee', key: 'amenities.coffee' },
-      { icon: 'kitchen', key: 'amenities.minibar' },
-      { icon: 'spa', key: 'amenities.robes' },
-      { icon: 'chair', key: 'amenities.lounge' },
+      ...SHARED_AMENITIES,
+      { icon: 'bed', key: 'amenities.orthopedic' },
+      { icon: 'balcony', key: 'amenities.spacious' },
+      { icon: 'kitchen', key: 'amenities.fridge' },
+      { icon: 'balcony', key: 'amenities.balcony' },
     ],
   },
   {
-    id: 'mara-residence',
-    rating: '5.0',
+    id: 'twin',
+    rating: '4.7',
     pill: 'bg-cream/95 text-forest',
-    pillIcon: 'work',
-    pillKey: 'room.longStay',
+    pillIcon: 'group',
+    pillKey: 'room.shared',
     images: [
       {
-        src: '/images/room-mara.webp',
-        alt: 'Mara Residence living area with sofa and kitchenette',
+        src: '/images/room-gallery-3.webp',
+        alt: 'Twin Room with two single beds',
       },
       {
-        src: '/images/room-mara-2.webp',
-        alt: 'Mara Residence bedroom',
+        src: '/images/room-gallery-4.webp',
+        alt: 'Twin Room seating corner',
       },
       {
-        src: '/images/room-mara-3.webp',
-        alt: 'Mara Residence kitchenette and dining table',
+        src: '/images/room-deluxe-2.webp',
+        alt: 'Twin Room bathroom detail',
       },
       {
-        src: '/images/room-deluxe-4.webp',
-        alt: 'Mara Residence seating and work corner',
+        src: '/images/room-standard.webp',
+        alt: 'Twin Room prepared for guests',
       },
     ],
     amenities: [
-      { icon: 'weekend', key: 'amenities.living' },
-      { icon: 'countertops', key: 'amenities.kitchenette' },
-      { icon: 'groups', key: 'amenities.meeting' },
-      { icon: 'local_laundry_service', key: 'amenities.laundry' },
+      ...SHARED_AMENITIES,
+      { icon: 'single_bed', key: 'amenities.singleBeds' },
+      { icon: 'bed', key: 'amenities.orthopedic' },
+      { icon: 'balcony', key: 'amenities.spacious' },
+      { icon: 'kitchen', key: 'amenities.fridge' },
+    ],
+  },
+  {
+    id: 'en-suite',
+    rating: '5.0',
+    pill: 'bg-gold text-forest-dark',
+    pillIcon: 'work',
+    pillKey: 'room.vip',
+    images: [
+      {
+        src: '/images/room-mara.webp',
+        alt: 'En-suite Room lounge area with seating for four',
+      },
+      {
+        src: '/images/room-mara-2.webp',
+        alt: 'En-suite Room bedroom',
+      },
+      {
+        src: '/images/room-mara-3.webp',
+        alt: 'En-suite Room kitchenette and dining table',
+      },
+      {
+        src: '/images/room-deluxe-4.webp',
+        alt: 'En-suite Room seating and work corner',
+      },
+    ],
+    amenities: [
       { icon: 'wifi', key: 'amenities.wifi' },
-      { icon: 'room_service', key: 'amenities.loungeAccess' },
-      { icon: 'bed', key: 'amenities.king' },
-      { icon: 'door_front', key: 'amenities.entrance' },
+      { icon: 'tv', key: 'amenities.tv' },
+      { icon: 'room_service', key: 'amenities.roomService' },
+      { icon: 'lock', key: 'amenities.safe' },
+      { icon: 'iron', key: 'amenities.ironing' },
+      { icon: 'iron', key: 'amenities.ironingStandBox' },
+      { icon: 'door_front', key: 'amenities.smartCardDoors' },
+      { icon: 'bed', key: 'amenities.orthopedic' },
+      { icon: 'balcony', key: 'amenities.spacious' },
+      { icon: 'kitchen', key: 'amenities.fridge' },
+      { icon: 'microwave', key: 'amenities.microwave' },
+      { icon: 'countertops', key: 'amenities.miniKitchenette' },
+      { icon: 'phone', key: 'amenities.ipPhone' },
+      { icon: 'groups', key: 'amenities.loungeFour' },
     ],
   },
 ];
@@ -211,23 +251,21 @@ function RoomCard({ room, detail }: { room: RoomType; detail: RoomDetail }) {
           <div className="mt-5 flex flex-wrap gap-x-5 gap-y-2 text-[12px] font-semibold text-forest">
             <span className="inline-flex items-center gap-1.5">
               <span className="material-symbols-outlined text-[17px] text-gold-deep" aria-hidden="true">
+                meeting_room
+              </span>
+              <span>{roomInventory(room, t)}</span>
+            </span>
+            <span className="inline-flex items-center gap-1.5">
+              <span className="material-symbols-outlined text-[17px] text-gold-deep" aria-hidden="true">
                 group
               </span>
               <span>{t(`room.sleeps${room.sleeps}`)}</span>
             </span>
-            <span className="inline-flex items-center gap-1.5">
-              <span className="material-symbols-outlined text-[17px] text-gold-deep" aria-hidden="true">
-                square_foot
-              </span>
-              {room.size} m²
-            </span>
-            <span className="inline-flex items-center gap-1.5">
-              <span className="material-symbols-outlined text-[17px] text-gold-deep" aria-hidden="true">
-                bed
-              </span>
-              <span>{t(room.bedKey)}</span>
-            </span>
           </div>
+          <p className="mt-3 text-[12px] font-semibold text-gold-deep">{t(room.bestForKey)}</p>
+          {room.noteKey ? (
+            <p className="mt-1 text-[12px] font-medium text-muted">{t(room.noteKey)}</p>
+          ) : null}
 
           <div className="mt-5">
             <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-muted">
@@ -254,6 +292,7 @@ function RoomCard({ room, detail }: { room: RoomType; detail: RoomDetail }) {
                   <span className="text-[11px] font-semibold text-muted">{t('common.perNight')}</span>
                 </p>
                 <p className="mt-1 text-[11px] text-muted">{t('common.taxesIncluded')}</p>
+                <p className="mt-1 text-[11px] font-medium text-gold-deep">{t('common.pricesPending')}</p>
               </div>
               <div className="flex flex-wrap gap-2">
                 <Link to={`/booking?room=${room.id}`} className="btn-primary btn-sm">

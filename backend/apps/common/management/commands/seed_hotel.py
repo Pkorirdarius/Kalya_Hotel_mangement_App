@@ -24,83 +24,146 @@ from apps.notifications.models import NewsletterSubscriber
 from apps.rates.models import LongStayDiscount, MealPlan, RatePlan
 from apps.rooms.models import RoomType
 
+def amenity(icon: str, label_en: str, label_sw: str) -> dict[str, str]:
+    return {"icon": icon, "label_en": label_en, "label_sw": label_sw}
+
+
+COMMON_AMENITIES = [
+    amenity("wifi", "Strong WiFi", "WiFi imara"),
+    amenity("tv", "Smart TV", "TV janja"),
+    amenity("room_service", "Room Service", "Huduma ya chumbani"),
+    amenity("lock", "Safe Box", "Sanduku la usalama"),
+    amenity("iron", "Ironing Facilities", "Vifaa vya kupasia"),
+    amenity("door_front", "Smart Card Doors", "Milango ya kadi janja"),
+]
+
 ROOMS = [
     {
-        "slug": "standard-executive",
-        "name_en": "Standard Executive",
-        "name_sw": "Chumba cha Kawaida cha Msimamizi",
+        "slug": "superior",
+        "name_en": "Superior Room",
+        "name_sw": "Chumba cha Superior",
         "description_en": (
-            "A calm, city-facing room with a queen bed, work desk and rain "
-            "shower. Placeholder copy pending hotel confirmation."
+            "King Bed, orthopedic mattress, spacious room and bathroom, "
+            "Strong WiFi, Smart TV, Safe Box, ironing box, room service and "
+            "smart card doors. Best for couples and solo travellers wanting "
+            "extra comfort. 202 is multipurpose room,Can work as superior room too."
         ),
         "description_sw": (
-            "Chumba tulivu kinachoelekea mji, chenye kitanda cha queen, meza ya "
-            "kazi na bafu ya mvua. Maandishi ya nafasi yanasubiri uthibitisho."
+            "Kitanda cha King, godoro la mifupa, chumba na bafu kubwa, WiFi "
+            "imara, TV janja, sanduku la usalama, sanduku la pasi, huduma ya "
+            "chumbani na milango ya kadi janja. Bora kwa wanandoa na wasafiri "
+            "peke yao wanaotaka faraja zaidi. 202 is multipurpose room,Can work "
+            "as superior room too."
         ),
         "sleeps": 2,
-        "size_sqm": 28,
-        "bed_en": "1 queen bed",
-        "bed_sw": "Kitanda kimoja cha queen",
-        "total_rooms": 15,
-        "website_allotment": 8,
+        # Room sizes have not been supplied; zero means unknown and is not shown.
+        "size_sqm": 0,
+        "bed_en": "King Bed",
+        "bed_sw": "Kitanda cha King",
+        "total_rooms": 2,
+        "website_allotment": 2,
         "weekday": Decimal("8500.00"),
         "image": "https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=1200&q=80",
-        "amenities": [
-            {"icon": "wifi", "label_en": "Free Wi-Fi", "label_sw": "Wi-Fi bila malipo"},
-            {"icon": "ac_unit", "label_en": "Air conditioning", "label_sw": "Kiyoyozi"},
-            {"icon": "tv", "label_en": "Satellite TV", "label_sw": "Televisheni ya satelaiti"},
+        "amenities": COMMON_AMENITIES
+        + [
+            amenity("iron", "Ironing box", "Sanduku la pasi"),
         ],
     },
     {
-        "slug": "deluxe-garden-suite",
-        "name_en": "Deluxe Garden Suite",
-        "name_sw": "Suite ya Bustani ya Deluxe",
+        "slug": "deluxe",
+        "name_en": "Deluxe Room",
+        "name_sw": "Chumba cha Deluxe",
         "description_en": (
-            "A generous suite opening to the garden, with a lounge corner and "
-            "separate bath. Placeholder copy pending hotel confirmation."
+            "Queen Bed, orthopedic mattress, spacious room and bathroom, "
+            "Strong WiFi, Smart TV, Safe Box, ironing box, room service, smart "
+            "card doors, fridge and balcony. Best for families, business "
+            "travellers and long stays."
         ),
         "description_sw": (
-            "Suite pana inayofungukia bustani, yenye kona ya mapumziko na bafu "
-            "tofauti. Maandishi ya nafasi yanasubiri uthibitisho."
+            "Kitanda cha Queen, godoro la mifupa, chumba na bafu kubwa, WiFi "
+            "imara, TV janja, sanduku la usalama, sanduku la pasi, huduma ya "
+            "chumbani, milango ya kadi janja, friji na balkoni. Bora kwa "
+            "familia, wasafiri wa biashara na kukaa kwa muda mrefu."
         ),
         "sleeps": 2,
-        "size_sqm": 42,
-        "bed_en": "1 king bed",
-        "bed_sw": "Kitanda kimoja cha king",
-        "total_rooms": 13,
+        "size_sqm": 0,
+        "bed_en": "Queen Bed",
+        "bed_sw": "Kitanda cha Queen",
+        "total_rooms": 6,
         "website_allotment": 6,
         "weekday": Decimal("12800.00"),
         "image": "https://images.unsplash.com/photo-1582719508461-905c673771fd?auto=format&fit=crop&w=1200&q=80",
-        "amenities": [
-            {"icon": "wifi", "label_en": "Free Wi-Fi", "label_sw": "Wi-Fi bila malipo"},
-            {"icon": "deck", "label_en": "Garden terrace", "label_sw": "Terrace ya bustani"},
-            {"icon": "bathtub", "label_en": "Separate bath", "label_sw": "Bafu tofauti"},
+        "amenities": COMMON_AMENITIES
+        + [
+            amenity("iron", "Ironing box", "Sanduku la pasi"),
+            amenity("kitchen", "Fridge", "Friji"),
+            amenity("balcony", "Balcony", "Balkoni"),
         ],
     },
     {
-        "slug": "mara-residence",
-        "name_en": "Mara Residence",
-        "name_sw": "Makazi ya Mara",
+        "slug": "twin",
+        "name_en": "Twin Room",
+        "name_sw": "Chumba cha vitanda viwili",
         "description_en": (
-            "Our largest residence with a private sitting room, dining nook and "
-            "space for a third guest. Placeholder copy pending hotel confirmation."
+            "Single beds with orthopedic mattresses, spacious room and "
+            "bathroom, Strong WiFi, Smart TV, Safe Box, ironing box, room "
+            "service, smart card doors and fridge. Best for friends, colleagues "
+            "and family."
         ),
         "description_sw": (
-            "Makazi yetu makubwa zaidi yenye sebule ya faragha, eneo la kulia na "
-            "nafasi ya mgeni wa tatu. Maandishi yanasubiri uthibitisho."
+            "Vitanda vya mtu mmoja vyenye magodoro ya mifupa, chumba na bafu "
+            "kubwa, WiFi imara, TV janja, sanduku la usalama, sanduku la pasi, "
+            "huduma ya chumbani, milango ya kadi janja na friji. Bora kwa "
+            "marafiki, wafanyakazi wenzako na familia."
         ),
-        "sleeps": 3,
-        "size_sqm": 58,
-        "bed_en": "1 king bed + 1 sofa bed",
-        "bed_sw": "Kitanda cha king + kitanda cha sofa",
-        "total_rooms": 10,
-        "website_allotment": 4,
+        "sleeps": 2,
+        "size_sqm": 0,
+        "bed_en": "Single Beds",
+        "bed_sw": "Vitanda vya mtu mmoja",
+        "total_rooms": 1,
+        "website_allotment": 1,
+        "weekday": Decimal("8500.00"),
+        "image": "https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=1200&q=80",
+        "amenities": COMMON_AMENITIES
+        + [
+            amenity("iron", "Ironing box", "Sanduku la pasi"),
+            amenity("kitchen", "Fridge", "Friji"),
+        ],
+    },
+    {
+        "slug": "en-suite",
+        "name_en": "En-suite Room",
+        "name_sw": "Chumba chenye bafu ya ndani",
+        "description_en": (
+            "King Bed, orthopedic mattress, spacious room and bathroom, "
+            "Strong WiFi, Smart TV, Safe Box, ironing stand and iron box, room "
+            "service, smart card doors, fridge, microwave, mini kitchenette, "
+            "IP phone and a spacious lounge area with seating for four. Best "
+            "for VIP guests, families and special occasions."
+        ),
+        "description_sw": (
+            "Kitanda cha King, godoro la mifupa, chumba na bafu kubwa, WiFi "
+            "imara, TV janja, sanduku la usalama, stendi ya pasi na sanduku la "
+            "pasi, huduma ya chumbani, milango ya kadi janja, friji, "
+            "maikrowevu, jikoni ndogo, simu ya IP na sebule kubwa yenye viti "
+            "vinne. Bora kwa wageni wa VIP, familia na hafla maalum."
+        ),
+        "sleeps": 2,
+        "size_sqm": 0,
+        "bed_en": "King Bed + Private Lounge",
+        "bed_sw": "Kitanda cha King + Sebule ya Faragha",
+        "total_rooms": 1,
+        "website_allotment": 1,
         "weekday": Decimal("18500.00"),
         "image": "https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=1200&q=80",
-        "amenities": [
-            {"icon": "wifi", "label_en": "Free Wi-Fi", "label_sw": "Wi-Fi bila malipo"},
-            {"icon": "weekend", "label_en": "Private sitting room", "label_sw": "Sebule ya faragha"},
-            {"icon": "room_service", "label_en": "Room service", "label_sw": "Huduma ya chumbani"},
+        "amenities": COMMON_AMENITIES
+        + [
+            amenity("iron", "Ironing stand and iron box", "Stendi ya pasi na sanduku la pasi"),
+            amenity("kitchen", "Fridge", "Friji"),
+            amenity("microwave", "Microwave", "Maikrowevu"),
+            amenity("countertops", "Mini kitchenette", "Jikoni ndogo"),
+            amenity("phone", "IP phone", "Simu ya IP"),
+            amenity("groups", "Spacious lounge area with seating for four", "Sebule kubwa yenye viti vinne"),
         ],
     },
 ]
@@ -369,6 +432,11 @@ class Command(BaseCommand):
                 defaults={"percent": Decimal("10.00"), "active": True},
             )
             self.stdout.write(f"Room seeded: {room.name_en}")
+
+        # Retire superseded catalog entries when an existing database is re-seeded.
+        RoomType.objects.exclude(
+            slug__in=[item["slug"] for item in ROOMS]
+        ).update(active=False)
 
         for venue, category, name_en, name_sw, price in MENU_ITEMS:
             MenuItem.objects.update_or_create(

@@ -5,6 +5,7 @@ Dear {{ enquiry.guest_name }},
 Reference: {{ enquiry.reference }}
 Date: {{ enquiry.date|date:"D, j M Y" }}
 Session: {{ session_label }}
+Hall: {{ hall_label }}
 Guests: {{ enquiry.people }}
 Layout: {{ layout_label }}
 {% if enquiry.company %}Company: {{ enquiry.company }}

@@ -16,6 +16,7 @@ def enquiry_payload(**overrides):
     payload = {
         "date": (hotel_today() + timedelta(days=3)).isoformat(),
         "session": "half_day",
+        "hall": "kopoch",
         "people": 20,
         "layout": "theatre",
         "first_name": "Peter",
@@ -42,3 +43,29 @@ def test_conference_enquiry_records_the_guest_language(api, payload_language, ex
     body = response.json()["enquiry"]
     assert body["language"] == expected
     assert ConferenceEnquiry.objects.get(reference=body["reference"]).language == expected
+
+
+@pytest.mark.parametrize("hall", [None, "unknown"])
+def test_conference_enquiry_requires_a_known_hall(api, hall):
+    overrides = {} if hall is None else {"hall": hall}
+    payload = enquiry_payload(**overrides)
+    if hall is None:
+        payload.pop("hall")
+
+    response = api.post(ENQUIRIES_URL, payload, format="json")
+
+    assert response.status_code == 400
+    assert "hall" in response.json()["error"]["fields"]
+    assert not ConferenceEnquiry.objects.exists()
+
+
+def test_conference_enquiry_stores_the_selected_hall(api):
+    response = api.post(
+        ENQUIRIES_URL, enquiry_payload(hall="attelo"), format="json"
+    )
+
+    assert response.status_code == 201, response.content
+    body = response.json()["enquiry"]
+    assert body["hall"] == "attelo"
+    assert body["hall_display"] == "The Attelo Hall"
+    assert ConferenceEnquiry.objects.get(reference=body["reference"]).hall == "attelo"

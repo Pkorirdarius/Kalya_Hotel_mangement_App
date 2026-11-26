@@ -3,7 +3,7 @@ import { HoneypotField } from '../components/HoneypotField';
 import { usePageMeta } from '../components/Page';
 import { useToast } from '../components/ToastProvider';
 import { useI18n } from '../i18n-context';
-import { HOTEL, whatsappHref } from '../config/hotel';
+import { CONFERENCE_HALLS, HOTEL, whatsappHref } from '../config/hotel';
 import type { ConferenceEnquiry } from '../lib/api/types';
 import { useFormGuard } from '../lib/forms/useFormGuard';
 import { errorMessage, fieldErrors } from '../lib/query/errors';
@@ -79,6 +79,7 @@ function toAvailability(value: string | undefined): Availability | null {
 
 interface Errors {
   date?: string;
+  hall?: string;
   guests?: string;
   name?: string;
   email?: string;
@@ -90,6 +91,7 @@ function serverErrorFields(fields: Record<string, string[]>): Errors {
   const next: Errors = {};
   const map: Record<string, keyof Errors> = {
     date: 'date',
+    hall: 'hall',
     people: 'guests',
     first_name: 'name',
     last_name: 'name',
@@ -109,6 +111,7 @@ export function ConferencePage() {
   const today = todayISO();
   const [mode, setMode] = useState<Mode>('instant');
   const [date, setDate] = useState(addDaysISO(today, 1));
+  const [hall, setHall] = useState<string>('');
   const [session, setSession] = useState<string>('breakfast');
   const [layout, setLayout] = useState<string>('theatre');
   const [guests, setGuests] = useState('20');
@@ -153,6 +156,7 @@ export function ConferencePage() {
     const result = conferenceEnquirySchema(today).safeParse({
       date,
       session,
+      hall,
       layout,
       people: Number(guests),
       fullName: name,
@@ -167,7 +171,7 @@ export function ConferencePage() {
     }
     setErrors(next);
     if (!result.success) {
-      const firstId = ['date', 'guests', 'name', 'email', 'phone'].find(
+      const firstId = ['date', 'hall', 'guests', 'name', 'email', 'phone'].find(
         (key) => next[key as keyof Errors],
       );
       if (firstId) document.getElementById(`conf-${firstId}`)?.focus();
@@ -185,6 +189,7 @@ export function ConferencePage() {
       const response = await createEnquiry.mutateAsync({
         date: result.data.date,
         session: result.data.session,
+        hall: result.data.hall,
         people: result.data.people,
         layout: result.data.layout,
         catering,
@@ -208,6 +213,7 @@ export function ConferencePage() {
   const handleAgain = () => {
     setEnquiry(null);
     setDate(addDaysISO(today, 1));
+    setHall('');
     setSession('breakfast');
     setLayout('theatre');
     setGuests('20');
@@ -227,10 +233,11 @@ export function ConferencePage() {
   const enquiryCatering = Array.isArray(enquiry?.catering)
     ? enquiry.catering.filter((item): item is string => typeof item === 'string')
     : [];
+  const enquiryHallName = CONFERENCE_HALLS.find((item) => item.id === enquiry?.hall)?.name;
   const enquirySummary = enquiry
-    ? `${formatDate(enquiry.date)} · ${t(SESSION_LABELS[enquiry.session] ?? 'session.full')} · ${t(
-        `layout.${enquiry.layout}`,
-      )} · ${enquiry.people} ${t('common.guests')}${
+    ? `${formatDate(enquiry.date)} · ${t(SESSION_LABELS[enquiry.session] ?? 'session.full')} · ${
+        enquiryHallName ? `${enquiryHallName} · ` : ''
+      }${t(`layout.${enquiry.layout}`)} · ${enquiry.people} ${t('common.guests')}${
         enquiryCatering.length > 0
           ? ` · ${enquiryCatering.map((item) => t(`catering.${item}`)).join(', ')}`
           : ''
@@ -492,6 +499,32 @@ export function ConferencePage() {
                       ) : null}
                     </div>
                     <div>
+                      <label className="field-label" htmlFor="conf-hall">
+                        {t('conference.hall')}
+                      </label>
+                      <select
+                        id="conf-hall"
+                        value={hall}
+                        required
+                        onChange={(event) => setHall(event.target.value)}
+                        className={fieldClass('hall')}
+                        aria-invalid={Boolean(errors.hall)}
+                      >
+                        <option value="" disabled>
+                          {t('conference.selectHall')}
+                        </option>
+                        {CONFERENCE_HALLS.map((item) => (
+                          <option key={item.id} value={item.id}>
+                            {item.name}
+                          </option>
+                        ))}
+                      </select>
+                      {errors.hall ? <p className="mt-1.5 text-[12px] font-medium text-red-600">{errors.hall}</p> : null}
+                    </div>
+                  </div>
+
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div>
                       <label className="field-label" htmlFor="conf-session">
                         {t('conference.session')}
                       </label>
@@ -503,9 +536,6 @@ export function ConferencePage() {
                         ))}
                       </select>
                     </div>
-                  </div>
-
-                  <div className="grid gap-4 sm:grid-cols-2">
                     <div>
                       <label className="field-label" htmlFor="conf-layout">
                         {t('conference.layout')}

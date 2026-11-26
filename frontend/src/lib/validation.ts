@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+import { CONFERENCE_HALL_IDS } from '../config/hotel';
+
 /**
  * Shared Zod schemas for every controlled form.
  *
@@ -147,6 +149,7 @@ export function conferenceEnquirySchema(today: string) {
   return z.object({
     date: futureOrTodayDateSchema(today),
     session: z.enum(CONFERENCE_SESSIONS),
+    hall: z.enum(CONFERENCE_HALL_IDS, { message: 'validation.hall' }),
     layout: z.enum(CONFERENCE_LAYOUTS),
     people: z
       .number()

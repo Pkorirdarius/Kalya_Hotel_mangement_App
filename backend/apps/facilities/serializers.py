@@ -85,6 +85,7 @@ class RestaurantSlotSerializer(serializers.Serializer):
 class ConferenceEnquiryCreateSerializer(PublicFormSerializer):
     date = serializers.DateField()
     session = serializers.ChoiceField(choices=ConferenceEnquiry.Session.choices)
+    hall = serializers.ChoiceField(choices=ConferenceEnquiry.Hall.choices)
     people = serializers.IntegerField(min_value=4, max_value=120)
     layout = serializers.ChoiceField(choices=ConferenceEnquiry.Layout.choices)
     catering = serializers.ListField(
@@ -110,6 +111,7 @@ class ConferenceEnquiryCreateSerializer(PublicFormSerializer):
 class ConferenceEnquirySerializer(serializers.ModelSerializer):
     guest_name = serializers.CharField()
     session_display = serializers.CharField(source="get_session_display")
+    hall_display = serializers.CharField(source="get_hall_display")
     layout_display = serializers.CharField(source="get_layout_display")
     status_display = serializers.CharField(source="get_status_display")
 
@@ -120,6 +122,8 @@ class ConferenceEnquirySerializer(serializers.ModelSerializer):
             "date",
             "session",
             "session_display",
+            "hall",
+            "hall_display",
             "people",
             "layout",
             "layout_display",

@@ -39,6 +39,7 @@ def _enquiry(status: str, language: str = "en", days: int = 5) -> ConferenceEnqu
         reference=unique_reference(ConferenceEnquiry, "KQ"),
         date=hotel_today() + timedelta(days=days),
         session=ConferenceEnquiry.Session.HALF_DAY,
+        hall=ConferenceEnquiry.Hall.KOPOCH,
         people=24,
         layout=ConferenceEnquiry.Layout.BOARDROOM,
         first_name="Peter",
@@ -123,6 +124,7 @@ def test_conference_confirmation_and_decline_notify_the_enquirer(hotel):
     assert len(mail.outbox) == 1
     assert "confirmed" in mail.outbox[0].subject.lower()
     assert confirmed.reference in mail.outbox[0].body
+    assert "Hall: Kopoch Hall" in mail.outbox[0].body
 
     declined = _enquiry(ConferenceEnquiry.Status.DECLINED)
     notify_conference_enquiry(declined)
@@ -155,8 +157,10 @@ def test_conference_confirmation_and_decline_are_swahili_when_requested(
         "limethibitishwa" if status == ConferenceEnquiry.Status.CONFIRMED else "kuthibitisha"
     ) in mail.outbox[0].body
     assert "Nusu siku" in mail.outbox[0].body
+    assert "Ukumbi: Kopoch Hall" in mail.outbox[0].body
     assert "Bodi" in mail.outbox[0].body
     assert "Nusu siku" in sms[0]["message"]
+    assert "Kopoch Hall" in sms[0]["message"]
     assert "Half day" not in mail.outbox[0].body
     assert "Boardroom" not in mail.outbox[0].body
 
@@ -184,8 +188,10 @@ def test_facility_reminders_use_the_stored_language(hotel, monkeypatch, language
         assert all("Habari" in message.body for message in mail.outbox)
         assert all("kumbusho" in item["message"].lower() for item in sms)
         assert "Nusu siku" in mail.outbox[1].body
+        assert "Ukumbi: Kopoch Hall" in mail.outbox[1].body
         assert "Bodi" in mail.outbox[1].body
         assert "Nusu siku" in sms[1]["message"]
+        assert "Kopoch Hall" in sms[1]["message"]
         assert "Half day" not in mail.outbox[1].body
         assert "Boardroom" not in mail.outbox[1].body
     else:

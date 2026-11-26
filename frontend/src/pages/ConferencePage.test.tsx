@@ -5,7 +5,7 @@ import { MemoryRouter } from 'react-router-dom';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { ToastProvider } from '../components/ToastProvider';
-import { setLanguage } from '../i18n';
+import { setLanguage, t } from '../i18n';
 import { I18nProvider } from '../i18n-context';
 import { createQueryClient } from '../lib/query/queryClient';
 import { addDaysISO, todayISO } from '../utils';
@@ -33,6 +33,8 @@ function enquiryBody(request: Record<string, unknown>) {
     date: request.date,
     session: request.session,
     session_display: 'Half day',
+    hall: request.hall,
+    hall_display: request.hall === 'attelo' ? 'The Attelo Hall' : 'Kopoch Hall',
     people: request.people,
     layout: request.layout,
     layout_display: 'Boardroom',
@@ -102,10 +104,14 @@ function mockFetch(options: {
   });
 }
 
-async function fillValidForm(user: ReturnType<typeof userEvent.setup>) {
+async function fillValidForm(
+  user: ReturnType<typeof userEvent.setup>,
+  hall: string | null = 'kopoch',
+) {
   await user.type(screen.getByLabelText('Contact name'), 'Amina Otieno');
   await user.type(screen.getByLabelText('Email'), 'amina@example.com');
   await user.type(screen.getByLabelText('Phone'), '0712 345 678');
+  if (hall) await user.selectOptions(screen.getByLabelText(t('conference.hall')), hall);
 }
 
 afterEach(() => {
@@ -131,6 +137,7 @@ describe('ConferencePage', () => {
     await fillValidForm(user);
     await user.clear(screen.getByLabelText('Guests'));
     await user.type(screen.getByLabelText('Guests'), '24');
+    await user.selectOptions(screen.getByLabelText('Conference hall'), 'attelo');
     await user.selectOptions(screen.getByLabelText('Session'), 'half_day');
     await user.selectOptions(screen.getByLabelText('Room layout'), 'boardroom');
     await user.click(screen.getByRole('checkbox', { name: 'Tea & coffee break' }));
@@ -139,6 +146,7 @@ describe('ConferencePage', () => {
 
     expect(await screen.findByText('Your request is in.')).toBeInTheDocument();
     expect(screen.getByText('CE-7788')).toBeInTheDocument();
+    expect(screen.getAllByText(/The Attelo Hall/).length).toBeGreaterThan(0);
     expect(screen.getByText(/24 guests/)).toBeInTheDocument();
 
     const createCall = fetchMock.mock.calls.find(
@@ -151,6 +159,7 @@ describe('ConferencePage', () => {
     expect(createBody).toMatchObject({
       date: tomorrow,
       session: 'half_day',
+      hall: 'attelo',
       layout: 'boardroom',
       people: 24,
       catering: ['tea', 'lunch'],
@@ -164,6 +173,25 @@ describe('ConferencePage', () => {
     expect(typeof createBody.form_started_at).toBe('number');
   });
 
+  it('requires a hall before submitting', async () => {
+    const fetchMock = mockFetch();
+    vi.stubGlobal('fetch', fetchMock);
+    const user = userEvent.setup();
+    renderConferencePage();
+
+    await fillValidForm(user, null);
+    await user.click(screen.getByRole('button', { name: 'Request the hall' }));
+
+    expect(await screen.findByText('Choose a conference hall.')).toBeInTheDocument();
+    expect(
+      fetchMock.mock.calls.some(
+        ([input, init]) =>
+          String(input).includes('/facilities/conference/enquiries/') &&
+          init?.method === 'POST',
+      ),
+    ).toBe(false);
+  });
+
   it('sends the active UI language with the enquiry', async () => {
     setLanguage('sw', false);
     const fetchMock = mockFetch();
@@ -174,6 +202,7 @@ describe('ConferencePage', () => {
     await user.type(screen.getByLabelText('Jina la mhusika'), 'Amina Otieno');
     await user.type(screen.getByLabelText('Barua pepe'), 'amina@example.com');
     await user.type(screen.getByLabelText('Simu'), '0712 345 678');
+    await user.selectOptions(screen.getByLabelText(t('conference.hall')), 'attelo');
     await user.click(screen.getByRole('button', { name: 'Omba ukumbi' }));
 
     const createCall = fetchMock.mock.calls.find(

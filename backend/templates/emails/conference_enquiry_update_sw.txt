@@ -5,6 +5,7 @@ Habari {{ enquiry.guest_name }},
 Kumbukumbu: {{ enquiry.reference }}
 Tarehe: {{ enquiry.date|date:"j/n/Y" }}
 Kipindi: {{ session_label }}
+Ukumbi: {{ hall_label }}
 Wageni: {{ enquiry.people }}
 Mpangilio: {{ layout_label }}
 {% if enquiry.company %}Kampuni: {{ enquiry.company }}

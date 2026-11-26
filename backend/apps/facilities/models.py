@@ -104,6 +104,11 @@ class ConferenceEnquiry(TimeStampedModel):
         USHAPE = "ushape", "U-shape"
         THEATRE = "theatre", "Theatre"
 
+    class Hall(models.TextChoices):
+        KOPOCH = "kopoch", "Kopoch Hall"
+        ATELLO = "attelo", "The Attelo Hall"
+        BOARDROOM = "boardroom", "Executive Board Room"
+
     class Status(models.TextChoices):
         PENDING = "pending", "Pending"
         CONFIRMED = "confirmed", "Confirmed"
@@ -113,6 +118,7 @@ class ConferenceEnquiry(TimeStampedModel):
     reference = models.CharField(max_length=20, unique=True, db_index=True)
     date = models.DateField()
     session = models.CharField(max_length=20, choices=Session.choices)
+    hall = models.CharField(max_length=20, choices=Hall.choices, db_index=True)
     people = models.PositiveSmallIntegerField()
     layout = models.CharField(max_length=20, choices=Layout.choices)
     catering = models.JSONField(default=list, blank=True)

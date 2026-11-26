@@ -40,24 +40,24 @@ function renderBookingPage() {
 
 const availability = [
   {
-    room_type: 'standard-executive',
-    name: 'Standard Executive',
+    room_type: 'superior',
+    name: 'Superior Room',
     available_rooms: 2,
     sleeps: 2,
     fits_guests: true,
     from_price: 8500,
   },
   {
-    room_type: 'deluxe-garden-suite',
-    name: 'Deluxe Garden Suite',
+    room_type: 'deluxe',
+    name: 'Deluxe Room',
     available_rooms: 5,
-    sleeps: 3,
+    sleeps: 2,
     fits_guests: true,
     from_price: 12800,
   },
   {
-    room_type: 'mara-residence',
-    name: 'Mara Residence',
+    room_type: 'en-suite',
+    name: 'En-suite Room',
     available_rooms: 3,
     sleeps: 4,
     fits_guests: true,
@@ -67,8 +67,8 @@ const availability = [
 
 function quoteBody() {
   return {
-    room_type: 'standard-executive',
-    room_type_name: 'Standard Executive',
+    room_type: 'superior',
+    room_type_name: 'Superior Room',
     rate_plan: 'flexible',
     meal_plan: 'breakfast',
     checkin: '2026-12-01',
@@ -95,8 +95,8 @@ const bookingBody = {
   reference: 'WP-2026-0001',
   status: 'pending_payment',
   status_display: 'Pending payment',
-  room_type: 'standard-executive',
-  room_type_name: 'Standard Executive',
+  room_type: 'superior',
+  room_type_name: 'Superior Room',
   room_type_image: '',
   rate_plan: 'flexible',
   meal_plan: 'breakfast',
@@ -240,7 +240,7 @@ describe('BookingPage', () => {
     expect(createCall).toBeTruthy();
     const createBody = JSON.parse(String(createCall?.[1]?.body));
     expect(createBody.quote).toMatchObject({
-      room_type: 'standard-executive',
+      room_type: 'superior',
       meal_plan: 'breakfast',
       guests: 2,
     });

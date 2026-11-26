@@ -128,6 +128,7 @@ def conference_enquiry():
         reference=unique_reference(ConferenceEnquiry, "KQ"),
         date=hotel_today() + timedelta(days=5),
         session=ConferenceEnquiry.Session.HALF_DAY,
+        hall=ConferenceEnquiry.Hall.KOPOCH,
         people=24,
         layout=ConferenceEnquiry.Layout.BOARDROOM,
         first_name="Peter",

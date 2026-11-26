@@ -1641,6 +1641,8 @@ export interface components {
             date: string;
             session: components["schemas"]["SessionEnum"];
             session_display: string;
+            hall: components["schemas"]["HallEnum"];
+            hall_display: string;
             /** Format: int64 */
             people: number;
             layout: components["schemas"]["LayoutEnum"];
@@ -1673,6 +1675,7 @@ export interface components {
             /** Format: date */
             date: string;
             session: components["schemas"]["SessionEnum"];
+            hall: components["schemas"]["HallEnum"];
             people: number;
             layout: components["schemas"]["LayoutEnum"];
             catering?: string[];
@@ -1695,6 +1698,8 @@ export interface components {
             date: string;
             session: components["schemas"]["SessionEnum"];
             session_display: string;
+            hall: components["schemas"]["HallEnum"];
+            hall_display: string;
             /** Format: int64 */
             people: number;
             layout: components["schemas"]["LayoutEnum"];
@@ -1938,6 +1943,13 @@ export interface components {
          * @enum {string}
          */
         GymMembershipEnquiryStatusEnum: "new" | "contacted" | "closed";
+        /**
+         * @description * `kopoch` - Kopoch Hall
+         *     * `attelo` - The Attelo Hall
+         *     * `boardroom` - Executive Board Room
+         * @enum {string}
+         */
+        HallEnum: "kopoch" | "attelo" | "boardroom";
         Health: {
             status: string;
             service: string;
@@ -2497,6 +2509,8 @@ export interface components {
             date?: string;
             session?: components["schemas"]["SessionEnum"];
             session_display?: string;
+            hall?: components["schemas"]["HallEnum"];
+            hall_display?: string;
             /** Format: int64 */
             people?: number;
             layout?: components["schemas"]["LayoutEnum"];
@@ -5313,6 +5327,12 @@ export interface operations {
         parameters: {
             query?: {
                 date?: string;
+                /**
+                 * @description * `kopoch` - Kopoch Hall
+                 *     * `attelo` - The Attelo Hall
+                 *     * `boardroom` - Executive Board Room
+                 */
+                hall?: "attelo" | "boardroom" | "kopoch";
                 /** @description Which field to use when ordering the results. */
                 ordering?: string;
                 /** @description A page number within the paginated result set. */
