@@ -71,6 +71,7 @@ def backup(dbname: str, destination: Path) -> None:
             "--format=custom",
             "--no-owner",
             "--no-privileges",
+            "--no-tablespaces",
             *common_args(dbname),
             "--file",
             str(destination),
@@ -79,15 +80,18 @@ def backup(dbname: str, destination: Path) -> None:
     print(f"[ok]   backed up {dbname} to {destination}")
 
 
-def restore(dbname: str, source: Path) -> None:
+def restore(dbname: str, source: Path, *, clean: bool = False) -> None:
     if not source.is_file():
         raise SystemExit(f"backup file does not exist: {source}")
     host, port, user, _password = settings()
-    command(
+    args = ["pg_restore"]
+    if clean:
+        # Useful for a real restore into an existing database. Scratch-drill
+        # targets are empty, so we skip it: --clean can try to drop built-in
+        # extension objects that the dump only comments on.
+        args.extend(["--clean", "--if-exists"])
+    args.extend(
         [
-            "pg_restore",
-            "--clean",
-            "--if-exists",
             "--no-owner",
             "--no-privileges",
             "--host",
@@ -101,6 +105,7 @@ def restore(dbname: str, source: Path) -> None:
             str(source),
         ]
     )
+    command(args)
     print(f"[ok]   restored {source} into {dbname}")
 
 
@@ -173,6 +178,11 @@ def main() -> int:
     restore_parser = subparsers.add_parser("restore", help="restore a dump")
     restore_parser.add_argument("--db", required=True)
     restore_parser.add_argument("--file", required=True, type=Path)
+    restore_parser.add_argument(
+        "--clean",
+        action="store_true",
+        help="Drop existing objects before restoring (for a real restore).",
+    )
 
     drill_parser = subparsers.add_parser("drill", help="restore into scratch databases")
     drill_parser.add_argument("--source", default="hotel_backup_source")
@@ -184,7 +194,7 @@ def main() -> int:
             backup(args.db, args.file)
             return 0
         if args.command == "restore":
-            restore(args.db, args.file)
+            restore(args.db, args.file, clean=args.clean)
             return 0
         return drill(args.source, args.target)
     except subprocess.CalledProcessError as exc:
