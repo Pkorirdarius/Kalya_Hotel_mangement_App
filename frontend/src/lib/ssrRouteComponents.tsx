@@ -5,6 +5,7 @@ import { BookingPage } from '../pages/BookingPage';
 import { BlogIndexPage } from '../pages/BlogIndexPage';
 import { BlogPostPage } from '../pages/BlogPostPage';
 import { ConferencePage } from '../pages/ConferencePage';
+import { ContentConfirmationPage } from '../pages/ContentConfirmationPage';
 import { ContactPage } from '../pages/ContactPage';
 import { DashboardPage } from '../pages/DashboardPage';
 import { DiningPage } from '../pages/DiningPage';
@@ -37,4 +38,5 @@ export const SSR_ROUTE_COMPONENTS: Record<RouteComponentId, ComponentType> = {
   privacy: () => <PolicyPage slug="privacy" />,
   terms: () => <PolicyPage slug="terms" />,
   dashboard: DashboardPage,
+  'content-review': ContentConfirmationPage,
 };

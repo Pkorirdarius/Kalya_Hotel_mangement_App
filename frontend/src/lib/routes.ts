@@ -17,7 +17,8 @@ export type RouteComponentId =
   | 'contact'
   | 'privacy'
   | 'terms'
-  | 'dashboard';
+  | 'dashboard'
+  | 'content-review';
 
 export interface SiteRoute {
   /** Unprefixed path. English uses it directly; Kiswahili adds `/sw`. */
@@ -50,6 +51,7 @@ export const SITE_ROUTES: readonly SiteRoute[] = [
   { path: '/privacy', id: 'privacy', indexable: true },
   { path: '/terms', id: 'terms', indexable: true },
   { path: '/dashboard', id: 'dashboard', indexable: false },
+  { path: '/content-review', id: 'content-review', indexable: false },
 ];
 
 export const INDEXABLE_ROUTES = SITE_ROUTES.filter((route) => route.indexable);

@@ -18,6 +18,7 @@ import {
   frontDeskAction,
   getBooking,
   getConferenceAvailability,
+  getContentConfirmation,
   getFrontDeskActivity,
   getFrontDeskQueue,
   getGymAvailability,
@@ -324,6 +325,15 @@ export function useStaffMe(options: Enabled = {}) {
   return useQuery({
     queryKey: queryKeys.staffMe,
     queryFn: staffMe,
+    enabled: options.enabled ?? true,
+    retry: false,
+  });
+}
+
+export function useContentConfirmation(options: Enabled = {}) {
+  return useQuery({
+    queryKey: queryKeys.contentConfirmation,
+    queryFn: () => getContentConfirmation(),
     enabled: options.enabled ?? true,
     retry: false,
   });

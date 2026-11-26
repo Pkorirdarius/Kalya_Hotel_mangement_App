@@ -702,6 +702,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/staff/common/content-confirmation/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Read-only list of CMS rows still flagged for hotel confirmation. */
+        get: operations["v1_staff_common_content_confirmation_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/staff/common/form-guard/summary/": {
         parameters: {
             query?: never;
@@ -1746,6 +1763,23 @@ export interface components {
             readonly status_display: string;
             /** Format: date-time */
             readonly created_at: string;
+        };
+        ContentConfirmationItem: {
+            kind: string;
+            model: string;
+            id: string;
+            label: string;
+            active: boolean;
+            needs_confirmation: boolean;
+            /** Format: date-time */
+            updated_at: string;
+        };
+        ContentConfirmationSummary: {
+            total: number;
+            counts: {
+                [key: string]: number;
+            };
+            items: components["schemas"]["ContentConfirmationItem"][];
         };
         CsrfResponse: {
             csrfToken: string;
@@ -4584,6 +4618,25 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["StaffBooking"];
+                };
+            };
+        };
+    };
+    v1_staff_common_content_confirmation_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContentConfirmationSummary"];
                 };
             };
         };

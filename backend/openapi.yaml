@@ -1007,6 +1007,21 @@ paths:
               schema:
                 $ref: '#/components/schemas/StaffBooking'
           description: ''
+  /api/v1/staff/common/content-confirmation/:
+    get:
+      operationId: v1_staff_common_content_confirmation_retrieve
+      description: Read-only list of CMS rows still flagged for hotel confirmation.
+      tags:
+      - staff
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContentConfirmationSummary'
+          description: ''
   /api/v1/staff/common/form-guard/summary/:
     get:
       operationId: v1_staff_common_form_guard_summary_retrieve
@@ -4658,6 +4673,49 @@ components:
       - name
       - reference
       - status_display
+    ContentConfirmationItem:
+      type: object
+      properties:
+        kind:
+          type: string
+        model:
+          type: string
+        id:
+          type: string
+        label:
+          type: string
+        active:
+          type: boolean
+        needs_confirmation:
+          type: boolean
+        updated_at:
+          type: string
+          format: date-time
+      required:
+      - active
+      - id
+      - kind
+      - label
+      - model
+      - needs_confirmation
+      - updated_at
+    ContentConfirmationSummary:
+      type: object
+      properties:
+        total:
+          type: integer
+        counts:
+          type: object
+          additionalProperties:
+            type: integer
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ContentConfirmationItem'
+      required:
+      - counts
+      - items
+      - total
     CsrfResponse:
       type: object
       properties:

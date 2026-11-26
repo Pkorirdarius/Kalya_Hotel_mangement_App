@@ -1255,6 +1255,51 @@ const entries: Record<string, Entry> = {
     sw: 'Masharti ya kuweka nafasi, malipo, kughairi na kukaa kwa {name}.',
   },
   'meta.dashboard.title': { en: 'Front Desk Dashboard — {name}', sw: 'Dashibodi ya Mapokezi — {name}' },
+  'meta.contentReview.title': {
+    en: 'Content needing confirmation — {name}',
+    sw: 'Maudhui yanayohitaji uthibitisho — {name}',
+  },
+  'contentReview.eyebrow': { en: 'Operations', sw: 'Uendeshaji' },
+  'contentReview.title': {
+    en: 'Content needing confirmation',
+    sw: 'Maudhui yanayohitaji uthibitisho',
+  },
+  'contentReview.text': {
+    en: 'CMS records still flagged for hotel review. Confirm or correct them in Django admin; this page is read-only.',
+    sw: 'Rekodi za CMS bado zilizoashiriwa kukaguliwa na hoteli. Thibitisha au urekebishe kwenye Django admin; ukurasa huu ni wa kusoma tu.',
+  },
+  'contentReview.total': {
+    en: '{count} items flagged',
+    sw: 'Vitu {count} vimeashiriwa',
+  },
+  'contentReview.loading': { en: 'Loading content review…', sw: 'Inapakia maudhui…' },
+  'contentReview.error': {
+    en: 'The review list could not be loaded.',
+    sw: 'Orodha ya ukaguzi haikuweza kupakiwa.',
+  },
+  'contentReview.retry': { en: 'Try again', sw: 'Jaribu tena' },
+  'contentReview.empty': {
+    en: 'Nothing is flagged right now.',
+    sw: 'Hakuna kilichoashiriwa kwa sasa.',
+  },
+  'contentReview.inactive': { en: 'Hidden', sw: 'Imefichwa' },
+  'contentReview.gate.title': { en: 'Staff sign-in required', sw: 'Inahitajika kuingia kwa wafanyakazi' },
+  'contentReview.gate.text': {
+    en: 'Sign in on the front desk dashboard, then return here.',
+    sw: 'Ingia kwenye dashibodi ya mapokezi, kisha urudi hapa.',
+  },
+  'contentReview.dashboard': { en: 'Open front desk dashboard', sw: 'Fungua dashibodi ya mapokezi' },
+  'dash.contentReview': { en: 'Content review', sw: 'Ukaguzi wa maudhui' },
+  'contentReview.column.kind': { en: 'Type', sw: 'Aina' },
+  'contentReview.column.item': { en: 'Item', sw: 'Kipengee' },
+  'contentReview.column.updated': { en: 'Updated / status', sw: 'Imeisasishwa / hali' },
+  'contentReview.column.id': { en: 'ID', sw: 'Kitambulisho' },
+  'contentReview.kind.blog-post': { en: 'Journal', sw: 'Jarida' },
+  'contentReview.kind.offer': { en: 'Offer', sw: 'Ofa' },
+  'contentReview.kind.policy-page': { en: 'Policy', sw: 'Sera' },
+  'contentReview.kind.review': { en: 'Review', sw: 'Maoni' },
+  'contentReview.kind.room-type': { en: 'Room type', sw: 'Aina ya chumba' },
+  'contentReview.kind.menu-item': { en: 'Menu item', sw: 'Kipengee cha menyu' },
 
   'policy.draft': {
     en: 'Draft wording — pending hotel and legal review before launch.',

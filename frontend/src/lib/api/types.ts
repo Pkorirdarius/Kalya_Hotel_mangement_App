@@ -58,6 +58,8 @@ export type OccupancyResponse = Schemas['OccupancyResponse'];
 export type PaymentReportRow = Schemas['PaymentReportRow'];
 export type PaymentReportResponse = Schemas['PaymentReportResponse'];
 export type User = Schemas['User'];
+export type ContentConfirmationSummary = Schemas['ContentConfirmationSummary'];
+export type ContentConfirmationItem = Schemas['ContentConfirmationItem'];
 
 export type StaffBooking = Schemas['StaffBooking'];
 export type ConferenceEnquiryStaff = Schemas['ConferenceEnquiryStaff'];

@@ -705,6 +705,15 @@ function FrontDeskBoard({ user }: { user: User }) {
             </div>
 
             <div className="flex items-center gap-2 sm:gap-3">
+              <Link
+                to="/content-review"
+                className="hidden min-h-[40px] items-center gap-1.5 rounded-full border border-white/15 px-3 text-[11px] font-semibold text-white/70 transition hover:border-white/30 hover:text-white sm:inline-flex"
+              >
+                <span className="material-symbols-outlined text-[16px]" aria-hidden="true">
+                  fact_check
+                </span>
+                <span>{t('dash.contentReview')}</span>
+              </Link>
               <LanguageButton />
               <ViewSiteLink />
               <div className="flex items-center gap-2.5 rounded-full bg-white/[0.08] py-1 pl-1 pr-2 ring-1 ring-white/10">

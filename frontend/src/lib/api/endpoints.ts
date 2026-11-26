@@ -16,6 +16,7 @@ import type {
   ConferenceEnquiryCreate,
   ConferenceEnquiryCreateResponse,
   ContactMessageCreate,
+  ContentConfirmationSummary,
   ContactMessageEnvelope,
   DeskAction,
   DeskActionRequest,
@@ -216,6 +217,11 @@ export const staffLogout = () =>
   apiRequest<void>('/staff/auth/logout/', { method: 'POST' });
 
 export const staffMe = () => apiRequest<UserEnvelope>('/staff/auth/me/');
+
+export const getContentConfirmation = (params?: { limit?: number }) =>
+  apiRequest<ContentConfirmationSummary>('/staff/common/content-confirmation/', {
+    params,
+  });
 
 export const getFrontDeskQueue = () =>
   apiRequest<QueueResponse>('/staff/frontdesk/queue/');

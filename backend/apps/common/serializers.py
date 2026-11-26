@@ -123,3 +123,19 @@ class FormGuardSummarySerializer(serializers.Serializer):
     since = serializers.DateTimeField()
     total = serializers.IntegerField()
     counts = FormGuardCountSerializer(many=True)
+
+
+class ContentConfirmationItemSerializer(serializers.Serializer):
+    kind = serializers.CharField()
+    model = serializers.CharField()
+    id = serializers.CharField()
+    label = serializers.CharField()
+    active = serializers.BooleanField()
+    needs_confirmation = serializers.BooleanField()
+    updated_at = serializers.DateTimeField()
+
+
+class ContentConfirmationSummarySerializer(serializers.Serializer):
+    total = serializers.IntegerField()
+    counts = serializers.DictField(child=serializers.IntegerField())
+    items = ContentConfirmationItemSerializer(many=True)

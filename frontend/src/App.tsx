@@ -42,17 +42,19 @@ function SiteLayout() {
 
 type RouteComponentMap = Record<RouteComponentId, RouteComponent>;
 
+const PRIVATE_ROUTE_IDS = new Set<RouteComponentId>(['dashboard', 'content-review']);
+
 /** Page routes are generated from the manifest so the router cannot drift. */
 function sitePageRoutes(components: RouteComponentMap) {
-  return SITE_ROUTES.filter((route) => route.id !== 'dashboard').map((route) => {
+  return SITE_ROUTES.filter((route) => !PRIVATE_ROUTE_IDS.has(route.id)).map((route) => {
     const Component = components[route.id];
     return <Route key={route.id} path={relativeRoutePath(route.path)} element={<Component />} />;
   });
 }
 
-/** The dashboard stays outside the public site layout, in both languages. */
-function dashboardRoutes(prefix: '' | '/sw', components: RouteComponentMap) {
-  return SITE_ROUTES.filter((route) => route.id === 'dashboard').map((route) => {
+/** Private staff pages stay outside the public site layout, in both languages. */
+function privateRoutes(prefix: '' | '/sw', components: RouteComponentMap) {
+  return SITE_ROUTES.filter((route) => PRIVATE_ROUTE_IDS.has(route.id)).map((route) => {
     const Component = components[route.id];
     return (
       <Route
@@ -102,14 +104,14 @@ export function App({ components = ROUTE_COMPONENTS }: AppProps) {
             {sitePageRoutes(components)}
             <Route path="*" element={<NotFoundPage />} />
           </Route>
-          {dashboardRoutes('', components)}
+          {privateRoutes('', components)}
 
           {/* Kiswahili: identical tree under /sw. */}
           <Route path={SW_PATH_PREFIX} element={<SiteLayout />}>
             {sitePageRoutes(components)}
             <Route path="*" element={<NotFoundPage />} />
           </Route>
-          {dashboardRoutes(SW_PATH_PREFIX, components)}
+          {privateRoutes(SW_PATH_PREFIX, components)}
         </Routes>
       </Suspense>
     </>

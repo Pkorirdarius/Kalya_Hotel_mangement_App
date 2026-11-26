@@ -17,6 +17,7 @@ describe('route manifest', () => {
     expect(PRIVATE_ROUTES.map((route) => route.path)).toEqual([
       '/booking/manage',
       '/dashboard',
+      '/content-review',
     ]);
     expect(INDEXABLE_ROUTES.map((route) => route.path)).toContain('/blog');
     expect(SITE_ROUTES.find((route) => route.id === 'blog-post')).toMatchObject({

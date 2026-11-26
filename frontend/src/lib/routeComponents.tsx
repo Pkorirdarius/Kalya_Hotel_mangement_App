@@ -38,4 +38,9 @@ export const ROUTE_COMPONENTS: Record<RouteComponentId, RouteComponent> = {
   dashboard: lazy(() =>
     import('../pages/DashboardPage').then((m) => ({ default: m.DashboardPage })),
   ),
+  'content-review': lazy(() =>
+    import('../pages/ContentConfirmationPage').then((m) => ({
+      default: m.ContentConfirmationPage,
+    })),
+  ),
 };
