@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 """Rebuild the Material Symbols font with only the icons used by the app.
 
-The upstream outlined font contains thousands of icons (~250 KiB). The site
-uses a small fixed set, so this script filters the GSUB ligature table to the
-icon names found in `src/`, then subsets the WOFF2 to those glyphs and the ASCII
-characters the ligatures need. The result is ~9 KiB and is what ships in
+The full upstream font is kept at `material-icons-outlined-source.woff2` next to
+this script. The site uses a small fixed set of icons, so this script filters
+the GSUB ligature table to the icon names found in `src/`, then subsets a copy
+of the source font to those glyphs and the ASCII characters the ligatures need.
+The result is ~9 KiB and is what ships in
 `public/fonts/material-icons-outlined.woff2`.
 
 Requires `fonttools` and `brotli` in the Python environment. This is a build
@@ -25,8 +26,29 @@ from fontTools.ttLib import TTFont
 
 ROOT = Path(__file__).resolve().parents[2]
 SRC = ROOT / "frontend" / "src"
-FONT = ROOT / "frontend" / "public" / "fonts" / "material-icons-outlined.woff2"
-OUTPUT = FONT
+SOURCE = ROOT / "frontend" / "scripts" / "material-icons-outlined-source.woff2"
+OUTPUT = ROOT / "frontend" / "public" / "fonts" / "material-icons-outlined.woff2"
+
+
+ICON_FIELD = re.compile(r"\b(?:icon|pillIcon|noteIcon)\s*:\s*'([a-z0-9_]+)'")
+ICON_MAP = re.compile(r"\b[A-Za-z_]*ICON[A-Za-z_]*\s*(?::[^=;{]+)?=\s*\{")
+ICON_SPAN = re.compile(
+    r"<span\b[^>]*material-symbols-outlined[^>]*>([\s\S]*?)</span>"
+)
+QUOTED_NAME = re.compile(r"['\"]([a-z][a-z0-9_]*)['\"]")
+
+
+def object_values(text: str, start: int) -> set[str]:
+    """Collect quoted values from the object literal starting at `start`."""
+    depth = 0
+    for index in range(text.index("{", start), len(text)):
+        if text[index] == "{":
+            depth += 1
+        elif text[index] == "}":
+            depth -= 1
+            if depth == 0:
+                return set(QUOTED_NAME.findall(text[start:index]))
+    return set()
 
 
 def used_icon_names() -> set[str]:
@@ -35,15 +57,22 @@ def used_icon_names() -> set[str]:
         if path.suffix not in {".ts", ".tsx"}:
             continue
         text = path.read_text(encoding="utf-8")
-        # Static icon config objects and literal <span> icon names.
-        names.update(re.findall(r"icon\s*:\s*'([a-z0-9_]+)'", text))
-        names.update(re.findall(r"iconClass\s*:\s*'([a-z0-9_]+)'", text))
-        names.update(
-            match.group(1)
-            for match in re.finditer(
-                r"material-symbols-outlined[^>]*>\s*([a-z0-9_]+)\s*<", text
-            )
-        )
+        # Icon fields are named differently across data objects (icon,
+        # pillIcon, noteIcon); spans may render them as {value} instead of a
+        # literal, so pick the values up from the data as well.
+        names.update(ICON_FIELD.findall(text))
+        # Some icons live in named maps rather than icon fields, e.g.
+        # PAGE_ICONS and EQUIPMENT_ICONS.
+        for match in ICON_MAP.finditer(text):
+            names.update(object_values(text, match.start()))
+        # Literal span text plus any quoted fallbacks inside dynamic spans,
+        # e.g. {PAGE_ICONS[page] ?? 'chevron_right'}.
+        for match in ICON_SPAN.finditer(text):
+            inner = match.group(1).strip()
+            if re.fullmatch(r"[a-z0-9_]+", inner):
+                names.add(inner)
+            else:
+                names.update(QUOTED_NAME.findall(inner))
     return names
 
 
@@ -61,7 +90,7 @@ def ligature_name(
 
 def main() -> None:
     names = used_icon_names()
-    font = TTFont(FONT)
+    font = TTFont(SOURCE)
     cmap = font.getBestCmap()
     reverse_cmap = {glyph: char for char, glyph in cmap.items()}
 
