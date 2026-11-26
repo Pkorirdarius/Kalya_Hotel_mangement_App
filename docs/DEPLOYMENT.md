@@ -209,6 +209,29 @@ included in the sitemap.
 - Allow request bodies large enough for the admin uploads you expect.
 - Add basic rate limiting at the proxy in addition to DRF throttles.
 
+### Content-Security-Policy (report-only)
+
+Both deployables send `Content-Security-Policy-Report-Only`, not the enforcing
+header:
+
+- The static host config `frontend/vercel.json` applies the policy to `/(.*)`:
+  `default-src 'self'`, `base-uri 'self'`, `object-src 'none'`,
+  `frame-ancestors 'none'`, `form-action 'self'`, self/data images and fonts,
+  `style-src 'self' 'unsafe-inline'`, Plausible for script/connect (only used
+  when analytics is opted in), and Google Maps for `frame-src`. The SPA rewrite
+  still works.
+- `backend/apps/common/middleware.py` adds `settings.CSP_REPORT_ONLY_POLICY` to
+  API and Django admin responses. The backend policy is slightly more permissive
+  (`'unsafe-inline'` scripts/styles and `img-src https:`) because the built-in
+  admin needs them.
+
+No `report-uri` or `report-to` collector is configured yet, so violations show
+in browser developer tools until a collector is chosen. Keep the headers
+report-only through staging and early production, review violations (especially
+admin pages and the map iframe), then switch to enforcing headers in a separate
+release. Tests assert the report-only headers and the absence of the enforcing
+header; CI evidence: [45782053634](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45782053634).
+
 ### Choosing `NUM_PROXIES`
 
 DRF throttles (and the audit log) identify a guest by client IP. Behind a
@@ -277,6 +300,9 @@ Then walk the manual list:
 - [ ] Front desk login, queue action and undo work; reports CSV downloads.
 - [ ] Confirmation/reminder email and SMS arrive (check `NotificationLog` too).
 - [ ] `robots.txt` and `sitemap.xml` show the production domain.
+- [ ] Frontend and API responses include
+      `Content-Security-Policy-Report-Only` and no enforcing CSP; review browser
+      console violation reports.
 - [ ] Sentry/host logs show no startup warnings or 5xx responses.
 
 ## 7. Rollback

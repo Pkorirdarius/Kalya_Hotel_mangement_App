@@ -157,18 +157,34 @@ formatting in Kiswahili; dates use `sw-KE`/`en-GB`.
 
 ## 6. Accessibility and QA
 
-- [ ] Keyboard-only pass: header, booking form, dialogs, dashboard actions.
+- [ ] Manual keyboard-only pass: header, booking form, dialogs, dashboard actions.
+      The automated skip-link/focus check passes; the full manual walkthrough is
+      still a launch task.
 - [ ] Screen-reader spot check on the booking and manage-booking flows.
-- [ ] Colour contrast checked (deep green / warm gold palette).
-- [ ] `prefers-reduced-motion` verified — animations become effectively instant.
+- [x] Colour contrast checked in a real browser: Lighthouse reports no failing
+      `color-contrast` audit and scores 100 accessibility on Home, Rooms and
+      Booking.
+- [x] `prefers-reduced-motion` verified — Playwright emulates `reduce` and both
+      the nav transition and the entrance animation resolve in ≤1 ms.
 - [ ] Mobile pass at 360 px, 390 px and tablet widths; no horizontal scroll.
-- [ ] Lighthouse mobile run: performance, accessibility, best practices, SEO.
-- [ ] All five automated checks green:
+- [x] Lighthouse mobile run: Home 88/93, Rooms 88, Booking 90 performance;
+      accessibility, best practices and SEO all 100 on the stable runs.
+- [x] `axe-core` checks pass on Home, Rooms, Facilities, Offers, Contact and
+      Booking in EN and `/sw`, plus a real-browser axe run on Home.
+- [x] Motion budget enforced: interaction transitions 150–350 ms, transform /
+      opacity only; indeterminate spinners stop under reduced motion.
+- [x] All five automated checks green:
       `npm run typecheck`, `npm run lint`, `npm test`, `npm run build`,
       `npm run check:brand`; backend `..\.venv\Scripts\python.exe -m pytest -q`.
+      Latest: frontend 122 tests / 28 files, backend 158 passed / 1 skipped.
+
+**Group D CI evidence:** motion [45211085265](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45211085265), axe/keyboard [45385570039](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45385570039), Playwright a–g [45403334223](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45403334223), Lighthouse/D4 [45781024001](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45781024001) and [45784395555](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45784395555), report-only CSP [45782053634](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45782053634). All three CI jobs (backend/Postgres, frontend, E2E) are green on each run. Full scores and audit notes are in `docs/ACCEPTANCE-REPORT.md` §§1.6–1.10.
 
 ## 7. Operations
 
+- [x] Report-only CSP is present on every frontend route (`frontend/vercel.json`)
+      and on API/admin responses (`apps/common/middleware.py`). Enforcement is
+      deliberately off; review violations before enabling it.
 - [ ] HTTPS enforced at the proxy; HSTS enabled; certificate renewal monitored.
 - [ ] `NUM_PROXIES` set to the exact number of proxies in front of Django (see
       `docs/DEPLOYMENT.md`), and `python scripts/staging_smoke.py
