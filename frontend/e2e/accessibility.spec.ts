@@ -17,6 +17,9 @@ test.beforeEach(async ({ page }) => {
 });
 
 test('(f) axe finds no WCAG A/AA violations on the home page', async ({ page }) => {
+  // Entrance animations temporarily lower opacity; freezing them keeps the
+  // color-contrast rule evaluating the settled, user-visible state.
+  await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto('/');
   await page.addScriptTag({ content: axeSource });
 
