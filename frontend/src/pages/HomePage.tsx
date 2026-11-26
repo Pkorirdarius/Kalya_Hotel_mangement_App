@@ -7,6 +7,10 @@ import { whatsappHref } from '../config/hotel';
 import { useI18n } from '../i18n-context';
 import { ROOMS } from '../types';
 
+function thumbnailSrc(src: string): string {
+  return src.replace(/\.jpg$/, '-thumb.jpg');
+}
+
 const WHY_CARDS = [
   { icon: 'sell', title: 'home.why.best.title', text: 'home.why.best.text' },
   { icon: 'event_available', title: 'home.why.cancel.title', text: 'home.why.cancel.text' },
@@ -34,7 +38,7 @@ const ROOM_BADGES: Record<string, { pill: string; icon: string; text: string }> 
 const FACILITIES = [
   {
     to: '/dining?venue=restaurant',
-    image: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&w=900&q=80',
+    image: '/images/facility-restaurant.jpg',
     alt: 'home.facilities.restaurantAlt',
     icon: 'restaurant',
     name: 'facility.restaurant.name',
@@ -43,7 +47,7 @@ const FACILITIES = [
   },
   {
     to: '/dining?venue=coffee',
-    image: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=900&q=80',
+    image: '/images/facility-cafe.jpg',
     alt: 'home.facilities.coffeeAlt',
     icon: 'local_cafe',
     name: 'facility.coffee.name',
@@ -52,7 +56,7 @@ const FACILITIES = [
   },
   {
     to: '/conference',
-    image: 'https://images.unsplash.com/photo-1505373877841-8d25f7d46678?auto=format&fit=crop&w=900&q=80',
+    image: '/images/facility-conference.jpg',
     alt: 'home.facilities.hallAlt',
     icon: 'co_present',
     name: 'facility.conference.name',
@@ -61,7 +65,7 @@ const FACILITIES = [
   },
   {
     to: '/gym',
-    image: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=900&q=80',
+    image: '/images/facility-gym.jpg',
     alt: 'home.facilities.gymAlt',
     icon: 'fitness_center',
     name: 'facility.gym.name',
@@ -72,7 +76,7 @@ const FACILITIES = [
 
 const OFFERS = [
   {
-    image: 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?auto=format&fit=crop&w=900&q=80',
+    image: '/images/offer-longstay.jpg',
     alt: 'A calm hotel bedroom prepared for a long stay',
     tag: 'offer.longStay.tag',
     tagClass: 'bg-gold text-forest-dark',
@@ -83,7 +87,7 @@ const OFFERS = [
     href: '/booking?offer=long-stay',
   },
   {
-    image: 'https://images.unsplash.com/photo-1582719508461-905c673771fd?auto=format&fit=crop&w=900&q=80',
+    image: '/images/room-deluxe.jpg',
     alt: 'King bed in the Deluxe Garden Suite',
     tag: 'offer.ngo.tag',
     tagClass: 'bg-cream text-forest',
@@ -94,7 +98,7 @@ const OFFERS = [
     href: '/booking?offer=ngo',
   },
   {
-    image: 'https://images.unsplash.com/photo-1504754524776-8f4f37790ca0?auto=format&fit=crop&w=900&q=80',
+    image: '/images/offer-dining.jpg',
     alt: 'Sunday brunch spread with fresh fruit and pastries',
     tag: 'offer.brunch.tag',
     tagClass: 'bg-gold text-forest-dark',
@@ -105,7 +109,7 @@ const OFFERS = [
     href: '/dining?venue=restaurant',
   },
   {
-    image: 'https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=900&q=80',
+    image: '/images/offer-meetings.jpg',
     alt: 'Conference delegates at a workshop in Kilele Hall',
     tag: 'offer.meetings.tag',
     tagClass: 'bg-cream text-forest',
@@ -189,8 +193,11 @@ export function HomePage() {
     <>
       <section className="relative isolate overflow-hidden bg-forest-dark pb-32 pt-16 text-white md:pb-40 md:pt-24">
         <img
-          src="https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?auto=format&fit=crop&w=2000&q=85"
+          src="/images/hero-home.jpg"
+          srcSet="/images/hero-home-mobile.jpg 600w, /images/hero-home-900.jpg 900w, /images/hero-home.jpg 1200w"
+          sizes="100vw"
           alt={t('home.hero.imageAlt')}
+          fetchPriority="high"
           className="absolute inset-0 -z-20 h-full w-full object-cover"
         />
         <div className="absolute inset-0 -z-10 bg-gradient-to-b from-forest-dark/80 via-forest-dark/45 to-forest-dark/90" />
@@ -304,7 +311,7 @@ export function HomePage() {
                   <Link to={`/rooms#${room.id}`} className="block">
                     <div className="relative aspect-[4/3] overflow-hidden">
                       <img
-                        src={room.image}
+                        src={thumbnailSrc(room.image)}
                         alt={t(room.nameKey)}
                         className="h-full w-full object-cover transition-[transform,opacity] duration-300 ease-out group-hover:scale-105"
                         loading="lazy"
@@ -398,7 +405,7 @@ export function HomePage() {
                 className="group relative overflow-hidden rounded-3xl bg-forest-dark shadow-soft"
               >
                 <img
-                  src={facility.image}
+                  src={thumbnailSrc(facility.image)}
                   alt={t(facility.alt)}
                   className="aspect-[4/5] w-full object-cover opacity-85 transition-[transform,opacity] duration-300 ease-out group-hover:scale-105 group-hover:opacity-100"
                   loading="lazy"
@@ -476,7 +483,12 @@ export function HomePage() {
                 className="w-[86%] min-w-[86%] overflow-hidden rounded-3xl bg-white/5 ring-1 ring-white/10 backdrop-blur sm:w-[400px] sm:min-w-[400px]"
               >
                 <div className="relative h-52 overflow-hidden">
-                  <img src={offer.image} alt={offer.alt} className="h-full w-full object-cover" loading="lazy" />
+                  <img
+                    src={thumbnailSrc(offer.image)}
+                    alt={offer.alt}
+                    className="h-full w-full object-cover"
+                    loading="lazy"
+                  />
                   <span className={`pill absolute left-4 top-4 ${offer.tagClass}`}>{t(offer.tag)}</span>
                 </div>
                 <div className="p-6">

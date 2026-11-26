@@ -26,13 +26,6 @@ import {
   todayISO,
 } from '../utils';
 import {
-  fieldErrorKeys,
-  guestDetailsSchema,
-  normaliseKenyanPhone,
-  paymentDetailsSchema,
-  stayDatesSchema,
-} from '../lib/validation';
-import {
   backendPaymentMethod,
   formatCountdown,
   isHoldExpired,
@@ -42,6 +35,15 @@ import {
   quoteKeyFor,
   secondsRemaining,
 } from './bookingFlow';
+
+type ValidationModule = typeof import('../lib/validation');
+
+let validationModulePromise: Promise<ValidationModule> | null = null;
+
+function loadValidation(): Promise<ValidationModule> {
+  validationModulePromise ??= import('../lib/validation');
+  return validationModulePromise;
+}
 
 type PaymentMethod = 'mpesa' | 'card' | 'bank';
 
@@ -225,7 +227,7 @@ export function BookingPage() {
   const createBookingMutation = useCreateBookingMutation();
   const initiatePaymentMutation = useInitiateBookingPaymentMutation();
   const sandboxMutation = useCompleteSandboxPaymentMutation();
-  const paymentMethodsQuery = usePaymentMethods();
+  const paymentMethodsQuery = usePaymentMethods(step >= 4);
 
   const quoteKey = quoteKeyFor({
     room: form.roomId,
@@ -370,7 +372,8 @@ export function BookingPage() {
     return Object.keys(next).length === 0;
   };
 
-  const validateDates = (): boolean => {
+  const validateDates = async (): Promise<boolean> => {
+    const { fieldErrorKeys, stayDatesSchema } = await loadValidation();
     const result = stayDatesSchema(today).safeParse({
       checkin: form.checkin,
       checkout: form.checkout,
@@ -378,7 +381,8 @@ export function BookingPage() {
     return applyValidation(fieldErrorKeys(result));
   };
 
-  const validateGuestDetails = (): boolean => {
+  const validateGuestDetails = async (): Promise<boolean> => {
+    const { fieldErrorKeys, guestDetailsSchema } = await loadValidation();
     const result = guestDetailsSchema.safeParse({
       firstName: form.firstName,
       lastName: form.lastName,
@@ -389,7 +393,8 @@ export function BookingPage() {
     return applyValidation(fieldErrorKeys(result));
   };
 
-  const validatePayment = (): boolean => {
+  const validatePayment = async (): Promise<boolean> => {
+    const { fieldErrorKeys, paymentDetailsSchema } = await loadValidation();
     const result = paymentDetailsSchema.safeParse({
       method: form.payment,
       mpesaPhone: form.mpesaPhone,
@@ -448,7 +453,7 @@ export function BookingPage() {
   };
 
   const handleDetailsContinue = async () => {
-    if (!validateGuestDetails()) {
+    if (!(await validateGuestDetails())) {
       return;
     }
     if (!activeQuote) {
@@ -461,6 +466,7 @@ export function BookingPage() {
   };
 
   const initiatePaymentFor = async (target: Booking) => {
+    const { normaliseKenyanPhone } = await loadValidation();
     const method = backendPaymentMethod(form.payment);
     const result = await initiatePaymentMutation.mutateAsync({
       reference: target.reference,
@@ -495,6 +501,7 @@ export function BookingPage() {
   };
 
   const submitBooking = async () => {
+    const { normaliseKenyanPhone } = await loadValidation();
     setSubmitting(true);
     setFlowError('');
 
@@ -590,7 +597,7 @@ export function BookingPage() {
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (step !== 4 || !validatePayment()) {
+    if (step !== 4 || !(await validatePayment())) {
       return;
     }
     await submitBooking();
@@ -874,8 +881,8 @@ export function BookingPage() {
                     <button
                       type="button"
                       className="btn-primary sm:ml-auto"
-                      onClick={() => {
-                        if (validateDates()) goToStep(2);
+                      onClick={async () => {
+                        if (await validateDates()) goToStep(2);
                       }}
                     >
                       <span>{t('booking.step1.continue')}</span>
@@ -917,7 +924,7 @@ export function BookingPage() {
                           />
                           <div className="flex gap-3 rounded-2xl border border-line p-3 transition peer-checked:border-forest peer-checked:bg-forest-50 peer-checked:ring-1 peer-checked:ring-forest/25">
                             <img
-                              src={item.image.replace('w=1200', 'w=400').replace('q=80', 'q=70')}
+                              src={item.image.replace(/\.jpg$/, '-thumb.jpg')}
                               alt=""
                               className="h-20 w-24 shrink-0 rounded-xl object-cover"
                               loading="lazy"

@@ -270,8 +270,12 @@ export function useSendContactMessageMutation() {
 // Payments
 // ---------------------------------------------------------------------------
 
-export function usePaymentMethods() {
-  return useQuery({ queryKey: queryKeys.paymentMethods, queryFn: getPaymentMethods });
+export function usePaymentMethods(enabled = true) {
+  return useQuery({
+    queryKey: queryKeys.paymentMethods,
+    queryFn: getPaymentMethods,
+    enabled,
+  });
 }
 
 export function useInitiateBookingPaymentMutation() {

@@ -35,7 +35,7 @@ export const ROOMS: RoomType[] = [
     size: 28,
     bedKey: 'room.standard.bed',
     image:
-      'https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=1200&q=80',
+      '/images/room-standard.jpg',
   },
   {
     id: 'deluxe-garden-suite',
@@ -45,7 +45,7 @@ export const ROOMS: RoomType[] = [
     size: 42,
     bedKey: 'room.deluxe.bed',
     image:
-      'https://images.unsplash.com/photo-1582719508461-905c673771fd?auto=format&fit=crop&w=1200&q=80',
+      '/images/room-deluxe.jpg',
   },
   {
     id: 'mara-residence',
@@ -55,7 +55,7 @@ export const ROOMS: RoomType[] = [
     size: 58,
     bedKey: 'room.mara.bed',
     image:
-      'https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=1200&q=80',
+      '/images/room-mara.jpg',
   },
 ];
 

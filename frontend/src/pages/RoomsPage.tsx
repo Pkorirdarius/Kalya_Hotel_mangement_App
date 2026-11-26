@@ -24,19 +24,19 @@ const ROOM_DETAILS: RoomDetail[] = [
     pillKey: 'room.popular',
     images: [
       {
-        src: 'https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=1400&q=85',
+        src: '/images/room-standard.jpg',
         alt: 'Standard Executive room with queen bed and writing desk',
       },
       {
-        src: 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?auto=format&fit=crop&w=1400&q=85',
+        src: '/images/offer-longstay.jpg',
         alt: 'Standard Executive room in warm evening light',
       },
       {
-        src: 'https://images.unsplash.com/photo-1618773928121-c32242e63f39?auto=format&fit=crop&w=1400&q=85',
+        src: '/images/room-gallery-3.jpg',
         alt: 'Standard Executive bathroom and bed detail',
       },
       {
-        src: 'https://images.unsplash.com/photo-1566665797739-1674de7a421a?auto=format&fit=crop&w=1400&q=85',
+        src: '/images/room-gallery-4.jpg',
         alt: 'Standard Executive room seating corner',
       },
     ],
@@ -59,19 +59,19 @@ const ROOM_DETAILS: RoomDetail[] = [
     pillKey: 'room.garden',
     images: [
       {
-        src: 'https://images.unsplash.com/photo-1582719508461-905c673771fd?auto=format&fit=crop&w=1400&q=85',
+        src: '/images/room-deluxe.jpg',
         alt: 'Deluxe Garden Suite with king bed and garden-facing windows',
       },
       {
-        src: 'https://images.unsplash.com/photo-1596394516093-501ba68a0ba6?auto=format&fit=crop&w=1400&q=85',
+        src: '/images/room-deluxe-2.jpg',
         alt: 'Deluxe Garden Suite reading corner',
       },
       {
-        src: 'https://images.unsplash.com/photo-1590073242678-70ee3fc28e8e?auto=format&fit=crop&w=1400&q=85',
+        src: '/images/room-deluxe-3.jpg',
         alt: 'Deluxe Garden Suite bathroom detail',
       },
       {
-        src: 'https://images.unsplash.com/photo-1584132967334-10e028bd69f7?auto=format&fit=crop&w=1400&q=85',
+        src: '/images/room-deluxe-4.jpg',
         alt: 'Deluxe Garden Suite seating area',
       },
     ],
@@ -94,19 +94,19 @@ const ROOM_DETAILS: RoomDetail[] = [
     pillKey: 'room.longStay',
     images: [
       {
-        src: 'https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=1400&q=85',
+        src: '/images/room-mara.jpg',
         alt: 'Mara Residence living area with sofa and kitchenette',
       },
       {
-        src: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1400&q=85',
+        src: '/images/room-mara-2.jpg',
         alt: 'Mara Residence bedroom',
       },
       {
-        src: 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=1400&q=85',
+        src: '/images/room-mara-3.jpg',
         alt: 'Mara Residence kitchenette and dining table',
       },
       {
-        src: 'https://images.unsplash.com/photo-1584132967334-10e028bd69f7?auto=format&fit=crop&w=1400&q=85',
+        src: '/images/room-deluxe-4.jpg',
         alt: 'Mara Residence seating and work corner',
       },
     ],
@@ -122,6 +122,10 @@ const ROOM_DETAILS: RoomDetail[] = [
     ],
   },
 ];
+
+function thumbnailSrc(src: string): string {
+  return src.replace(/\.jpg$/, '-thumb.jpg');
+}
 
 function RoomCard({ room, detail }: { room: RoomType; detail: RoomDetail }) {
   const { t, formatMoney } = useI18n();
@@ -141,6 +145,7 @@ function RoomCard({ room, detail }: { room: RoomType; detail: RoomDetail }) {
                 src={detail.images[activeImage].src}
                 alt={detail.images[activeImage].alt}
                 className="h-full w-full object-cover transition-[transform,opacity] duration-300 ease-out"
+                loading="lazy"
               />
               <span className={`pill absolute left-4 top-4 ${detail.pill}`}>
                 <span className="material-symbols-outlined text-[14px]" aria-hidden="true">
@@ -173,7 +178,7 @@ function RoomCard({ room, detail }: { room: RoomType; detail: RoomDetail }) {
                     aria-label={image.alt}
                   >
                     <img
-                      src={image.src.replace('w=1400', 'w=300').replace('q=85', 'q=70')}
+                      src={thumbnailSrc(image.src)}
                       alt=""
                       className="aspect-[4/3] w-full object-cover"
                       loading="lazy"
@@ -310,8 +315,11 @@ export function RoomsPage() {
           <div className="relative">
             <div className="overflow-hidden rounded-[28px] shadow-lift">
               <img
-                src="https://images.unsplash.com/photo-1445019980597-93fa8acb246c?auto=format&fit=crop&w=1600&q=85"
+                src="/images/hero-rooms.jpg"
+                srcSet="/images/hero-rooms-mobile.jpg 600w, /images/hero-rooms-900.jpg 900w, /images/hero-rooms.jpg 1000w"
+                sizes="(min-width: 1024px) 45vw, 100vw"
                 alt={t('rooms.heroAlt')}
+                fetchPriority="high"
                 className="aspect-[5/4] w-full object-cover"
               />
             </div>
