@@ -83,6 +83,9 @@ function mockFetch(options: {
     const method = init?.method ?? 'GET';
 
     if (url.includes('/auth/csrf/')) return jsonResponse(200, {});
+    if (url.includes('/common/hotel/')) {
+      return jsonResponse(200, { conference_prices_confirmed: false });
+    }
     if (url.includes('/facilities/conference/availability/') && method === 'GET') {
       return jsonResponse(
         200,
@@ -120,6 +123,16 @@ afterEach(() => {
 });
 
 describe('ConferencePage', () => {
+  it('requests a quotation instead of showing unconfirmed hall prices', async () => {
+    vi.stubGlobal('fetch', mockFetch());
+    renderConferencePage();
+
+    expect((await screen.findAllByText('Request a quotation')).length).toBeGreaterThan(0);
+    expect(screen.queryByText(/KES 8,000/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/KES 15,000/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/KES 650/)).not.toBeInTheDocument();
+  });
+
   it('shows live availability and submits the enquiry with the chosen details', async () => {
     const fetchMock = mockFetch();
     vi.stubGlobal('fetch', fetchMock);

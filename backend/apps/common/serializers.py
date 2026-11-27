@@ -59,6 +59,13 @@ class PublicHotelSettingSerializer(serializers.ModelSerializer):
     conference_half_day_price = KesField(read_only=True)
     conference_full_day_price = KesField(read_only=True)
 
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        if not instance.conference_prices_confirmed:
+            data.pop("conference_half_day_price", None)
+            data.pop("conference_full_day_price", None)
+        return data
+
     class Meta:
         model = HotelSetting
         fields = (
@@ -87,6 +94,7 @@ class PublicHotelSettingSerializer(serializers.ModelSerializer):
             "coffee_hours",
             "conference_capacity",
             "conference_hours",
+            "conference_prices_confirmed",
             "gym_capacity",
             "gym_hours",
             "gym_day_pass_price",
@@ -100,6 +108,7 @@ class PublicHotelSettingSerializer(serializers.ModelSerializer):
             "bank_swift",
             "claims_verified",
             "google_reviews_enabled",
+            "dinner_plan_enabled",
             "privacy_notice_url",
             "privacy_notice_version",
             "data_retention_months",

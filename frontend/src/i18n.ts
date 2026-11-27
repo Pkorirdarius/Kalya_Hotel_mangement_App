@@ -379,7 +379,6 @@ const entries: Record<string, Entry> = {
   'booking.step2.continue': { en: 'Add guest details', sw: 'Ongeza taarifa za mgeni' },
   'booking.checkingAvailability': { en: 'Checking availability for your dates…', sw: 'Tunaangalia nafasi kwa tarehe zako…' },
   'booking.availabilityError': { en: 'We could not check availability. Please try again.', sw: 'Hatukuweza kuangalia nafasi. Tafadhali jaribu tena.' },
-  'booking.roomUnavailable': { en: 'That room is no longer available for these dates. Choose another room.', sw: 'Chumba hicho hakipatikani kwa tarehe hizi. Chagua chumba kingine.' },
   'booking.tooManyGuests': { en: 'This room sleeps fewer guests. Choose another room or reduce the party size.', sw: 'Chumba hiki kinachukua wageni wachache. Chagua chumba kingine au punguza idadi ya wageni.' },
   'booking.soldOut': { en: 'Room not available — choose another room', sw: 'Chumba hakipatikani — chagua chumba kingine' },
   'booking.roomsLeft': { en: 'rooms left', sw: 'vyumba vimebaki' },
@@ -769,6 +768,10 @@ const entries: Record<string, Entry> = {
   'conference.halls.cardText': {
     en: 'Ask the events team about layouts, capacity and availability.',
     sw: 'Uliza timu ya hafla kuhusu mpangilio, uwezo na upatikanaji.',
+  },
+  'conference.requestQuotation': {
+    en: 'Request a quotation',
+    sw: 'Omba bei',
   },
   'conference.cta': { en: 'Check availability', sw: 'Angalia nafasi' },
   'conference.statGuests': { en: 'Theatre guests', sw: 'Wageni wa theatre' },

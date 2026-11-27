@@ -12,6 +12,7 @@ import { errorMessage, fieldErrors } from '../lib/query/errors';
 import {
   useCompleteSandboxPaymentMutation,
   useCreateBookingMutation,
+  useHotelSettings,
   useInitiateBookingPaymentMutation,
   usePayment,
   usePaymentMethods,
@@ -127,10 +128,6 @@ const DOT_ACTIVE = 'border-forest bg-forest text-white';
 const DOT_COMPLETE = 'border-gold bg-gold text-forest-dark';
 const DOT_UPCOMING = 'border-line bg-white text-muted';
 
-function isMealPlanId(value: string | null): value is MealPlanId {
-  return MEAL_PLANS.some((plan) => plan.id === value);
-}
-
 function errorClass(hasError: boolean): string {
   return hasError ? '!border-red-400' : '';
 }
@@ -149,6 +146,15 @@ export function BookingPage() {
 
   const today = todayISO();
   const offer = searchParams.get('offer');
+  const settingsQuery = useHotelSettings();
+  const dinnerPlanEnabled = settingsQuery.data?.dinner_plan_enabled === true;
+  const visibleMealPlans = useMemo(
+    () =>
+      MEAL_PLANS.filter(
+        (plan) => dinnerPlanEnabled || plan.id !== 'dinner',
+      ),
+    [dinnerPlanEnabled],
+  );
 
   const defaults = useMemo(() => {
     let checkin = searchParams.get('checkin') ?? addDaysISO(today, 7);
@@ -173,7 +179,9 @@ export function BookingPage() {
         : ROOMS.find((room) => room.id === requestedRoom)?.id ?? ROOMS[0].id;
 
     const requestedMeal = searchParams.get('meal');
-    const mealId = isMealPlanId(requestedMeal) ? requestedMeal : 'breakfast';
+    const mealId = visibleMealPlans.some((plan) => plan.id === requestedMeal)
+      ? (requestedMeal as MealPlanId)
+      : 'breakfast';
 
     const requestedGuests = Number(searchParams.get('guests') ?? 2);
     const guests =
@@ -182,7 +190,7 @@ export function BookingPage() {
         : 2;
 
     return { checkin, checkout, roomId, mealId, guests };
-  }, [offer, searchParams, today]);
+  }, [offer, searchParams, today, visibleMealPlans]);
 
   const [step, setStep] = useState(1);
   const [form, setForm] = useState<BookingForm>({
@@ -295,7 +303,8 @@ export function BookingPage() {
   }, [paymentSucceeded, showToast, t]);
 
   const room = ROOMS.find((item) => item.id === form.roomId) ?? ROOMS[0];
-  const meal = MEAL_PLANS.find((item) => item.id === form.mealId) ?? MEAL_PLANS[1];
+  const meal =
+    visibleMealPlans.find((item) => item.id === form.mealId) ?? visibleMealPlans[1];
   const nights = Math.max(0, nightsBetween(form.checkin, form.checkout));
   const roomTotal = activeQuote?.accommodation_total ?? room.price * nights;
   const mealTotal =
@@ -449,7 +458,7 @@ export function BookingPage() {
       return;
     }
     if (row.available_rooms < 1) {
-      setErrors({ roomId: t('booking.roomUnavailable') });
+      setErrors({ roomId: t('booking.soldOut') });
       return;
     }
     const result = await loadQuote();
@@ -989,7 +998,7 @@ export function BookingPage() {
                       {t('meal.title')}
                     </legend>
                     <div className="mt-3 space-y-2">
-                      {MEAL_PLANS.map((plan) => {
+                      {visibleMealPlans.map((plan) => {
                         const selected = form.mealId === plan.id;
                         return (
                           <label key={plan.id} className="block cursor-pointer">

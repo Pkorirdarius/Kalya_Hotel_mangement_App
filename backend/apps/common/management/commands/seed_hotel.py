@@ -377,8 +377,9 @@ class Command(BaseCommand):
         settings_obj.gym_capacity = 20
         settings_obj.gym_day_pass_price = Decimal("500.00")
         settings_obj.gym_monthly_price = Decimal("3000.00")
-        # The brief listed half-day 8,000 and full-day 15,000. Confirm which way
-        # round the hotel intends; these remain flagged in ASSUMPTIONS.md.
+        # Unconfirmed admin values only: the public API omits these while
+        # conference_prices_confirmed is false, and guests see "Request a
+        # quotation". Confirm which way round the hotel intends before enabling.
         settings_obj.conference_half_day_price = Decimal("8000.00")
         settings_obj.conference_full_day_price = Decimal("15000.00")
         settings_obj.bank_name = "Equity Bank Kenya"

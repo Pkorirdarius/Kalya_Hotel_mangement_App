@@ -7100,6 +7100,11 @@ components:
           type: string
           format: decimal
           pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        conference_prices_confirmed:
+          type: boolean
+          description: Only enable after the hotel confirms half-day and full-day
+            hall prices. While false, prices are omitted from the public API and guests
+            see 'Request a quotation'.
         bank_name:
           type: string
           maxLength: 120
@@ -7121,6 +7126,10 @@ components:
             are hidden.
         google_reviews_enabled:
           type: boolean
+        dinner_plan_enabled:
+          type: boolean
+          description: Legacy dinner, bed & breakfast rate. Keep disabled until the
+            hotel confirms it is still sold; it is hidden from guest booking.
         privacy_notice_url:
           type: string
           maxLength: 255
@@ -7618,6 +7627,11 @@ components:
         conference_hours:
           type: string
           maxLength: 80
+        conference_prices_confirmed:
+          type: boolean
+          description: Only enable after the hotel confirms half-day and full-day
+            hall prices. While false, prices are omitted from the public API and guests
+            see 'Request a quotation'.
         gym_capacity:
           type: integer
           maximum: 9223372036854775807
@@ -7679,6 +7693,10 @@ components:
             are hidden.
         google_reviews_enabled:
           type: boolean
+        dinner_plan_enabled:
+          type: boolean
+          description: Legacy dinner, bed & breakfast rate. Keep disabled until the
+            hotel confirms it is still sold; it is hidden from guest booking.
         privacy_notice_url:
           type: string
           maxLength: 255
@@ -8929,6 +8947,11 @@ components:
           type: string
           format: decimal
           pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        conference_prices_confirmed:
+          type: boolean
+          description: Only enable after the hotel confirms half-day and full-day
+            hall prices. While false, prices are omitted from the public API and guests
+            see 'Request a quotation'.
         bank_name:
           type: string
           maxLength: 120
@@ -8950,6 +8973,10 @@ components:
             are hidden.
         google_reviews_enabled:
           type: boolean
+        dinner_plan_enabled:
+          type: boolean
+          description: Legacy dinner, bed & breakfast rate. Keep disabled until the
+            hotel confirms it is still sold; it is hidden from guest booking.
         privacy_notice_url:
           type: string
           maxLength: 255

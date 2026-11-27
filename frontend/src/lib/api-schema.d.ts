@@ -2838,6 +2838,8 @@ export interface components {
             conference_half_day_price?: string;
             /** Format: decimal */
             conference_full_day_price?: string;
+            /** @description Only enable after the hotel confirms half-day and full-day hall prices. While false, prices are omitted from the public API and guests see 'Request a quotation'. */
+            conference_prices_confirmed?: boolean;
             bank_name?: string;
             bank_account_name?: string;
             bank_account_number?: string;
@@ -2846,6 +2848,8 @@ export interface components {
             /** @description When false, unverified claims (best-rate, airport ride, etc.) are hidden. */
             claims_verified?: boolean;
             google_reviews_enabled?: boolean;
+            /** @description Legacy dinner, bed & breakfast rate. Keep disabled until the hotel confirms it is still sold; it is hidden from guest booking. */
+            dinner_plan_enabled?: boolean;
             privacy_notice_url?: string;
             privacy_notice_version?: string;
             /** Format: int64 */
@@ -3042,6 +3046,8 @@ export interface components {
             /** Format: int64 */
             conference_capacity?: number;
             conference_hours?: string;
+            /** @description Only enable after the hotel confirms half-day and full-day hall prices. While false, prices are omitted from the public API and guests see 'Request a quotation'. */
+            conference_prices_confirmed?: boolean;
             /** Format: int64 */
             gym_capacity?: number;
             gym_hours?: string;
@@ -3061,6 +3067,8 @@ export interface components {
             /** @description When false, unverified claims (best-rate, airport ride, etc.) are hidden. */
             claims_verified?: boolean;
             google_reviews_enabled?: boolean;
+            /** @description Legacy dinner, bed & breakfast rate. Keep disabled until the hotel confirms it is still sold; it is hidden from guest booking. */
+            dinner_plan_enabled?: boolean;
             privacy_notice_url?: string;
             privacy_notice_version?: string;
             /** Format: int64 */
@@ -3552,6 +3560,8 @@ export interface components {
             conference_half_day_price?: string;
             /** Format: decimal */
             conference_full_day_price?: string;
+            /** @description Only enable after the hotel confirms half-day and full-day hall prices. While false, prices are omitted from the public API and guests see 'Request a quotation'. */
+            conference_prices_confirmed?: boolean;
             bank_name?: string;
             bank_account_name?: string;
             bank_account_number?: string;
@@ -3560,6 +3570,8 @@ export interface components {
             /** @description When false, unverified claims (best-rate, airport ride, etc.) are hidden. */
             claims_verified?: boolean;
             google_reviews_enabled?: boolean;
+            /** @description Legacy dinner, bed & breakfast rate. Keep disabled until the hotel confirms it is still sold; it is hidden from guest booking. */
+            dinner_plan_enabled?: boolean;
             privacy_notice_url?: string;
             privacy_notice_version?: string;
             /** Format: int64 */

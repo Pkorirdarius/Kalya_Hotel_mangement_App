@@ -10,6 +10,7 @@ import { errorMessage, fieldErrors } from '../lib/query/errors';
 import {
   useConferenceAvailability,
   useCreateConferenceEnquiryMutation,
+  useHotelSettings,
 } from '../lib/query/hooks';
 import {
   conferenceEnquirySchema,
@@ -128,6 +129,9 @@ export function ConferencePage() {
   usePageMeta(t('meta.conference.title'), t('meta.conference.description'));
 
   const availabilityQuery = useConferenceAvailability({ session });
+  const settingsQuery = useHotelSettings();
+  const conferencePricesConfirmed =
+    settingsQuery.data?.conference_prices_confirmed === true;
   const createEnquiry = useCreateConferenceEnquiryMutation();
   const { honeypotRef, guardPayload } = useFormGuard();
 
@@ -301,6 +305,11 @@ export function ConferencePage() {
               <p className="mt-2 text-[12px] leading-relaxed text-muted">
                 {t('conference.halls.cardText')}
               </p>
+              {!conferencePricesConfirmed ? (
+                <a href="#book" className="mt-3 inline-block text-[12px] font-bold text-gold-deep underline underline-offset-2">
+                  {t('conference.requestQuotation')}
+                </a>
+              ) : null}
             </div>
           ))}
         </div>
@@ -362,7 +371,9 @@ export function ConferencePage() {
                     <p className="text-[13px] font-bold text-white">{t(`catering.${item.key}`)}</p>
                     <p className="mt-1 text-[11px] text-white/60">{t(`catering.${item.key}Desc`)}</p>
                   </div>
-                  <p className="shrink-0 text-[13px] font-bold text-gold">{item.price}</p>
+                  <p className="shrink-0 text-[13px] font-bold text-gold">
+                    {conferencePricesConfirmed ? item.price : t('conference.requestQuotation')}
+                  </p>
                 </div>
               ))}
             </div>

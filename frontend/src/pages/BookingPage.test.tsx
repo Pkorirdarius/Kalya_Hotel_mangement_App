@@ -144,6 +144,7 @@ function mockFetch(
   onQuote?: () => Response,
   bookingOverrides: Record<string, unknown> = {},
   availabilityRows = availability,
+  settings: { dinner_plan_enabled?: boolean } = {},
 ) {
   return vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input);
@@ -151,6 +152,11 @@ function mockFetch(
 
     if (url.includes('/auth/csrf/')) {
       return jsonResponse(200, {});
+    }
+    if (url.includes('/common/hotel/')) {
+      return jsonResponse(200, {
+        dinner_plan_enabled: settings.dinner_plan_enabled ?? false,
+      });
     }
     if (url.includes('/payments/methods/')) {
       return jsonResponse(200, {
@@ -275,6 +281,42 @@ describe('BookingPage', () => {
     await waitFor(() => expect(twinRadio).toBeDisabled());
     expect(screen.getAllByText(/Room not available — choose another room/)).toHaveLength(1);
     expect(screen.getByRole('radio', { name: /Superior Room/ })).toBeEnabled();
+  });
+
+  it('hides the unconfirmed dinner plan from guests', async () => {
+    vi.stubGlobal('fetch', mockFetch());
+    const user = userEvent.setup();
+    renderBookingPage();
+
+    await user.click(screen.getByRole('button', { name: 'Choose a room' }));
+    await waitFor(() => {
+      expect(screen.queryAllByText(/checking availability/i)).toHaveLength(0);
+    });
+
+    expect(screen.queryByRole('radio', { name: /Dinner, bed & breakfast/ })).toBeNull();
+    expect(screen.getByRole('radio', { name: /Breakfast included/ })).toBeInTheDocument();
+  });
+
+  it('uses the same sold-out wording for a zero-availability row', async () => {
+    vi.stubGlobal(
+      'fetch',
+      mockFetch(
+        undefined,
+        {},
+        availability.map((row) =>
+          row.room_type === 'twin' ? { ...row, available_rooms: 0 } : row,
+        ),
+      ),
+    );
+    const user = userEvent.setup();
+    renderBookingPage();
+
+    await user.click(screen.getByRole('button', { name: 'Choose a room' }));
+
+    const twinRadio = await screen.findByRole('radio', { name: /Twin Room/ });
+    await waitFor(() => expect(twinRadio).toBeDisabled());
+    expect(screen.getByText('Room not available — choose another room')).toBeInTheDocument();
+    expect(screen.queryByText(/Fully booked for these dates/i)).not.toBeInTheDocument();
   });
 
   it('keeps the guest on the room step when the quote is rejected', async () => {
