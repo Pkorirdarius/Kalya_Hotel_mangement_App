@@ -1270,7 +1270,6 @@ const entries: Record<string, Entry> = {
   'contact.getting.title': { en: 'Getting here', sw: 'Kufika hapa' },
   'contact.getting.text': { en: 'Five minutes from Kapenguria town centre, just off the Kitale–Lodwar road. Secure parking on site.', sw: 'Dakika tano kutoka katikati ya mji wa Kapenguria, kando ya barabara ya Kitale–Lodwar. Maegesho salama yapo.' },
   'contact.parking': { en: 'Secure parking', sw: 'Maegesho salama' },
-  'contact.transfer': { en: 'Airport transfers', sw: 'Usafiri wa uwanja wa ndege' },
   'contact.mapTitle': { en: 'Map of {name} in {town}, {county}', sw: 'Ramani ya {name} {town}, {county}' },
   'topic.general': { en: 'General enquiry', sw: 'Swali la jumla' },
   'topic.booking': { en: 'A booking', sw: 'Nafasi ya kukaa' },

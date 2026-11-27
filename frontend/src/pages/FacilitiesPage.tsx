@@ -71,7 +71,6 @@ const EXTRAS = [
   { icon: 'bolt', title: 'facilities.generator', text: 'facilities.generator.text' },
   { icon: 'local_parking', title: 'facilities.parking', text: 'facilities.parking.text' },
   { icon: 'accessible', title: 'facilities.accessible', text: 'facilities.accessible.text' },
-  { icon: 'airport_shuttle', title: 'facilities.transfers', text: 'facilities.transfers.text' },
 ];
 
 export function FacilitiesPage() {
