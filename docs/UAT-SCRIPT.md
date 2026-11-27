@@ -12,10 +12,10 @@
 | 0.1 | Staging stack is up | `db`, `web`, `worker` and `proxy` are healthy; `GET /api/v1/health/` returns 200 with `"database": true`. | Screenshot or curl output |
 | 0.2 | Settings | `DJANGO_SETTINGS_MODULE=config.settings.staging`, `DEBUG=False`, `NUM_PROXIES=1`, `USE_SQLITE=false`. | `.env.staging` / compose config |
 | 0.3 | No live credentials | `PAYMENTS_SANDBOX=true`, `PAYMENT_SIMULATION_ALLOWED=false` or sandbox-only, console/stub email and SMS. No real M-Pesa, card, SMTP or SMS keys. | Config review |
-| 0.4 | Staff accounts | One director, one front desk, optionally one data manager; unique passwords; roles verified against `docs/SECURITY.md`. | Account list (no passwords) |
+| 0.4 | Staff accounts | One director, one front desk, optionally one data manager; created via `create_staff_from_csv` with a password set by `changepassword`; roles verified against `docs/SECURITY.md`. | Account list (no passwords) |
 | 0.5 | Seed state | `seed_hotel` has been run once. All sample content/claims remain `needs_confirmation=True` / `claims_verified=False`. | Admin screenshots |
 | 0.6 | CI green | The three CI jobs (backend/Postgres, frontend, Playwright E2E) are green for the commit under test. | CI run link |
-| 0.7 | Build artifacts | `frontend/dist` contains 24 prerendered `index.html` files and `prerender-report.json`. | `npm run build` output |
+| 0.7 | Build artifacts | `frontend/dist` contains 26 prerendered `index.html` files and `prerender-report.json`. | `npm run build` output |
 
 ## 1. Public content, language and SEO (C7–C10)
 
@@ -66,6 +66,7 @@
 | 4.5 | As director/data manager, open overview, occupancy and payment reports; download CSV. | Totals match the bookings; phones masked; CSV opens in Excel without formula injection. | |
 | 4.6 | As marketing/ICT, try to open booking/reports/queue endpoints. | Access is denied; content management still works for marketing. | |
 | 4.7 | Open the Room status panel as front desk; mark 201 occupied, then free. Try the same endpoints as marketing. | All numbered rooms appear with a free/occupied status; the toggle updates the row and survives a refresh. `TWIN-1` is flagged as provisional. Marketing gets 403. | |
+| 4.8 | Place a room booking, open the dashboard, then wait past 10 minutes and refresh. | "New bookings · 1 received in the last 10 minutes" appears on the next poll and disappears after the window even if the booking was already confirmed. Marketing/ICT cannot reach the count. | |
 
 ## 5. Notifications and localization
 

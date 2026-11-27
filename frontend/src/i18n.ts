@@ -1014,6 +1014,10 @@ const entries: Record<string, Entry> = {
   },
   'dash.stats.oldest': { en: 'Oldest wait', sw: 'Muda mrefu zaidi' },
   'dash.stats.oldestNote': { en: 'Longest wait in the queue', sw: 'Muda mrefu zaidi kwenye foleni' },
+  'dash.newBooking.alert': {
+    en: 'New bookings · {count} received in the last {minutes} minutes.',
+    sw: 'Nafasi mpya · {count} zimepokelewa katika dakika {minutes} zilizopita.',
+  },
   'dash.queue.eyebrow': { en: 'Live queue', sw: 'Foleni ya moja kwa moja' },
   'dash.queue.title': { en: 'Needs a decision', sw: 'Inahitaji uamuzi' },
   'dash.queue.text': {

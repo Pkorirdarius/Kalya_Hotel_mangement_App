@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from datetime import timedelta
+
 from django.utils import timezone
 from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework import serializers, status
@@ -7,6 +9,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.accounts.permissions import CanManageBookings
+from apps.bookings.models import Booking
 from apps.common.models import HotelSetting
 
 from .models import DeskAction
@@ -17,6 +20,10 @@ from .services import (
     frontdesk_queue,
     recent_activity,
 )
+
+# A booking is "new" for the first ten minutes after it is placed, whether or
+# not the front desk has already acted on it.
+NEW_BOOKING_ALERT_MINUTES = 10
 
 
 class DeskActionRequestSerializer(serializers.Serializer):
@@ -69,6 +76,8 @@ class QueueResponseSerializer(serializers.Serializer):
     target_minutes = serializers.IntegerField()
     escalate_minutes = serializers.IntegerField()
     undo_seconds = serializers.IntegerField()
+    new_booking_count = serializers.IntegerField()
+    new_booking_window_minutes = serializers.IntegerField()
     items = QueueItemSerializer(many=True)
 
 
@@ -100,12 +109,19 @@ class FrontDeskQueueView(APIView):
     def get(self, request):
         settings_obj = HotelSetting.load()
         items = frontdesk_queue()
+        now = timezone.now()
+        new_booking_cutoff = now - timedelta(minutes=NEW_BOOKING_ALERT_MINUTES)
+        new_booking_count = Booking.objects.filter(
+            created_at__gte=new_booking_cutoff
+        ).count()
         return Response(
             {
-                "generated_at": timezone.now().isoformat(),
+                "generated_at": now.isoformat(),
                 "target_minutes": settings_obj.frontdesk_target_minutes,
                 "escalate_minutes": settings_obj.frontdesk_escalate_minutes,
                 "undo_seconds": settings_obj.frontdesk_undo_seconds,
+                "new_booking_count": new_booking_count,
+                "new_booking_window_minutes": NEW_BOOKING_ALERT_MINUTES,
                 "items": items,
             }
         )

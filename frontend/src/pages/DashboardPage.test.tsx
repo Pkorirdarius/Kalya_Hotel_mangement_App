@@ -88,10 +88,15 @@ function actionBody(
 }
 
 function mockFetch(
-  options: { authenticated?: boolean; exportGuestData?: boolean } = {},
+  options: {
+    authenticated?: boolean;
+    exportGuestData?: boolean;
+    newBookingCount?: number;
+  } = {},
 ) {
   let authenticated = options.authenticated ?? false;
   const exportGuestData = options.exportGuestData ?? false;
+  const newBookingCount = options.newBookingCount ?? 0;
   let queue: Array<Record<string, unknown>> = [
     queueItem(),
     queueItem({
@@ -171,6 +176,8 @@ function mockFetch(
         target_minutes: 10,
         escalate_minutes: 8,
         undo_seconds: 10,
+        new_booking_count: newBookingCount,
+        new_booking_window_minutes: 10,
         items: queue,
       });
     }
@@ -364,6 +371,26 @@ describe('DashboardPage', () => {
     expect(
       screen.queryByRole('heading', { name: 'Today at a glance' }),
     ).not.toBeInTheDocument();
+  });
+
+  it('alerts the desk when a booking arrived within ten minutes', async () => {
+    vi.stubGlobal(
+      'fetch',
+      mockFetch({ authenticated: true, newBookingCount: 2 }),
+    );
+    renderDashboard();
+
+    expect(
+      await screen.findByText('New bookings · 2 received in the last 10 minutes.'),
+    ).toBeInTheDocument();
+  });
+
+  it('stays quiet when no booking arrived in the alert window', async () => {
+    vi.stubGlobal('fetch', mockFetch({ authenticated: true }));
+    renderDashboard();
+
+    expect(await screen.findByText('WP-2026-0041')).toBeInTheDocument();
+    expect(screen.queryByText(/New bookings ·/)).not.toBeInTheDocument();
   });
 
   it('confirms an item and undoes the action inside the window', async () => {

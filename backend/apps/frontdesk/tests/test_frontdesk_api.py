@@ -197,6 +197,7 @@ def test_queue_lists_open_booking_and_facility_requests(
     assert response.data["target_minutes"] == 10
     assert response.data["escalate_minutes"] == 5
     assert response.data["undo_seconds"] == 10
+    assert response.data["new_booking_window_minutes"] == 10
 
     items = response.data["items"]
     entity_types = {item["entity_type"] for item in items}
@@ -223,6 +224,25 @@ def test_queue_lists_open_booking_and_facility_requests(
     gym_item = next(item for item in items if item["entity_type"] == "gym_pass")
     assert gym_item["payment_status"] == "paid"
     assert gym_item["amount"] == 500
+
+
+def test_queue_flags_only_bookings_received_in_the_last_ten_minutes(
+    api, staff_user, create_booking
+):
+    fresh = create_booking(status=BookingStatus.CONFIRMED)
+    stale = create_booking(status=BookingStatus.PENDING_PAYMENT)
+    Booking.objects.filter(pk=stale.pk).update(
+        created_at=timezone.now() - timedelta(minutes=11)
+    )
+    stale.refresh_from_db()
+
+    api.force_login(staff_user)
+    response = api.get("/api/v1/staff/frontdesk/queue/")
+
+    assert response.status_code == 200
+    assert response.data["new_booking_count"] == 1
+    assert response.data["new_booking_window_minutes"] == 10
+    assert fresh.created_at > stale.created_at
 
 
 def test_booking_confirm_marks_bank_transfer_paid_and_undo_reverses(

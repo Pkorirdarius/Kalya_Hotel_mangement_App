@@ -737,6 +737,8 @@ function FrontDeskBoard({ user }: { user: User }) {
 
   const targetMinutes = queue.data?.target_minutes ?? 10;
   const escalateMinutes = queue.data?.escalate_minutes ?? 8;
+  const newBookingCount = queue.data?.new_booking_count ?? 0;
+  const newBookingWindow = queue.data?.new_booking_window_minutes ?? 10;
   const undoSecondsLeft =
     lastAction?.action.undo_deadline != null
       ? secondsUntil(lastAction.action.undo_deadline, now)
@@ -913,6 +915,23 @@ function FrontDeskBoard({ user }: { user: User }) {
               ) : null}
             </div>
           </div>
+
+          {newBookingCount > 0 ? (
+            <div
+              role="status"
+              className="mt-5 flex items-center gap-3 rounded-2xl border border-[#3DDC84]/30 bg-[#3DDC84]/10 px-4 py-3"
+            >
+              <span className="material-symbols-outlined text-[20px] text-[#3DDC84]" aria-hidden="true">
+                notifications
+              </span>
+              <p className="text-[12px] text-white/80">
+                {t('dash.newBooking.alert', {
+                  count: newBookingCount,
+                  minutes: newBookingWindow,
+                })}
+              </p>
+            </div>
+          ) : null}
 
           <div className="mt-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
             {[

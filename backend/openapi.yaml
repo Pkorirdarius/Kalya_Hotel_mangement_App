@@ -7783,6 +7783,10 @@ components:
           type: integer
         undo_seconds:
           type: integer
+        new_booking_count:
+          type: integer
+        new_booking_window_minutes:
+          type: integer
         items:
           type: array
           items:
@@ -7791,6 +7795,8 @@ components:
       - escalate_minutes
       - generated_at
       - items
+      - new_booking_count
+      - new_booking_window_minutes
       - target_minutes
       - undo_seconds
     QuoteRequestRequest:

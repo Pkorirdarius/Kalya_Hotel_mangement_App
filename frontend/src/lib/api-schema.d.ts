@@ -3103,6 +3103,8 @@ export interface components {
             target_minutes: number;
             escalate_minutes: number;
             undo_seconds: number;
+            new_booking_count: number;
+            new_booking_window_minutes: number;
             items: components["schemas"]["QueueItem"][];
         };
         QuoteRequestRequest: {

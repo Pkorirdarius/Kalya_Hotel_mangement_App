@@ -32,7 +32,7 @@ remain (see `backend/apps/common/production.py`).
 | 9 | **Payment credentials are missing** — M-Pesa Daraja keys, card gateway, bank account details, callback secrets. Production refuses to start until the guards in `backend/apps/payments/production.py` pass. | **BLOCKER** | See "Payments" below and `docs/DEPLOYMENT.md`. |
 | 10 | **Email and SMS credentials are missing** — the console email backend and stub SMS provider are development-only. Production refuses to start with the console email backend. | **BLOCKER** | Configure SMTP, `DEFAULT_FROM_EMAIL`, `FRONT_DESK_EMAIL`, `MANAGER_EMAIL`, Africa's Talking keys and `SMS_SEND_ENABLED=true`. Send a live test of each template. |
 | 11 | **Privacy, terms and cancellation are still drafts** — `/privacy`, `/terms` and `/cancellation` are editable CMS `PolicyPage` rows seeded in EN and SW. Pending approval (`needs_confirmation=True`, `privacy_notice_version=2026-11-draft`) is hidden from guests: the public API returns 404 and the page shows only a contact link. Staff see the state in Django admin and `/content-review`. | **BLOCKER** | Hotel and legal must review the wording, edit it in Django admin, clear `needs_confirmation` on all three pages, bump `privacy_notice_version`, and confirm the consent text shown to guests. Do not clear the flags until sign-off. |
-| 12 | **Staff accounts and roles** — at least one director, one front desk and (optionally) one data manager account. | **BLOCKER** | Create accounts, set strong unique passwords, test the capability matrix in `docs/SECURITY.md`, and confirm 2FA at the host/proxy level if available. |
+| 12 | **Staff accounts and roles** — at least one director, one front desk and (optionally) one data manager account. | **BLOCKER** | Create named accounts with `manage.py create_staff_from_csv --csv staff.csv --dry-run` then without `--dry-run`, set each password with `manage.py changepassword <username>`, test the capability matrix in `docs/SECURITY.md`, and confirm 2FA at the host/proxy level if available. Marketing may edit menus/blog/promotions but must not see guest data or numbered rooms. |
 | 13 | **Conference hall prices are contradictory** — the source lists half-day 15,000 / full-day 8,000, while seeded admin values are half-day 8,000 / full-day 15,000. The public API omits all conference prices and guests see "Request a quotation" until `HotelSetting.conference_prices_confirmed=true`. | **BLOCKER** | Hotel supplies written half-day, full-day and catering prices in KES. Staff enters them in Django admin, verifies the quote, then enables `conference_prices_confirmed`; confirm `ConferencePage.test.tsx` after launch. |
 | 14 | **Legacy dinner plan is unconfirmed** — `HotelSetting.dinner_plan_enabled=false` hides "Dinner, bed & breakfast" from the booking wizard. The seeded supplement is a placeholder, not a confirmed rate. | **BLOCKER** | Hotel confirms whether the plan is still sold and its price. If yes, staff sets the amount in `MealPlan` and enables `dinner_plan_enabled`. |
 
@@ -84,6 +84,9 @@ remain (see `backend/apps/common/production.py`).
 - [ ] Guest booking lookup tested with reference + email and reference + phone.
 - [ ] Front desk queue walks `pending_payment → pending_confirmation → confirmed`
       correctly, including undo.
+- [ ] Dashboard shows the "New bookings" alert for room bookings received in the
+      last 10 minutes (including ones already confirmed) and clears it after the
+      window; the count comes from the staff-only queue endpoint.
 - [ ] Table, conference and gym actions tested; stale items are rejected.
 - [ ] Arrival reminders and escalation jobs run (see `setup_schedules`).
 - [ ] Reports (`/staff/reports/overview|occupancy|payments`) verified for a
