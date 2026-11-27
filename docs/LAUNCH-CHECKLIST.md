@@ -57,8 +57,10 @@ Update all three, then run `npm run check:brand` from `frontend/`.
 - [x] Room inventory uses the confirmed four types: 2 Superior (201, 202; room 202
       is multipurpose), 6 Deluxe, 1 Twin and 1 En-suite (203). Migration
       `rooms/0002_confirmed_room_slugs.py` renames legacy rows in place so existing
-      bookings, rate plans and blocks keep their foreign keys; re-run `seed_hotel`
-      after deploying to refresh copy and rates.
+      bookings, rate plans and blocks keep their foreign keys. Run `manage.py
+      migrate` before `manage.py seed_hotel` on every existing database; a stale
+      local DB without `rooms_room` makes the availability endpoint return 500
+      and the guest sees the retryable availability error.
 - [x] Front desk can see every numbered room with a free/occupied status on the
       dashboard and change it from there. Migrations `rooms/0003_room.py`,
       `rooms/0004_seed_rooms.py` and `rooms/0005_all_available.py` create the
