@@ -119,6 +119,20 @@ changing the brand env vars; it updates the `HotelSetting` record but does not
 overwrite content staff have edited. Fill in the launch blockers in
 `docs/LAUNCH-CHECKLIST.md` in Django admin before going live.
 
+Create named staff accounts from a validated CSV (no passwords in the file):
+
+```powershell
+..\.venv\Scripts\python.exe manage.py create_staff_from_csv --csv staff.csv --dry-run
+..\.venv\Scripts\python.exe manage.py create_staff_from_csv --csv staff.csv
+..\.venv\Scripts\python.exe manage.py changepassword <username>
+```
+
+The required columns are `username,email,role` and the optional columns are
+`first_name,last_name,phone`. Roles are `director`, `data_manager`,
+`front_desk`, `marketing` and `ict_admin`. New accounts cannot sign in until a
+password is set with `changepassword`; existing usernames are left unchanged.
+See `docs/SECURITY.md` for the capability matrix.
+
 Start the web process with a production WSGI server (example using Gunicorn;
 add it to the deployment image if it is not already installed):
 
