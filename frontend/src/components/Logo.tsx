@@ -4,8 +4,8 @@ import { HOTEL } from '../config/hotel';
 // Crops of the supplied brand artwork: a compact emblem for narrow screens and
 // the wordmark for wider ones. The full lockup lives at
 // /west-premier-logo.svg for pages that need the complete mark.
-const MARK_SRC = '/west-premier-logo-mark.svg';
-const WORDMARK_SRC = '/west-premier-logo-wordmark.svg';
+export const BRAND_MARK_SRC = '/west-premier-logo-mark.svg';
+export const BRAND_WORDMARK_SRC = '/west-premier-logo-wordmark.svg';
 
 interface LogoProps {
   dark?: boolean;
@@ -21,14 +21,14 @@ export function Logo({ dark = false, onClick }: LogoProps) {
       className="group flex items-center gap-2.5"
     >
       <img
-        src={MARK_SRC}
+        src={BRAND_MARK_SRC}
         alt=""
         aria-hidden="true"
         className="h-9 w-auto shrink-0 object-contain transition group-hover:scale-[1.03]"
       />
       <span className="hidden flex-col leading-none sm:flex">
         <img
-          src={WORDMARK_SRC}
+          src={BRAND_WORDMARK_SRC}
           alt=""
           aria-hidden="true"
           className={`h-5 w-auto object-contain transition group-hover:opacity-80 ${

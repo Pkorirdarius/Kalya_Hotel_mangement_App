@@ -31,7 +31,6 @@ function brandHtml(brand: BrandConfig): Plugin {
   };
   const replacements: Array<[RegExp, string]> = [
     [/__HOTEL_NAME__/g, brand.name],
-    [/__HOTEL_MONOGRAM__/g, brand.monogram],
     [/__HOTEL_LOCATION__/g, location],
     [/__HOTEL_DESCRIPTION__/g, description],
     [/__HOTEL_WEBSITE_URL__/g, brand.websiteUrl],

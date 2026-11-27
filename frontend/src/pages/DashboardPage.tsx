@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react';
+import { BRAND_MARK_SRC, BRAND_WORDMARK_SRC } from '../components/Logo';
 import { Link } from '../components/LocalizedLink';
 
 import { usePageMeta } from '../components/Page';
@@ -111,22 +112,42 @@ function itemKey(item: Pick<QueueItem, 'entity_type' | 'id'>): string {
   return `${item.entity_type}:${item.id}`;
 }
 
-function BrandHeader({ children }: { children: ReactNode }) {
+function DashboardBrand() {
   const { t } = useI18n();
+  return (
+    <Link
+      to="/"
+      className="group flex items-center gap-2.5"
+      aria-label={`${HOTEL.name} — ${t('dash.frontDesk')}`}
+    >
+      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/[0.95] p-1 ring-1 ring-white/20 transition group-hover:scale-[1.03]">
+        <img
+          src={BRAND_MARK_SRC}
+          alt=""
+          aria-hidden="true"
+          className="h-full w-full object-contain"
+        />
+      </span>
+      <span className="hidden flex-col leading-none sm:flex">
+        <img
+          src={BRAND_WORDMARK_SRC}
+          alt=""
+          aria-hidden="true"
+          className="h-5 w-auto object-contain brightness-0 invert transition group-hover:opacity-80"
+        />
+        <span className="mt-1.5 text-[8px] font-bold uppercase tracking-[0.28em] text-white/65">
+          {t('dash.frontDesk')}
+        </span>
+      </span>
+    </Link>
+  );
+}
+
+function BrandHeader({ children }: { children: ReactNode }) {
   return (
     <header className="border-b border-white/10 bg-forest-dark">
       <div className="mx-auto flex min-h-[68px] max-w-[1440px] items-center justify-between gap-4 px-4 lg:px-8">
-        <Link to="/" className="flex items-center gap-2.5" aria-label={t('common.homeLabel')}>
-          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 ring-1 ring-white/20">
-            <span className="font-serif text-xl text-gold">{HOTEL.monogram}</span>
-          </span>
-          <span className="hidden flex-col leading-none sm:flex">
-            <span className="font-serif text-[22px] text-white">{HOTEL.shortName}</span>
-            <span className="mt-0.5 text-[8px] font-bold uppercase tracking-[0.28em] text-white/65">
-              {t('dash.frontDesk')}
-            </span>
-          </span>
-        </Link>
+        <DashboardBrand />
         <div className="flex items-center gap-2 sm:gap-3">{children}</div>
       </div>
     </header>
@@ -843,17 +864,7 @@ function FrontDeskBoard({ user }: { user: User }) {
         <header className="border-b border-white/10 bg-forest-dark">
           <div className="mx-auto flex min-h-[68px] max-w-[1440px] items-center justify-between gap-4 px-4 lg:px-8">
             <div className="flex items-center gap-6">
-              <Link to="/" className="flex items-center gap-2.5" aria-label={t('common.homeLabel')}>
-                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 ring-1 ring-white/20">
-                  <span className="font-serif text-xl text-gold">{HOTEL.monogram}</span>
-                </span>
-                <span className="hidden flex-col leading-none sm:flex">
-                  <span className="font-serif text-[22px] text-white">{HOTEL.shortName}</span>
-                  <span className="mt-0.5 text-[8px] font-bold uppercase tracking-[0.28em] text-white/65">
-                    {t('dash.frontDesk')}
-                  </span>
-                </span>
-              </Link>
+              <DashboardBrand />
               <div className="hidden h-8 w-px bg-white/10 md:block" />
               <div className="hidden items-center gap-2 md:flex">
                 <span className="h-2 w-2 rounded-full bg-[#3DDC84]" />
