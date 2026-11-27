@@ -43,7 +43,9 @@ npm run check
 npm run build
 ```
 
-`npm run build` must report 26 prerendered pages from 13 indexable routes.
+`npm run build` must report 26 prerendered pages from 13 indexable routes and
+pass the static performance budgets in `scripts/check_performance_budget.mjs`
+(entry JS, total JS, CSS, prerendered HTML and largest WebP).
 
 Start the workers exactly as described in `docs/DEPLOYMENT.md` (gunicorn web
 process plus one supervised `qcluster` worker). Do not install a retention

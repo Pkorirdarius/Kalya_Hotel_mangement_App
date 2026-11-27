@@ -212,9 +212,18 @@ routes (`/dashboard`, `/booking/manage`) are not prerendered or indexable.
       Booking.
 - [x] `prefers-reduced-motion` verified — Playwright emulates `reduce` and both
       the nav transition and the entrance animation resolve in ≤1 ms.
-- [ ] Mobile pass at 360 px, 390 px and tablet widths; no horizontal scroll.
+- [x] Automated 360 px checks cover EN/SW `/rooms`, the booking room step and
+      the dashboard room panel: no horizontal document scroll, visible primary
+      controls, no axe A/AA violations. `e2e/phase8-visual-qa.spec.ts` runs in
+      CI.
+- [ ] Manual pass at 390 px and tablet widths; no horizontal scroll. The 360 px
+      cases above are automated, but tactile review on real devices is still a
+      launch task.
 - [x] Lighthouse mobile run: Home 88/93, Rooms 88, Booking 90 performance;
       accessibility, best practices and SEO all 100 on the stable runs.
+      `npm run build` also enforces static budgets for entry JS (500 KiB), total
+      JS (800 KiB), CSS (80 KiB), prerendered HTML (64 KiB) and largest WebP
+      (256 KiB); the latest build passes all five.
 - [x] `axe-core` checks pass on Home, Rooms, Facilities, Offers, Contact and
       Booking in EN and `/sw`, plus a real-browser axe run on Home.
 - [x] Motion budget enforced: interaction transitions 150–350 ms, transform /

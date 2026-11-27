@@ -93,7 +93,7 @@
 | # | Step | Expected result | Pass? / Notes |
 | --- | --- | --- | --- |
 | 7.1 | `python scripts/check_staging_stack.py`; `python manage.py check --settings=config.settings.staging`; `docker compose -f docker-compose.staging.yml config --quiet`. | All pass; CI records the same checks. | |
-| 7.2 | `python scripts/staging_smoke.py --api-base <staging API> --site-base <staging site>`. | Health, prerendered HTML, CSP header and throttle identity checks pass. Only point this at staging. | |
+| 7.2 | `python scripts/staging_smoke.py --api-base <staging API> --site-base <staging site>`. | Health, core public JSON routes, hidden/approved policy behaviour, prerendered HTML (including `/cancellation`), CSP header and throttle identity checks pass. Only point this at staging. | |
 | 7.3 | Run `python scripts/postgres_backup_restore.py backup --db hotel --file backup.dump`, then restore into a scratch DB. | Marker row and tables are restored; application DB is untouched; scratch DB is dropped after the drill. | |
 | 7.4 | Set `SENTRY_DSN` to a test project (or leave empty), set `LOG_FORMAT=json`, trigger a 500. | With DSN empty there is no network call; with JSON logs the event has no phone/email/card values. | |
 | 7.5 | Run `python manage.py apply_retention --dry-run`, then have ICT review counts before any `--apply`. | Dry run writes nothing; `--apply` deletes expired `FormGuardEvent` rows and anonymises `AuditLog`/`NotificationLog` rows. | |
@@ -108,7 +108,9 @@
 | 8.2 | Screen-reader spot check on booking and manage-booking. | Labels, errors and status messages are announced. | |
 | 8.3 | Enable `prefers-reduced-motion: reduce`. | Animations/transitions stop or resolve in ≤1 ms. | |
 | 8.4 | Re-run Lighthouse mobile on `/`, `/rooms`, `/booking` after final content is applied. | Performance ≥85; accessibility, best practices and SEO 100 on stable runs. | |
-| 8.5 | Test 360 px, 390 px and tablet widths. | No horizontal scroll; touch targets usable. | |
+| 8.5 | Test 390 px and tablet widths manually; the automated 360 px run already covers `/rooms`, `/sw/rooms`, the booking room step and the dashboard room panel. | No horizontal scroll; touch targets usable on the additional widths. | |
+| 8.6 | Run `npm run test:e2e` and inspect the `(h)` visual-QA results. | Four 360 px cases pass: EN/SW rooms, booking room step (sold-out wording and disabled option), dashboard room panel (numbered rows and status toggle), all with no axe A/AA violations. | |
+| 8.7 | Inspect `npm run build` output for prerender and budget lines. | 26 prerendered pages from 13 indexable routes; all five performance budgets pass. | |
 
 ## 9. UAT verdict and sign-off
 
