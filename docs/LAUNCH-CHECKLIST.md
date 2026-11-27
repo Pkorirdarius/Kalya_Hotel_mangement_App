@@ -9,11 +9,13 @@ Brand values live in exactly three places:
 
 | Layer | Source of truth |
 | --- | --- |
-| Frontend | `frontend/src/config/hotel.ts` and `frontend/src/i18n.ts` |
+| Frontend | `VITE_HOTEL_*` build-time variables (see `.env.example`), with defaults in `frontend/src/config/hotel.ts`; translatable copy in `frontend/src/i18n.ts` |
 | Backend settings | `HOTEL_*` variables in `.env` (see `.env.example`) |
 | Editable CMS values | `HotelSetting` record in Django admin (`/admin/`) |
 
-Update all three, then run `npm run check:brand` from `frontend/`.
+Update all three, then run `npm run check:brand` from `frontend/`. Production
+also refuses to start while the unconfirmed phone/email/address/map placeholders
+remain (see `backend/apps/common/production.py`).
 
 ## 1. P0 — must be closed before launch
 

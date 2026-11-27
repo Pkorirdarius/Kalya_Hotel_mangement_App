@@ -2,10 +2,12 @@ import { HOTEL } from '../config/hotel';
 import blogRoutes from '../content/blog-routes.json';
 import { INDEXABLE_ROUTES, PRIVATE_ROUTES, localizedPath } from './routes';
 
-const SITE_URL = HOTEL.websiteUrl.replace(/\/$/, '');
+export function siteUrl(site: string = HOTEL.websiteUrl): string {
+  return site.replace(/\/$/, '');
+}
 
-function absolute(path: string): string {
-  return `${SITE_URL}${encodeURI(path)}`;
+function absolute(path: string, site: string): string {
+  return `${siteUrl(site)}${encodeURI(path)}`;
 }
 
 function escapeXml(value: string): string {
@@ -32,9 +34,9 @@ export function sitemapPaths(slugs: readonly string[] = blogRoutes.slugs): strin
   return [...new Set(paths)];
 }
 
-function urlEntry(path: string): string {
-  const en = absolute(localizedPath(path, 'en'));
-  const sw = absolute(localizedPath(path, 'sw'));
+function urlEntry(path: string, site: string): string {
+  const en = absolute(localizedPath(path, 'en'), site);
+  const sw = absolute(localizedPath(path, 'sw'), site);
   return [
     '  <url>',
     `    <loc>${escapeXml(en)}</loc>`,
@@ -51,17 +53,20 @@ function urlEntry(path: string): string {
   ].join('\n');
 }
 
-export function buildSitemap(slugs?: readonly string[]): string {
+export function buildSitemap(
+  slugs?: readonly string[],
+  site: string = HOTEL.websiteUrl,
+): string {
   return [
     '<?xml version="1.0" encoding="UTF-8"?>',
     '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">',
-    ...sitemapPaths(slugs).map(urlEntry),
+    ...sitemapPaths(slugs).map((path) => urlEntry(path, site)),
     '</urlset>',
     '',
   ].join('\n');
 }
 
-export function buildRobots(): string {
+export function buildRobots(site: string = HOTEL.websiteUrl): string {
   const disallowed = [
     ...new Set(
       PRIVATE_ROUTES.flatMap((route) => [
@@ -75,7 +80,7 @@ export function buildRobots(): string {
     'Allow: /',
     ...disallowed.map((path) => `Disallow: ${path}`),
     '',
-    `Sitemap: ${SITE_URL}/sitemap.xml`,
+    `Sitemap: ${siteUrl(site)}/sitemap.xml`,
     '',
   ].join('\n');
 }

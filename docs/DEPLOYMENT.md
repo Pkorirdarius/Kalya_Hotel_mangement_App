@@ -45,6 +45,8 @@ CSRF_TRUSTED_ORIGINS=https://www.example.com,https://api.example.com
 Production settings (`config/settings/prod.py`) enforce:
 
 - a non-default `SECRET_KEY` and a non-empty `ALLOWED_HOSTS`;
+- confirmed `HOTEL_PHONE`, `HOTEL_EMAIL`, `HOTEL_ADDRESS` and `HOTEL_MAP_QUERY`
+  (placeholder values are rejected);
 - `PAYMENTS_SANDBOX=false`, `PAYMENT_SIMULATION_ALLOWED=false`,
   `MPESA_SIMULATE=false`;
 - a real `EMAIL_BACKEND` (console is rejected);
@@ -54,8 +56,10 @@ Production settings (`config/settings/prod.py`) enforce:
 - no browsable API renderer;
 - secure cookies, HSTS and HTTPS redirects.
 
-The checks live in `backend/apps/payments/production.py` and fail the process at
-startup, so a misconfigured deploy cannot silently take fake payments.
+The checks live in `backend/apps/common/production.py` and
+`backend/apps/payments/production.py` and fail the process at startup, so a
+misconfigured deploy cannot silently publish placeholder contact details or
+take fake payments.
 
 ### Payments
 
@@ -145,12 +149,17 @@ npm ci
 $env:VITE_API_URL = "https://api.example.com/api/v1"
 # Optional, opt-in analytics:
 # $env:VITE_ANALYTICS_DOMAIN = "www.example.com"
+# Set every VITE_HOTEL_* value listed in ../.env.example. They are build-time
+# public values (no secrets); an explicitly empty social URL removes that link.
 npm run check
 npm run build
 ```
 
-`npm run check` runs typecheck, lint, tests and the brand check. The build also
-emits `dist/robots.txt` and `dist/sitemap.xml` from `HOTEL.websiteUrl`, injects
+`npm run check` runs typecheck, lint, tests and the brand check. The
+`VITE_HOTEL_*` variables are read both by client code and by `vite.config.ts`,
+so the injected HTML, robots, sitemap and prerendered metadata all use the same
+values. The build also emits `dist/robots.txt` and `dist/sitemap.xml` from
+`HOTEL.websiteUrl`, injects
 the `Hotel` JSON-LD block and OG/Twitter tags, and then runs
 `node scripts/prerender.mjs`.
 

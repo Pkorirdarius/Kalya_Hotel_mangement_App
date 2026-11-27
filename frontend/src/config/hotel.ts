@@ -1,10 +1,12 @@
 /**
  * The single source of truth for every brand-dependent value on the site.
  *
- * The client may rename the hotel later. Renaming must only require editing
- * this file (plus the `brand.*` / template strings in `src/i18n.ts`), the
- * backend `HOTEL_*` environment defaults and the seeded `HotelSetting`
- * record. No component, page or test may hard-code a brand string.
+ * Every value can be supplied at build time with a `VITE_HOTEL_*` variable;
+ * the defaults below are the launch placeholders already rendered by the
+ * current site and are all flagged for hotel confirmation. A rebrand must
+ * therefore only require environment changes plus the translatable `brand.*`
+ * strings in `src/i18n.ts` and the backend `HOTEL_*` / `HotelSetting` values.
+ * No component, page or test may hard-code a brand string.
  *
  * IMPORTANT — placeholders that still need hotel confirmation:
  * The source material for this project contains contradictory location
@@ -19,6 +21,8 @@ export interface SocialLink {
   id: 'facebook' | 'instagram' | 'x' | 'linkedin' | 'whatsapp';
   href: string;
 }
+
+export type EnvSource = Record<string, string | undefined>;
 
 /**
  * Conference halls guests can select. The ids are also the backend choice
@@ -93,51 +97,132 @@ export interface BrandConfig {
   };
 }
 
-export const HOTEL: BrandConfig = {
+const DEFAULTS = {
   name: 'West Premier Hotel',
   shortName: 'West Premier',
   monogram: 'W',
   legalName: 'West Premier Hotel Ltd',
   domain: 'westpremierhotel.co.ke',
   websiteUrl: 'https://westpremierhotel.co.ke',
-  logo: {
-    subline: 'Hotel — Kapenguria',
+  logoSubline: 'Hotel — Kapenguria',
+  addressLine: '12 Jacaranda Lane',
+  town: 'Kapenguria',
+  county: 'West Pokot',
+  country: 'Kenya',
+  mapQuery: 'Westlands,Kapenguria,Kenya',
+  phoneDisplay: '+254 20 765 4321',
+  phoneHref: 'tel:+254207654321',
+  whatsappNumber: '254712345678',
+  email: 'stay@westpremierhotel.co.ke',
+  restaurantName: 'Tamarind Restaurant',
+  cafeName: 'C&K',
+  gymName: 'Westside Fitness',
+  socials: {
+    facebook: 'https://facebook.com',
+    instagram: 'https://instagram.com',
+    x: 'https://x.com',
+    linkedin: 'https://linkedin.com',
   },
-  location: {
-    addressLine: '12 Jacaranda Lane',
-    town: 'Kapenguria',
-    county: 'West Pokot',
-    country: 'Kenya',
-    // Placeholder pending hotel confirmation: the repo's source material
-    // contains both a Nairobi (Westlands) and a Kapenguria (West Pokot)
-    // location. Do not treat either as final.
-    mapQuery: 'Westlands,Kapenguria,Kenya',
-  },
-  contact: {
-    phoneDisplay: '+254 20 765 4321',
-    phoneHref: 'tel:+254207654321',
-    whatsappNumber: '254712345678',
-    email: 'stay@westpremierhotel.co.ke',
-  },
-  facilities: {
-    restaurantName: 'Tamarind Restaurant',
-    cafeName: 'C&K',
-    hallName: CONFERENCE_HALLS[0].name,
-    hallNames: CONFERENCE_HALLS.map((hall) => hall.name),
-    gymName: 'Westside Fitness',
-  },
-  socials: [
-    { id: 'facebook', href: 'https://facebook.com' },
-    { id: 'instagram', href: 'https://instagram.com' },
-    { id: 'x', href: 'https://x.com' },
-    { id: 'linkedin', href: 'https://linkedin.com' },
-  ],
-  needsConfirmation: {
-    location: true,
-    contact: true,
-    social: true,
-  },
-};
+} as const;
+
+const SOCIAL_IDS = ['facebook', 'instagram', 'x', 'linkedin'] as const;
+
+function hasEnv(env: EnvSource, key: string): boolean {
+  return Object.prototype.hasOwnProperty.call(env, key);
+}
+
+function envValue(env: EnvSource, key: string, fallback: string): string {
+  const value = env[key];
+  return value === undefined || value.trim() === '' ? fallback : value.trim();
+}
+
+function socialsFromEnv(env: EnvSource): SocialLink[] {
+  return SOCIAL_IDS.flatMap((id) => {
+    const key = `VITE_HOTEL_${id.toUpperCase()}_URL`;
+    // An explicitly empty value removes the link: not every hotel has every
+    // network. An absent variable keeps the documented placeholder.
+    const href = hasEnv(env, key)
+      ? (env[key] ?? '').trim()
+      : DEFAULTS.socials[id];
+    return href ? [{ id, href }] : [];
+  });
+}
+
+function hallNamesFromEnv(env: EnvSource): string[] {
+  const raw = env.VITE_HOTEL_HALL_NAMES;
+  if (raw === undefined) return CONFERENCE_HALLS.map((hall) => hall.name);
+  // Pipe-separated so a hall name may contain a comma.
+  return raw
+    .split('|')
+    .map((name) => name.trim())
+    .filter(Boolean);
+}
+
+/**
+ * Build a brand config from any Vite-compatible environment source.
+ * `vite.config.ts` passes `loadEnv(...)`; client code passes `import.meta.env`.
+ */
+export function hotelFromEnv(env: EnvSource): BrandConfig {
+  const hallNames = hallNamesFromEnv(env);
+  const hallName = envValue(
+    env,
+    'VITE_HOTEL_HALL_NAME',
+    hallNames[0] ?? CONFERENCE_HALLS[0].name,
+  );
+
+  return {
+    name: envValue(env, 'VITE_HOTEL_NAME', DEFAULTS.name),
+    shortName: envValue(env, 'VITE_HOTEL_SHORT_NAME', DEFAULTS.shortName),
+    monogram: envValue(env, 'VITE_HOTEL_MONOGRAM', DEFAULTS.monogram),
+    legalName: envValue(env, 'VITE_HOTEL_LEGAL_NAME', DEFAULTS.legalName),
+    domain: envValue(env, 'VITE_HOTEL_DOMAIN', DEFAULTS.domain),
+    websiteUrl: envValue(env, 'VITE_HOTEL_WEBSITE_URL', DEFAULTS.websiteUrl),
+    logo: {
+      subline: envValue(env, 'VITE_HOTEL_LOGO_SUBLINE', DEFAULTS.logoSubline),
+    },
+    location: {
+      addressLine: envValue(env, 'VITE_HOTEL_ADDRESS_LINE', DEFAULTS.addressLine),
+      town: envValue(env, 'VITE_HOTEL_TOWN', DEFAULTS.town),
+      county: envValue(env, 'VITE_HOTEL_COUNTY', DEFAULTS.county),
+      country: envValue(env, 'VITE_HOTEL_COUNTRY', DEFAULTS.country),
+      mapQuery: envValue(env, 'VITE_HOTEL_MAP_QUERY', DEFAULTS.mapQuery),
+    },
+    contact: {
+      phoneDisplay: envValue(env, 'VITE_HOTEL_PHONE_DISPLAY', DEFAULTS.phoneDisplay),
+      phoneHref: envValue(env, 'VITE_HOTEL_PHONE_HREF', DEFAULTS.phoneHref),
+      whatsappNumber: envValue(
+        env,
+        'VITE_HOTEL_WHATSAPP_NUMBER',
+        DEFAULTS.whatsappNumber,
+      ),
+      email: envValue(env, 'VITE_HOTEL_EMAIL', DEFAULTS.email),
+    },
+    facilities: {
+      restaurantName: envValue(
+        env,
+        'VITE_HOTEL_RESTAURANT_NAME',
+        DEFAULTS.restaurantName,
+      ),
+      cafeName: envValue(env, 'VITE_HOTEL_CAFE_NAME', DEFAULTS.cafeName),
+      hallName,
+      hallNames,
+      gymName: envValue(env, 'VITE_HOTEL_GYM_NAME', DEFAULTS.gymName),
+    },
+    socials: socialsFromEnv(env),
+    needsConfirmation: {
+      location: true,
+      contact: true,
+      social: true,
+    },
+  };
+}
+
+const clientEnv: EnvSource =
+  typeof import.meta !== 'undefined' && import.meta.env
+    ? (import.meta.env as EnvSource)
+    : {};
+
+export const HOTEL: BrandConfig = hotelFromEnv(clientEnv);
 
 /** One-line postal address, e.g. "12 Jacaranda Lane, Kapenguria". */
 export function addressText(hotel: BrandConfig = HOTEL): string {
