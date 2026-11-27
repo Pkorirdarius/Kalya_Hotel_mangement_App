@@ -112,3 +112,42 @@ def test_extra_person_charge_is_a_meal_charge_not_room_charge(board_plans):
     assert int(quote.accommodation_total) == 6000
     assert int(quote.meal_total) == 2500
     assert int(quote.total) == 8500
+
+
+@pytest.mark.parametrize(
+    ("slug", "base_rate", "code", "one_guest_total"),
+    [
+        ("superior", "6000.00", "breakfast", 7000),
+        ("superior", "6000.00", "half-board", 8500),
+        ("superior", "6000.00", "full-board", 10000),
+        ("deluxe", "6000.00", "breakfast", 7000),
+        ("deluxe", "6000.00", "half-board", 8500),
+        ("deluxe", "6000.00", "full-board", 10000),
+        ("twin", "6000.00", "breakfast", 7000),
+        ("twin", "6000.00", "half-board", 8500),
+        ("twin", "6000.00", "full-board", 10000),
+        ("en-suite", "9000.00", "breakfast", 10000),
+        ("en-suite", "9000.00", "half-board", 11500),
+        ("en-suite", "9000.00", "full-board", 13000),
+    ],
+)
+def test_every_confirmed_one_guest_board_total(board_plans, slug, base_rate, code, one_guest_total):
+    """Lock the hotel's confirmed rate table, including all four room types."""
+
+    assert int(_quote(_room(slug, base_rate), board_plans[code], 1).total) == one_guest_total
+
+
+@pytest.mark.parametrize(
+    ("code", "one_guest_total"),
+    [
+        ("breakfast", 7000),
+        ("half-board", 8500),
+        ("full-board", 10000),
+    ],
+)
+def test_confirmed_extra_guest_is_1500_per_night(board_plans, code, one_guest_total):
+    room = _room("superior", "6000.00")
+
+    quote = _quote(room, board_plans[code], 2)
+
+    assert int(quote.total) == one_guest_total + 1500
