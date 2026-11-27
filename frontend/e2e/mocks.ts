@@ -29,6 +29,10 @@ export interface ApiMockOptions {
   paymentStatus?: PaymentStatus;
   /** Return 404 for guest booking lookup. */
   bookingNotFound?: boolean;
+  /** Number of room bookings reported as received in the alert window. */
+  newBookingCount?: number;
+  /** Room types whose availability row should report zero rooms. */
+  soldOutRoomTypes?: string[];
 }
 
 export interface ApiMocks {
@@ -219,12 +223,14 @@ function userFixture(role: StaffRole) {
   };
 }
 
-function queueFixture() {
+function queueFixture(newBookingCount: number) {
   return {
     generated_at: new Date().toISOString(),
     target_minutes: 10,
     escalate_minutes: 8,
     undo_seconds: 120,
+    new_booking_count: newBookingCount,
+    new_booking_window_minutes: 10,
     items: [
       {
         entity_type: 'room_booking',
@@ -376,11 +382,12 @@ export async function installApiMocks(
     }
 
     if (method === 'GET' && path === '/bookings/availability/') {
+      const soldOut = options.soldOutRoomTypes ?? [];
       await json(route, 200, [
         {
           room_type: 'superior',
           name: 'Superior Room',
-          available_rooms: 4,
+          available_rooms: soldOut.includes('superior') ? 0 : 4,
           sleeps: 2,
           fits_guests: true,
           from_price: 18000,
@@ -388,7 +395,7 @@ export async function installApiMocks(
         {
           room_type: 'deluxe',
           name: 'Deluxe Room',
-          available_rooms: 3,
+          available_rooms: soldOut.includes('deluxe') ? 0 : 3,
           sleeps: 3,
           fits_guests: true,
           from_price: 26000,
@@ -396,7 +403,7 @@ export async function installApiMocks(
         {
           room_type: 'en-suite',
           name: 'En-suite Room',
-          available_rooms: 2,
+          available_rooms: soldOut.includes('en-suite') ? 0 : 2,
           sleeps: 4,
           fits_guests: true,
           from_price: 38000,
@@ -539,7 +546,7 @@ export async function installApiMocks(
     }
 
     if (method === 'GET' && path === '/staff/frontdesk/queue/') {
-      await json(route, 200, queueFixture());
+      await json(route, 200, queueFixture(options.newBookingCount ?? 0));
       return;
     }
 
@@ -631,6 +638,13 @@ export async function installApiMocks(
         count: 1,
         total_amount: 40800,
       });
+      return;
+    }
+
+    // Policy drafts are hidden from guests by the real API. Returning 404 here
+    // keeps the E2E policy pages on their prerendered fallback copy.
+    if (method === 'GET' && path.startsWith('/content/policies/')) {
+      await json(route, 404, errorEnvelope('not_found', 'Policy not found', 404));
       return;
     }
 

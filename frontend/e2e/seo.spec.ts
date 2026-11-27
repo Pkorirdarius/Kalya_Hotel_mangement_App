@@ -59,6 +59,22 @@ test('(g) prerendered marketing pages carry unique, localized head metadata', as
   expect(swRooms.title).not.toBe(rooms.title);
   expect(swRooms.canonical).toMatch(/westpremierhotel\.co\.ke\/sw\/rooms$/);
   expect(swRooms.hreflang).toEqual(expect.arrayContaining(['en', 'sw']));
+
+  await gotoApp(page, '/cancellation');
+  const cancellation = await readMetadata(page, /westpremierhotel\.co\.ke\/cancellation$/);
+  expect(cancellation.title).toContain('Cancellation');
+  expect(cancellation.canonical).toMatch(/westpremierhotel\.co\.ke\/cancellation$/);
+  expect(cancellation.hreflang).toEqual(expect.arrayContaining(['en', 'sw', 'x-default']));
+  expect(cancellation.h1Count).toBe(1);
+
+  await gotoApp(page, '/sw/cancellation');
+  const swCancellation = await readMetadata(
+    page,
+    /westpremierhotel\.co\.ke\/sw\/cancellation$/,
+  );
+  expect(swCancellation.title).not.toBe(cancellation.title);
+  expect(swCancellation.canonical).toMatch(/westpremierhotel\.co\.ke\/sw\/cancellation$/);
+  expect(swCancellation.h1Count).toBe(1);
 });
 
 test('(g) private pages are noindex and absent from robots.txt and sitemap.xml', async ({
@@ -80,5 +96,7 @@ test('(g) private pages are noindex and absent from robots.txt and sitemap.xml',
   const sitemap = await (await request.get('/sitemap.xml')).text();
   expect(sitemap).toContain('<loc>https://westpremierhotel.co.ke/rooms</loc>');
   expect(sitemap).toContain('<loc>https://westpremierhotel.co.ke/sw/rooms</loc>');
+  expect(sitemap).toContain('<loc>https://westpremierhotel.co.ke/cancellation</loc>');
+  expect(sitemap).toContain('<loc>https://westpremierhotel.co.ke/sw/cancellation</loc>');
   expect(sitemap).not.toContain('/booking/manage');
 });
