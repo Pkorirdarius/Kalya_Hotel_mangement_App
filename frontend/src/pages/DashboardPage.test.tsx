@@ -487,14 +487,14 @@ describe('DashboardPage', () => {
     expect(screen.getByText(/TWIN-1 is a placeholder/)).toBeInTheDocument();
 
     await user.click(
-      screen.getByRole('button', { name: 'Mark room 201 occupied' }),
+      screen.getByRole('button', { name: 'Mark occupied — room 201' }),
     );
 
     expect(
       await screen.findByText('Room 201 marked occupied'),
     ).toBeInTheDocument();
     expect(
-      await screen.findByRole('button', { name: 'Mark room 201 free' }),
+      await screen.findByRole('button', { name: 'Mark free — room 201' }),
     ).toBeInTheDocument();
 
     const patchCall = fetchMock.mock.calls.find(

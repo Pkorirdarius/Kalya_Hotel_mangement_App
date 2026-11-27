@@ -1108,12 +1108,12 @@ const entries: Record<string, Entry> = {
   'dash.rooms.markOccupied': { en: 'Mark occupied', sw: 'Weka wanaokaliwa' },
   'dash.rooms.markFree': { en: 'Mark free', sw: 'Weka huru' },
   'dash.rooms.markOccupied.aria': {
-    en: 'Mark room {number} occupied',
-    sw: 'Weka chumba {number} wanaokaliwa',
+    en: 'Mark occupied — room {number}',
+    sw: 'Weka wanaokaliwa — chumba {number}',
   },
   'dash.rooms.markFree.aria': {
-    en: 'Mark room {number} free',
-    sw: 'Weka chumba {number} huru',
+    en: 'Mark free — room {number}',
+    sw: 'Weka huru — chumba {number}',
   },
   'dash.rooms.markedOccupied': {
     en: 'Room {number} marked occupied',
