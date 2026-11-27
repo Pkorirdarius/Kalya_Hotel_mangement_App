@@ -76,9 +76,9 @@ class RoomType(TimeStampedModel):
 class Room(TimeStampedModel):
     """A physical, numbered room and its current house status.
 
-    Website availability remains category-based (see ``available_rooms``). This
-    record is the front desk's view of the same inventory: which specific room
-    is free and which is occupied.
+    Website availability is still shown by category, but the engine reserves a
+    specific numbered room for each booking and excludes rooms the front desk
+    marks occupied. Guests never see these numbers.
     """
 
     class Status(models.TextChoices):

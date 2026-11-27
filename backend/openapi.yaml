@@ -8757,6 +8757,9 @@ components:
           type: string
           format: date-time
           nullable: true
+        room_number:
+          type: string
+          nullable: true
       required:
       - accommodation_total
       - can_cancel
@@ -8776,6 +8779,7 @@ components:
       - phone
       - rate_plan
       - reference
+      - room_number
       - room_type
       - room_type_image
       - room_type_name

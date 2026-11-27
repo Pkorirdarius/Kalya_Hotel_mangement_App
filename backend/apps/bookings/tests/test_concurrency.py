@@ -18,7 +18,7 @@ from apps.bookings.models import Booking
 from apps.bookings.services.bookings import SoldOutError, create_booking
 from apps.common.utils import hotel_today
 from apps.rates.models import MealPlan, RatePlan
-from apps.rooms.models import RoomType
+from apps.rooms.models import Room, RoomType
 
 pytestmark = pytest.mark.django_db(transaction=True)
 
@@ -54,6 +54,7 @@ def test_only_one_of_many_concurrent_guests_gets_the_last_room():
         min_nights=1,
         active=True,
     )
+    Room.objects.create(number="PG-LAST-1", room_type=room_type)
     checkin = hotel_today() + timedelta(days=10)
     checkout = checkin + timedelta(days=2)
 

@@ -60,17 +60,21 @@ Update all three, then run `npm run check:brand` from `frontend/`.
       bookings, rate plans and blocks keep their foreign keys; re-run `seed_hotel`
       after deploying to refresh copy and rates.
 - [x] Front desk can see every numbered room with a free/occupied status on the
-      dashboard and change it from there. Migrations `rooms/0003_room.py` and
-      `rooms/0004_seed_rooms.py` create the records; `seed_hotel` keeps them in
-      sync without resetting their status. Website availability is still
-      category-based — the numbered rooms are the front desk's physical record.
+      dashboard and change it from there. Migrations `rooms/0003_room.py`,
+      `rooms/0004_seed_rooms.py` and `rooms/0005_all_available.py` create the
+      records; `seed_hotel` keeps them in sync without resetting their status.
+      Website availability is shown by category but reserves a specific numbered
+      room for each active booking; a front-desk "occupied" room is excluded too,
+      without double-counting a checked-in online guest.
 - [ ] The hotel must supply the real Twin room number. Until then the front desk
       record is `TWIN-1`, clearly flagged as provisional in the dashboard.
 - [x] Room board rates confirmed with the hotel (see P0 item 5). Guests see only
       the bed type and the one-guest bed-and-breakfast "from" price; physical
-      room numbers and per-type counts are front-desk-only. A room type shows
-      "fully booked" only when its live availability is zero, and other room
-      types remain selectable.
+      room numbers and per-type counts are front-desk-only. A room type fades
+      out with "Room not available — choose another room" when its live
+      availability is zero **or** it is missing from the API response; other
+      room types remain selectable. A genuine request failure still shows the
+      retryable availability error.
 - [ ] Guest booking lookup tested with reference + email and reference + phone.
 - [ ] Front desk queue walks `pending_payment → pending_confirmation → confirmed`
       correctly, including undo.

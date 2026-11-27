@@ -12,6 +12,7 @@ LIST_URL = "/api/v1/staff/rooms/"
 
 @pytest.fixture
 def rooms(room_type):
+    Room.objects.filter(room_type=room_type).delete()
     return [
         Room.objects.create(number="201", room_type=room_type),
         Room.objects.create(number="202", room_type=room_type),

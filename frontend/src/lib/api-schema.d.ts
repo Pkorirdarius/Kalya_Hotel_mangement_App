@@ -3493,6 +3493,7 @@ export interface components {
             source: string;
             /** Format: date-time */
             escalated_at?: string | null;
+            room_number: string | null;
         };
         StaffHotelSetting: {
             name?: string;

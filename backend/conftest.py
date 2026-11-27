@@ -10,7 +10,7 @@ from rest_framework.test import APIClient
 from apps.common.models import HotelSetting
 from apps.common.utils import hotel_today
 from apps.rates.models import MealPlan, RatePlan
-from apps.rooms.models import RoomType
+from apps.rooms.models import Room, RoomType
 
 
 @pytest.fixture(autouse=True)
@@ -68,6 +68,8 @@ def room_type(db) -> RoomType:
         min_nights=1,
         active=True,
     )
+    for number in ("TEST-1", "TEST-2"):
+        Room.objects.create(number=number, room_type=room)
     return room
 
 
@@ -89,6 +91,7 @@ def single_room_type(db) -> RoomType:
         weekend_rate=Decimal("9000.00"),
         active=True,
     )
+    Room.objects.create(number="LAST-1", room_type=room)
     return room
 
 

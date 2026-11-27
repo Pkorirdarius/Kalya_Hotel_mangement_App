@@ -23,6 +23,7 @@ class BookingAdmin(admin.ModelAdmin):
         "reference",
         "guest_name",
         "room_type",
+        "room",
         "checkin",
         "checkout",
         "status",
@@ -30,7 +31,7 @@ class BookingAdmin(admin.ModelAdmin):
         "source",
         "created_at",
     )
-    list_filter = ("status", "source", "room_type", "checkin")
+    list_filter = ("status", "source", "room_type", "room__status", "checkin")
     search_fields = ("reference", "first_name", "last_name", "email", "phone")
     date_hierarchy = "checkin"
     readonly_fields = (

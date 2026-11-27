@@ -41,7 +41,8 @@
 | 2.5 | Cancel before the cutoff, then try a confirmed booking after the cutoff. | Pre-cutoff cancel succeeds; post-cutoff cancel is refused with the policy message. | |
 | 2.6 | Submit a public form instantly (bot-like) and from two different IPs. | Honeypot/bot submissions get no write; real-speed submissions work; the same fake IP is throttled and a different IP is not. | |
 | 2.7 | Quote BB, HB and FB for one guest and for two guests in Superior/Deluxe and in the Executive Suite. | One guest: 7,000/8,500/10,000 and 10,000/11,500/13,000. Two guests add KES 1,500 per night to each board (8,500/10,000/11,500 and 11,500/13,000/14,500). | |
-| 2.8 | Block all rooms of one type for the selected dates, then open the booking wizard; also open `/rooms` and `/sw/rooms`. | Only the blocked type shows "fully booked"; other types stay selectable. Guest pages show no room numbers or per-type room counts. | |
+| 2.8 | Block all rooms of one type for the selected dates, then open the booking wizard; also open `/rooms` and `/sw/rooms`. | Only that type fades out with "Room not available — choose another room"; other types stay selectable. Guest pages show no room numbers or per-type room counts. A real API failure still shows "We could not check availability" with Retry. | |
+| 2.9 | Mark one physical room occupied in the dashboard, then quote that room type. Confirm a booking and inspect the booking admin row. | The occupied room is excluded from online availability; the new booking is assigned a different numbered room. Cancelling or letting the hold expire releases the assignment. A room is never counted twice when front desk checks in an online booking. | |
 
 ## 3. Facilities
 

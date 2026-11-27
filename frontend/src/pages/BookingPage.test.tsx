@@ -140,7 +140,11 @@ function paymentBody(status: 'pending' | 'succeeded' | 'failed') {
   };
 }
 
-function mockFetch(onQuote?: () => Response, bookingOverrides: Record<string, unknown> = {}) {
+function mockFetch(
+  onQuote?: () => Response,
+  bookingOverrides: Record<string, unknown> = {},
+  availabilityRows = availability,
+) {
   return vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input);
     const method = init?.method ?? 'GET';
@@ -156,7 +160,7 @@ function mockFetch(onQuote?: () => Response, bookingOverrides: Record<string, un
       });
     }
     if (url.includes('/bookings/availability/')) {
-      return jsonResponse(200, availability);
+      return jsonResponse(200, availabilityRows);
     }
     if (url.includes('/bookings/quote/') && method === 'POST') {
       return onQuote ? onQuote() : jsonResponse(200, quoteBody());
@@ -257,6 +261,22 @@ describe('BookingPage', () => {
     expect(createBody.client_request_id).toBeTruthy();
   });
 
+  it('fades out a room type missing from the availability response', async () => {
+    vi.stubGlobal(
+      'fetch',
+      mockFetch(undefined, {}, availability.filter((row) => row.room_type !== 'twin')),
+    );
+    const user = userEvent.setup();
+    renderBookingPage();
+
+    await user.click(screen.getByRole('button', { name: 'Choose a room' }));
+
+    const twinRadio = await screen.findByRole('radio', { name: /Twin Room/ });
+    await waitFor(() => expect(twinRadio).toBeDisabled());
+    expect(screen.getAllByText(/Room not available — choose another room/)).toHaveLength(1);
+    expect(screen.getByRole('radio', { name: /Superior Room/ })).toBeEnabled();
+  });
+
   it('keeps the guest on the room step when the quote is rejected', async () => {
     vi.stubGlobal(
       'fetch',
@@ -276,8 +296,8 @@ describe('BookingPage', () => {
 
     await user.click(screen.getByRole('button', { name: 'Choose a room' }));
     await waitFor(() => {
-    expect(screen.queryAllByText(/checking availability/i)).toHaveLength(0);
-  });
+      expect(screen.queryAllByText(/checking availability/i)).toHaveLength(0);
+    });
     await user.click(screen.getByRole('button', { name: 'Add guest details' }));
 
     expect(

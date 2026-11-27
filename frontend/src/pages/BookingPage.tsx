@@ -436,8 +436,12 @@ export function BookingPage() {
       setErrors({ roomId: t('booking.checkingAvailability') });
       return;
     }
-    if (availabilityQuery.isError || !row) {
+    if (availabilityQuery.isError) {
       setErrors({ roomId: t('booking.availabilityError') });
+      return;
+    }
+    if (!row) {
+      setErrors({ roomId: t('booking.soldOut') });
       return;
     }
     if (!row.fits_guests) {
@@ -907,7 +911,9 @@ export function BookingPage() {
                     {ROOMS.map((item) => {
                       const selected = form.roomId === item.id;
                       const availability = availabilityByRoom.get(item.id);
-                      const soldOut = availability ? availability.available_rooms < 1 : false;
+                      const soldOut =
+                        availabilityQuery.isSuccess &&
+                        (availability?.available_rooms ?? 0) < 1;
                       const tooSmall = availability ? !availability.fits_guests : false;
                       const unavailable = soldOut || tooSmall;
                       return (
@@ -941,14 +947,12 @@ export function BookingPage() {
                               <p className="mt-1 text-[11px] text-muted">
                                 {t(item.bedKey)} · {t(`room.sleeps${item.sleeps}`)}
                               </p>
-                              {availability ? (
-                                unavailable ? (
-                                  <p className="mt-1 text-[11px] font-semibold text-red-600">
-                                    {soldOut
-                                      ? t('booking.soldOut')
-                                      : t('booking.tooManyGuests')}
-                                  </p>
-                                ) : null
+                              {unavailable ? (
+                                <p className="mt-1 text-[11px] font-semibold text-red-600">
+                                  {soldOut
+                                    ? t('booking.soldOut')
+                                    : t('booking.tooManyGuests')}
+                                </p>
                               ) : availabilityQuery.isFetching ? (
                                 <p className="mt-1 text-[11px] text-muted">
                                   {t('booking.checkingAvailability')}

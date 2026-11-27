@@ -381,7 +381,7 @@ const entries: Record<string, Entry> = {
   'booking.availabilityError': { en: 'We could not check availability. Please try again.', sw: 'Hatukuweza kuangalia nafasi. Tafadhali jaribu tena.' },
   'booking.roomUnavailable': { en: 'That room is no longer available for these dates. Choose another room.', sw: 'Chumba hicho hakipatikani kwa tarehe hizi. Chagua chumba kingine.' },
   'booking.tooManyGuests': { en: 'This room sleeps fewer guests. Choose another room or reduce the party size.', sw: 'Chumba hiki kinachukua wageni wachache. Chagua chumba kingine au punguza idadi ya wageni.' },
-  'booking.soldOut': { en: 'Fully booked for these dates — choose another room', sw: 'Vyumba vyote vimejaa kwa tarehe hizi — chagua chumba kingine' },
+  'booking.soldOut': { en: 'Room not available — choose another room', sw: 'Chumba hakipatikani — chagua chumba kingine' },
   'booking.roomsLeft': { en: 'rooms left', sw: 'vyumba vimebaki' },
   'booking.retry': { en: 'Try again', sw: 'Jaribu tena' },
   'booking.quoteError': { en: 'We could not price this stay. Check your dates and try again.', sw: 'Hatukuweza kukokotoa bei ya kukaa huku. Angalia tarehe zako na jaribu tena.' },
