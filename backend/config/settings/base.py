@@ -88,6 +88,17 @@ HOTEL = {
     "GOOGLE_REVIEWS_ENABLED": env.bool("HOTEL_GOOGLE_REVIEWS_ENABLED", default=False),
 }
 
+# Values that are public placeholders, not confirmed hotel facts. Production
+# refuses to start while any of these are still in use; see
+# apps/common/production.py and docs/LAUNCH-CHECKLIST.md.
+HOTEL_PLACEHOLDERS = {
+    "PHONE": "+254 20 765 4321",
+    "PHONE_HREF": "tel:+254207654321",
+    "EMAIL": "stay@westpremierhotel.co.ke",
+    "ADDRESS": "Kapenguria, West Pokot, Kenya",
+    "MAP_QUERY": "Westlands,Kapenguria,Kenya",
+}
+
 
 def _email_on_hotel_domain(local_part: str) -> str:
     domain = HOTEL["EMAIL"].split("@")[-1]
