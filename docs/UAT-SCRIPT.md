@@ -21,14 +21,15 @@
 
 | # | Step | Expected result | Pass? / Notes |
 | --- | --- | --- | --- |
-| 1.1 | Open `/`, `/rooms`, `/facilities`, `/dining`, `/conference`, `/gym`, `/offers`, `/blog`, `/contact`, `/privacy`, `/terms` in English. | Pages load, titles/descriptions are unique, hotel name is correct, no hard-coded brand names, no console errors. | |
+| 1.1 | Open `/`, `/rooms`, `/facilities`, `/dining`, `/conference`, `/gym`, `/offers`, `/blog`, `/contact`, `/privacy`, `/terms`, `/cancellation` in English. | Pages load, titles/descriptions are unique, hotel name is correct, no hard-coded brand names, no console errors. | |
 | 1.2 | Open the same paths under `/sw`. | Swahili copy appears; dates use `sw-KE`; KES prefix is kept; `/sw/<unknown>` shows a translated 404. | |
 | 1.3 | Use the EN ⇄ SW switcher on `/rooms?checkin=…` with a URL fragment. | URL prefix changes, query and hash are preserved, content changes language. | |
 | 1.4 | Clear `localStorage.hotel.language` to `en`, then directly open `/sw/rooms`. | Page stays Swahili. A stored preference never redirects a direct visit or crawler. | |
 | 1.5 | View source (JavaScript disabled) of `/rooms`, `/sw/rooms` and `/blog/{published-slug}`. | Static routes contain H1, canonical, reciprocal `hreflang` and JSON-LD. `/blog/{slug}` uses the app shell and loads CMS data after hydration. | |
 | 1.6 | Inspect `robots.txt` and `sitemap.xml`. | EN/SW URLs with reciprocal alternates; `/dashboard`, `/sw/dashboard`, `/booking/manage` and `/sw/booking/manage` disallowed and absent from the sitemap. | |
 | 1.7 | Publish one CMS blog post in EN and SW, run `python scripts/refresh_blog_routes.py`, rebuild, then open `/blog/{slug}` and `/sw/blog/{slug}`. | Both variants render CMS copy; English falls back when SW is absent; slugs appear in the sitemap. | |
-| 1.8 | Open `/privacy` and `/terms`. | Draft badge and `needs_confirmation` copy are visible; `privacy_notice_version` matches the seeded draft. Do not sign off until legal review is complete. | |
+| 1.8 | Open `/privacy`, `/terms` and `/cancellation` before and after clearing `needs_confirmation` in Django admin. Also open `/content-review` as a staff user. | While pending approval, guests see only “temporarily unavailable” plus a contact link — no draft wording or badge. After approval, the edited EN/SW text and version appear. Staff review lists all three pending rows. Do not clear the flags until legal review is complete. | |
+| 1.9 | With `VITE_ANALYTICS_DOMAIN` empty, open `/privacy`; rebuild with a domain set and open it again. | No analytics notice or script in the first build; the second build shows the cookieless notice only on `/privacy`. | |
 
 ## 2. Rooms, booking and guest manage-booking
 

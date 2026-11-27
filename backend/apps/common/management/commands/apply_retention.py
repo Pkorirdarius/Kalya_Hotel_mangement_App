@@ -10,6 +10,7 @@ from __future__ import annotations
 import logging
 from datetime import timedelta
 
+from django.conf import settings
 from django.core.management.base import BaseCommand, CommandParser
 from django.utils import timezone
 
@@ -47,6 +48,12 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options) -> None:
         apply = options["apply"] and not options["dry_run"]
+        if apply and not settings.RETENTION_APPLY_ENABLED:
+            self.stderr.write(
+                "Retention writes are disabled. Run the dry run now; set "
+                "RETENTION_APPLY_ENABLED=true only after hotel approval to use --apply."
+            )
+            return
         default_months = options["months"]
         if default_months is None:
             default_months = HotelSetting.load().data_retention_months

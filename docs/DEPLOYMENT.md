@@ -164,10 +164,10 @@ the `Hotel` JSON-LD block and OG/Twitter tags, and then runs
 `node scripts/prerender.mjs`.
 
 The prerender step loads the real `App` and router through Vite SSR and writes
-one static HTML file for each of the 12 indexable routes in both languages:
+one static HTML file for each of the 13 indexable routes in both languages:
 `/`, `/rooms`, `/booking`, `/facilities`, `/dining`, `/conference`, `/gym`,
-`/offers`, `/blog`, `/contact`, `/privacy` and `/terms`, plus their `/sw`
-variants — 24 pages and `dist/prerender-report.json`. Each page contains the
+`/offers`, `/blog`, `/contact`, `/privacy`, `/terms` and `/cancellation`, plus
+their `/sw` variants — 26 pages and `dist/prerender-report.json`. Each page contains the
 rendered H1 in the body, a unique title/description/canonical/OG URL and a
 `WebPage` JSON-LD node with a unique `@id`. The static copy is also the fallback
 when the API is unreachable; React Query refreshes CMS data after hydration.
@@ -384,13 +384,18 @@ without a recorded payment replay window; see Rollback below.
   checks, 5xx spikes and a stopped worker. The staging stack exposes the health
   endpoint through the proxy.
 
-Retention is run explicitly; nothing is written by default:
+Retention is opt-in; no recurring job installs it and nothing is written by
+default:
 
 ```powershell
 python manage.py apply_retention --dry-run
+# Only after hotel approval of the retention period:
+$env:RETENTION_APPLY_ENABLED = "true"
 python manage.py apply_retention --apply
 ```
 
+`--apply` refuses to write while `RETENTION_APPLY_ENABLED` is false (the
+default), so a scheduled or accidental invocation can only report counts.
 The period comes from `HotelSetting.data_retention_months` (default 24 months)
 and can be overridden per run. `--apply` deletes expired `FormGuardEvent` rows,
 anonymises old `AuditLog` rows (actor, IP, request ID and metadata) and clears

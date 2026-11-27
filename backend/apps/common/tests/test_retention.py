@@ -5,6 +5,7 @@ import pytest
 from django.core.management import call_command
 from django.utils import timezone
 
+from apps.common.management.commands.setup_schedules import SCHEDULES
 from apps.common.models import AuditLog, FormGuardEvent
 from apps.notifications.models import NotificationLog
 
@@ -83,7 +84,22 @@ def test_retention_dry_run_reports_without_writing():
     assert old_notice.recipient == "guest@example.com"
 
 
-def test_apply_deletes_guard_events_and_anonymises_business_records():
+def test_apply_is_disabled_until_explicitly_enabled(settings):
+    settings.RETENTION_APPLY_ENABLED = False
+    seed_rows()
+    stderr = StringIO()
+
+    call_command(
+        "apply_retention", months=12, apply=True, stdout=StringIO(), stderr=stderr
+    )
+
+    assert "Retention writes are disabled" in stderr.getvalue()
+    assert FormGuardEvent.objects.count() == 2
+    assert not AuditLog.objects.filter(action="privacy.retention.applied").exists()
+
+
+def test_apply_deletes_guard_events_and_anonymises_business_records(settings):
+    settings.RETENTION_APPLY_ENABLED = True
     old_guard, fresh_guard, old_audit, fresh_audit, old_notice, fresh_notice = seed_rows()
 
     call_command("apply_retention", months=12, apply=True, stdout=StringIO())
@@ -128,3 +144,9 @@ def test_per_model_windows_can_be_overridden():
     assert "AuditLog: 0 rows" in output.getvalue()
     old_audit.refresh_from_db()
     assert old_audit.ip_address == "198.51.100.7"
+
+
+def test_retention_has_no_automatic_schedule():
+    assert all(
+        "apply_retention" not in item["func"] for item in SCHEDULES
+    )

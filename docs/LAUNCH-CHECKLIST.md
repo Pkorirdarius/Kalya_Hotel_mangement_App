@@ -31,7 +31,7 @@ remain (see `backend/apps/common/production.py`).
 | 8 | **Swahili is machine-translated** — all `sw` strings in `frontend/src/i18n.ts` and seed content. | **BLOCKER** | A native Swahili speaker / marketing must review every string before launch. |
 | 9 | **Payment credentials are missing** — M-Pesa Daraja keys, card gateway, bank account details, callback secrets. Production refuses to start until the guards in `backend/apps/payments/production.py` pass. | **BLOCKER** | See "Payments" below and `docs/DEPLOYMENT.md`. |
 | 10 | **Email and SMS credentials are missing** — the console email backend and stub SMS provider are development-only. Production refuses to start with the console email backend. | **BLOCKER** | Configure SMTP, `DEFAULT_FROM_EMAIL`, `FRONT_DESK_EMAIL`, `MANAGER_EMAIL`, Africa's Talking keys and `SMS_SEND_ENABLED=true`. Send a live test of each template. |
-| 11 | **Privacy and terms are still drafts** — `/privacy` and `/terms` now render CMS `PolicyPage` rows seeded in EN and SW with a visible draft badge (`needs_confirmation=True`, `privacy_notice_version=2026-11-draft`). They are linked from the footer, booking consent and newsletter. | **BLOCKER** | Hotel and legal must review the wording, edit it in Django admin, clear `needs_confirmation`, bump `privacy_notice_version`, and confirm the consent text shown to guests. Do not remove the draft badge until sign-off. |
+| 11 | **Privacy, terms and cancellation are still drafts** — `/privacy`, `/terms` and `/cancellation` are editable CMS `PolicyPage` rows seeded in EN and SW. Pending approval (`needs_confirmation=True`, `privacy_notice_version=2026-11-draft`) is hidden from guests: the public API returns 404 and the page shows only a contact link. Staff see the state in Django admin and `/content-review`. | **BLOCKER** | Hotel and legal must review the wording, edit it in Django admin, clear `needs_confirmation` on all three pages, bump `privacy_notice_version`, and confirm the consent text shown to guests. Do not clear the flags until sign-off. |
 | 12 | **Staff accounts and roles** — at least one director, one front desk and (optionally) one data manager account. | **BLOCKER** | Create accounts, set strong unique passwords, test the capability matrix in `docs/SECURITY.md`, and confirm 2FA at the host/proxy level if available. |
 | 13 | **Conference hall prices are contradictory** — the source lists half-day 15,000 / full-day 8,000, while seeded admin values are half-day 8,000 / full-day 15,000. The public API omits all conference prices and guests see "Request a quotation" until `HotelSetting.conference_prices_confirmed=true`. | **BLOCKER** | Hotel supplies written half-day, full-day and catering prices in KES. Staff enters them in Django admin, verifies the quote, then enables `conference_prices_confirmed`; confirm `ConferencePage.test.tsx` after launch. |
 | 14 | **Legacy dinner plan is unconfirmed** — `HotelSetting.dinner_plan_enabled=false` hides "Dinner, bed & breakfast" from the booking wizard. The seeded supplement is a placeholder, not a confirmed rate. | **BLOCKER** | Hotel confirms whether the plan is still sold and its price. If yes, staff sets the amount in `MealPlan` and enables `dinner_plan_enabled`. |
@@ -142,9 +142,10 @@ form does not collect a language — confirm with the hotel if that is acceptabl
       guest pages do not show placeholder copy.
 - [ ] Coffee shop copy is confirmed as walk-in only; no table-booking form is
       shown and the API rejects `venue=coffee`.
-- [ ] Hotel/legal review the seeded `/privacy` and `/terms` drafts, edit them in
-      Django admin, bump `HotelSetting.privacy_notice_version`, and clear
-      `needs_confirmation` before launch.
+- [ ] Hotel/legal review the seeded `/privacy`, `/terms` and `/cancellation`
+      drafts, edit them in Django admin, bump `HotelSetting.privacy_notice_version`,
+      and clear `needs_confirmation` on all three before launch. Guests must not
+      see any wording until the flag is cleared.
 - [ ] Confirm consent records are being written for bookings, booking marketing
       opt-ins and newsletter signups, and that the retention period matches the
       hotel's policy.
@@ -162,7 +163,7 @@ written for convenience, but a stored language never redirects a direct visit
 or a crawler. KES amounts keep the `KES ` prefix and use `sw-KE` number
 formatting in Kiswahili; dates use `sw-KE`/`en-GB`.
 
-- [ ] `npm run build` produces 24 prerendered `index.html` files: the 12 static
+- [ ] `npm run build` produces 26 prerendered `index.html` files: the 13 static
       indexable routes in EN and under `/sw`. `dist/prerender-report.json`
       lists each path, language, title, description, canonical, hreflang set,
       H1 and JSON-LD `@id`.
@@ -253,10 +254,14 @@ formatting in Kiswahili; dates use `sw-KE`/`en-GB`.
       project; verify alerts without leaking guest data.
 - [x] `manage.py apply_retention` exists and is dry-run by default; it deletes
       expired `FormGuardEvent` rows and anonymises `AuditLog`/`NotificationLog`
-      rows only with `--apply`. CI dry run passed on
+      rows only with `--apply`. `setup_schedules` installs no retention job, and
+      `--apply` itself refuses to write until `RETENTION_APPLY_ENABLED=true`.
+      CI dry run passed on
       [45790178207](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45790178207).
 - [ ] Hotel must agree `HotelSetting.data_retention_months` (default 24) before
-      the first `--apply` run.
+      an operator sets `RETENTION_APPLY_ENABLED=true` for the first `--apply` run.
+- [ ] If `VITE_ANALYTICS_DOMAIN` is set, confirm the cookieless notice on
+      `/privacy`; if it is empty, confirm no analytics notice and no script load.
 
 ## 8. Out of scope for this release
 

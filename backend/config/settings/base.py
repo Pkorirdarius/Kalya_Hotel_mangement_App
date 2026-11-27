@@ -432,6 +432,10 @@ Q_CLUSTER = {
     "label": "Hotel jobs",
 }
 
+# Data retention is opt-in. Even `apply_retention --apply` is a dry run until
+# this is enabled, and no recurring schedule installs the command.
+RETENTION_APPLY_ENABLED = env.bool("RETENTION_APPLY_ENABLED", default=False)
+
 # Request ID is returned to clients and attached to log records.
 REQUEST_ID_HEADER = "X-Request-ID"
 
