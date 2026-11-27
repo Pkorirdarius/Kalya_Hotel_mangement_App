@@ -2988,6 +2988,7 @@ export interface components {
             conference_enquiries: number;
             gym_day_passes: number;
         };
+        /** @description Public legal text; the pending-approval state stays staff-only. */
         PolicyPage: {
             slug: string;
             title_en: string;
@@ -2997,8 +2998,6 @@ export interface components {
             version?: string;
             /** Format: date-time */
             readonly updated_at: string;
-            /** @description Legal wording still needs hotel/legal review. */
-            needs_confirmation?: boolean;
         };
         /**
          * @description * `mpesa` - M-Pesa

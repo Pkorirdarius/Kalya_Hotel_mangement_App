@@ -307,6 +307,33 @@ POLICY_PAGES = [
             "nafasi hiyo."
         ),
     },
+    {
+        "slug": "cancellation",
+        "title_en": "Cancellation policy",
+        "title_sw": "Sera ya kughairi",
+        "version": "2026-11-draft",
+        "body_en": (
+            "This is a draft cancellation policy pending review by the hotel and "
+            "its legal adviser.\n\n"
+            "The free cancellation deadline shown when you book is the deadline "
+            "that applies to your stay. Cancel before it to avoid a cancellation "
+            "charge. After that time, the hotel may charge the amount shown at "
+            "booking.\n\n"
+            "Any refund is handled under the terms shown when you booked. Contact "
+            "the front desk if you need to change dates instead of cancelling."
+        ),
+        "body_sw": (
+            "Sera hii ya kughairi ni rasimu inayosubiri kupitiwa na hoteli na "
+            "mshauri wake wa sheria.\n\n"
+            "Muda wa mwisho wa kughairi bila malipo unaoonyeshwa unapoweka nafasi "
+            "ndio unaotumika kwa kukaa kwako. Ghairi kabla ya muda huo ili "
+            "kuepuka ada ya kughairi. Baada ya muda huo, hoteli inaweza kutoza "
+            "kiasi kilichoonyeshwa wakati wa kuweka nafasi.\n\n"
+            "Kurejesha malipo kunafuata masharti yaliyoonyeshwa ulipoweka nafasi. "
+            "Wasiliana na mapokezi ikiwa unataka kubadilisha tarehe badala ya "
+            "kughairi."
+        ),
+    },
 ]
 
 BLOG_POSTS = [

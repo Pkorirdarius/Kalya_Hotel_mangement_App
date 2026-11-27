@@ -7487,6 +7487,7 @@ components:
       - table_bookings
     PolicyPage:
       type: object
+      description: Public legal text; the pending-approval state stays staff-only.
       properties:
         slug:
           type: string
@@ -7509,9 +7510,6 @@ components:
           type: string
           format: date-time
           readOnly: true
-        needs_confirmation:
-          type: boolean
-          description: Legal wording still needs hotel/legal review.
       required:
       - slug
       - title_en

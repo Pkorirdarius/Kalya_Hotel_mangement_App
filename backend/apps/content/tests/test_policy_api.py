@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import pytest
 
+from apps.common.management.commands.seed_hotel import POLICY_PAGES
 from apps.content.models import PolicyPage
 
 pytestmark = pytest.mark.django_db
@@ -16,7 +17,7 @@ def make_policy(**overrides):
         "body_sw": "Aya ya kwanza.\n\nAya ya pili.",
         "version": "2026-11-draft",
         "active": True,
-        "needs_confirmation": True,
+        "needs_confirmation": False,
     }
     values.update(overrides)
     return PolicyPage.objects.create(**values)
@@ -33,7 +34,13 @@ def test_public_policy_endpoint_returns_both_languages(api):
     assert body["title_sw"] == "Taarifa ya faragha"
     assert body["body_en"].startswith("First paragraph.")
     assert body["version"] == "2026-11-draft"
-    assert body["needs_confirmation"] is True
+    assert "needs_confirmation" not in body
+
+
+def test_pending_approval_policy_is_hidden_from_guests(api):
+    make_policy(needs_confirmation=True)
+
+    assert api.get("/api/v1/content/policies/privacy/").status_code == 404
 
 
 def test_unknown_policy_is_not_found(api):
@@ -48,3 +55,16 @@ def test_inactive_policy_is_not_public(api):
     response = api.get("/api/v1/content/policies/privacy/")
 
     assert response.status_code == 404
+
+
+def test_seed_includes_all_three_editable_policy_pages():
+    assert [item["slug"] for item in POLICY_PAGES] == [
+        "privacy",
+        "terms",
+        "cancellation",
+    ]
+    for item in POLICY_PAGES:
+        assert item["title_en"]
+        assert item["title_sw"]
+        assert item["body_en"]
+        assert item["body_sw"]
