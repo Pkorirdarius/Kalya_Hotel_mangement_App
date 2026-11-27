@@ -89,6 +89,9 @@ REQUIREMENTS: list[tuple[str, tuple[str, ...]]] = [
         (
             "--site-base",
             "def frontend_check",
+            "def public_api_check",
+            "/cancellation",
+            "needs_confirmation",
             "CSP_REPORT_ONLY",
             "rel=\"canonical\"",
         ),
