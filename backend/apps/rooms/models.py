@@ -8,9 +8,9 @@ from apps.common.models import TimeStampedModel
 class RoomType(TimeStampedModel):
     """A sellable room category.
 
-    Individual room numbers are deliberately not modelled. The hotel sells by
-    category and the inventory engine counts category availability. This keeps
-    the front desk workflow simple and matches how the website allots rooms.
+    The website sells by category and the inventory engine counts category
+    availability. The individual numbered ``Room`` rows below are the physical
+    rooms front desk uses to track which room is free or occupied.
     """
 
     slug = models.SlugField(max_length=80, unique=True)
@@ -71,6 +71,42 @@ class RoomType(TimeStampedModel):
         if plan is None:
             return None
         return plan.weekday_rate
+
+
+class Room(TimeStampedModel):
+    """A physical, numbered room and its current house status.
+
+    Website availability remains category-based (see ``available_rooms``). This
+    record is the front desk's view of the same inventory: which specific room
+    is free and which is occupied.
+    """
+
+    class Status(models.TextChoices):
+        FREE = "free", "Free"
+        OCCUPIED = "occupied", "Occupied"
+
+    room_type = models.ForeignKey(
+        RoomType, on_delete=models.CASCADE, related_name="rooms"
+    )
+    number = models.CharField(
+        max_length=20,
+        unique=True,
+        help_text="Physical room number, e.g. 201. Must be unique in the hotel.",
+    )
+    status = models.CharField(
+        max_length=10,
+        choices=Status.choices,
+        default=Status.FREE,
+        db_index=True,
+    )
+
+    class Meta:
+        ordering = ("room_type__sort_order", "number")
+        verbose_name = "Room"
+        verbose_name_plural = "Rooms"
+
+    def __str__(self) -> str:
+        return f"{self.number} ({self.room_type.name_en})"
 
 
 class RoomBlock(TimeStampedModel):

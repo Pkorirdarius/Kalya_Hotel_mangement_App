@@ -1,15 +1,20 @@
 from __future__ import annotations
 
 from drf_spectacular.utils import extend_schema
-from rest_framework import viewsets
+from rest_framework import mixins, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from apps.accounts.permissions import CanManageInventory
+from apps.accounts.permissions import CanManageBookings, CanManageInventory
 from apps.bookings.services.availability import available_rooms
 
-from .models import RoomBlock, RoomType
-from .serializers import RoomBlockSerializer, RoomTypeStaffSerializer
+from .models import Room, RoomBlock, RoomType
+from .serializers import (
+    RoomBlockSerializer,
+    RoomStaffSerializer,
+    RoomStatusSerializer,
+    RoomTypeStaffSerializer,
+)
 
 
 @extend_schema(tags=["staff rooms"])
@@ -49,6 +54,33 @@ class RoomTypeViewSet(viewsets.ModelViewSet):
                 "online_inventory": room_type.online_inventory,
             }
         )
+
+
+@extend_schema(tags=["staff rooms"])
+class RoomViewSet(
+    mixins.ListModelMixin,
+    mixins.RetrieveModelMixin,
+    viewsets.GenericViewSet,
+):
+    """Numbered rooms and the front desk's free/occupied view of them."""
+
+    permission_classes = [CanManageBookings]
+    serializer_class = RoomStaffSerializer
+    queryset = Room.objects.select_related("room_type").all()
+    filterset_fields = ("room_type", "status")
+    ordering_fields = ("number", "status")
+    # Ten physical rooms fit in one screen; front desk should not page through
+    # them while checking house status.
+    pagination_class = None
+
+    @extend_schema(request=RoomStatusSerializer, responses=RoomStaffSerializer)
+    @action(detail=True, methods=["patch"], url_path="status")
+    def status(self, request, pk=None):
+        room = self.get_object()
+        serializer = RoomStatusSerializer(room, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(RoomStaffSerializer(room).data)
 
 
 @extend_schema(tags=["staff rooms"])

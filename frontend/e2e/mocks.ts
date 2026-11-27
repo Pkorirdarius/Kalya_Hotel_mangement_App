@@ -287,6 +287,24 @@ export async function installApiMocks(
     sandboxFailed: false,
     cancelled: false,
     paymentProvider: 'mpesa' as string,
+    rooms: [
+      {
+        id: 1,
+        number: '201',
+        room_type: 'superior',
+        room_type_name: 'Superior Room',
+        status: 'free',
+        updated_at: new Date().toISOString(),
+      },
+      {
+        id: 2,
+        number: '203',
+        room_type: 'en-suite',
+        room_type_name: 'En-suite Room',
+        status: 'occupied',
+        updated_at: new Date().toISOString(),
+      },
+    ] as Array<Record<string, unknown>>,
   };
 
   // External media and fonts must never decide whether a test's `load` event
@@ -499,6 +517,25 @@ export async function installApiMocks(
       state.authenticated = false;
       await route.fulfill({ status: 204 });
       return;
+    }
+
+    if (method === 'GET' && path === '/staff/rooms/') {
+      await json(route, 200, state.rooms);
+      return;
+    }
+
+    if (method === 'PATCH') {
+      const statusMatch = path.match(/^\/staff\/rooms\/(\d+)\/status\/$/);
+      if (statusMatch) {
+        const id = Number(statusMatch[1]);
+        state.rooms = state.rooms.map((room) =>
+          room.id === id
+            ? { ...room, status: (body as Record<string, unknown>).status }
+            : room,
+        );
+        await json(route, 200, state.rooms.find((room) => room.id === id));
+        return;
+      }
     }
 
     if (method === 'GET' && path === '/staff/frontdesk/queue/') {

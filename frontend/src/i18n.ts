@@ -1088,6 +1088,53 @@ const entries: Record<string, Entry> = {
   'dash.activity.undo': { en: 'undid', sw: 'alitengua' },
   'dash.activity.undone': { en: 'Undone', sw: 'Imetenguliwa' },
   'dash.updated': { en: 'Updated {time}', sw: 'Imesasishwa {time}' },
+  'dash.rooms.eyebrow': { en: 'Room inventory', sw: 'Hifadhi ya vyumba' },
+  'dash.rooms.title': { en: 'Room status', sw: 'Hali ya vyumba' },
+  'dash.rooms.text': {
+    en: 'Numbered rooms for front desk occupancy tracking. Website availability stays by room type.',
+    sw: 'Vyumba vyenye namba kwa ufuatiliaji wa mapokezi. Upatikanaji wa tovuti unabaki kwa aina ya chumba.',
+  },
+  'dash.rooms.free': { en: 'Free', sw: 'Huru' },
+  'dash.rooms.occupied': { en: 'Occupied', sw: 'Wanaokaliwa' },
+  'dash.rooms.column.room': { en: 'Room', sw: 'Chumba' },
+  'dash.rooms.column.type': { en: 'Type', sw: 'Aina' },
+  'dash.rooms.column.status': { en: 'Status', sw: 'Hali' },
+  'dash.rooms.column.action': { en: 'Action', sw: 'Hatua' },
+  'dash.rooms.status.free': { en: 'Free', sw: 'Huru' },
+  'dash.rooms.status.occupied': { en: 'Occupied', sw: 'Wanaokaliwa' },
+  'dash.rooms.markOccupied': { en: 'Mark occupied', sw: 'Weka wanaokaliwa' },
+  'dash.rooms.markFree': { en: 'Mark free', sw: 'Weka huru' },
+  'dash.rooms.markOccupied.aria': {
+    en: 'Mark room {number} occupied',
+    sw: 'Weka chumba {number} wanaokaliwa',
+  },
+  'dash.rooms.markFree.aria': {
+    en: 'Mark room {number} free',
+    sw: 'Weka chumba {number} huru',
+  },
+  'dash.rooms.markedOccupied': {
+    en: 'Room {number} marked occupied',
+    sw: 'Chumba {number} kimewekwa wanaokaliwa',
+  },
+  'dash.rooms.markedFree': {
+    en: 'Room {number} marked free',
+    sw: 'Chumba {number} kimewekwa huru',
+  },
+  'dash.rooms.provisional': {
+    en: 'TWIN-1 is a placeholder until the hotel confirms the Twin room number.',
+    sw: 'TWIN-1 ni alama ya muda hadi hoteli itakapothibitisha namba ya chumba cha Twin.',
+  },
+  'dash.rooms.loading': { en: 'Loading room status…', sw: 'Inapakia hali ya vyumba…' },
+  'dash.rooms.error': {
+    en: 'We could not load the room list.',
+    sw: 'Hatukuweza kupakia orodha ya vyumba.',
+  },
+  'dash.rooms.retry': { en: 'Try again', sw: 'Jaribu tena' },
+  'dash.rooms.empty': { en: 'No numbered rooms yet.', sw: 'Hakuna vyumba vyenye namba bado.' },
+  'dash.rooms.toggleError': {
+    en: 'Could not update the room status.',
+    sw: 'Haikuweza kusasisha hali ya chumba.',
+  },
   'dash.reports.eyebrow': { en: 'Reports & exports', sw: 'Ripoti na upakuaji' },
   'dash.reports.title': { en: 'Today at a glance', sw: 'Leo kwa muhtasari' },
   'dash.reports.text': {

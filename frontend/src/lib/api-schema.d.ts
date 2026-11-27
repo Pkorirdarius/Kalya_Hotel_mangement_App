@@ -1360,6 +1360,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/staff/rooms/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Numbered rooms and the front desk's free/occupied view of them. */
+        get: operations["v1_staff_rooms_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/staff/rooms/{id}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Numbered rooms and the front desk's free/occupied view of them. */
+        get: operations["v1_staff_rooms_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/staff/rooms/{id}/status/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** @description Numbered rooms and the front desk's free/occupied view of them. */
+        patch: operations["v1_staff_rooms_status_partial_update"];
+        trace?: never;
+    };
     "/api/v1/staff/rooms/room-blocks/": {
         parameters: {
             query?: never;
@@ -2669,6 +2720,9 @@ export interface components {
             quantity?: number;
             reason?: string;
         };
+        PatchedRoomStatusRequest: {
+            status?: components["schemas"]["StatusE1bEnum"];
+        };
         PatchedRoomTypeStaffRequest: {
             slug?: string;
             name_en?: string;
@@ -3195,6 +3249,16 @@ export interface components {
             quantity?: number;
             reason?: string;
         };
+        RoomStaff: {
+            readonly id: number;
+            /** @description Physical room number, e.g. 201. Must be unique in the hotel. */
+            readonly number: string;
+            readonly room_type: string;
+            readonly room_type_name: string;
+            status?: components["schemas"]["StatusE1bEnum"];
+            /** Format: date-time */
+            readonly updated_at: string;
+        };
         RoomTypeDetail: {
             slug: string;
             readonly name: string;
@@ -3518,6 +3582,12 @@ export interface components {
          * @enum {string}
          */
         StatusC66Enum: "pending" | "confirmed" | "declined" | "cancelled";
+        /**
+         * @description * `free` - Free
+         *     * `occupied` - Occupied
+         * @enum {string}
+         */
+        StatusE1bEnum: "free" | "occupied";
         /**
          * @description * `held` - Held
          *     * `pending_payment` - Pending payment
@@ -6869,6 +6939,82 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["PaymentReportResponse"];
                     "text/csv": string;
+                };
+            };
+        };
+    };
+    v1_staff_rooms_list: {
+        parameters: {
+            query?: {
+                /** @description Which field to use when ordering the results. */
+                ordering?: string;
+                room_type?: number;
+                /**
+                 * @description * `free` - Free
+                 *     * `occupied` - Occupied
+                 */
+                status?: "free" | "occupied";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RoomStaff"][];
+                };
+            };
+        };
+    };
+    v1_staff_rooms_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RoomStaff"];
+                };
+            };
+        };
+    };
+    v1_staff_rooms_status_partial_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PatchedRoomStatusRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["PatchedRoomStatusRequest"];
+                "multipart/form-data": components["schemas"]["PatchedRoomStatusRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RoomStaff"];
                 };
             };
         };

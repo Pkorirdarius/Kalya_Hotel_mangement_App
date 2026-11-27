@@ -22,7 +22,7 @@ from apps.facilities.models import MenuItem
 from apps.content.models import PolicyPage
 from apps.notifications.models import NewsletterSubscriber
 from apps.rates.models import LongStayDiscount, MealPlan, RatePlan
-from apps.rooms.models import RoomType
+from apps.rooms.models import Room, RoomType
 
 def amenity(icon: str, label_en: str, label_sw: str) -> dict[str, str]:
     return {"icon": icon, "label_en": label_en, "label_sw": label_sw}
@@ -62,6 +62,8 @@ ROOMS = [
         "bed_sw": "Kitanda cha King",
         "total_rooms": 2,
         "website_allotment": 2,
+        # Physical rooms for front desk occupancy tracking.
+        "numbers": ["201", "202"],
         "weekday": Decimal("8500.00"),
         "image": "https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=1200&q=80",
         "amenities": COMMON_AMENITIES
@@ -91,6 +93,7 @@ ROOMS = [
         "bed_sw": "Kitanda cha Queen",
         "total_rooms": 6,
         "website_allotment": 6,
+        "numbers": ["204", "205", "206", "207", "108", "109"],
         "weekday": Decimal("12800.00"),
         "image": "https://images.unsplash.com/photo-1582719508461-905c673771fd?auto=format&fit=crop&w=1200&q=80",
         "amenities": COMMON_AMENITIES
@@ -122,6 +125,8 @@ ROOMS = [
         "bed_sw": "Vitanda vya mtu mmoja",
         "total_rooms": 1,
         "website_allotment": 1,
+        # Provisional identifier: the hotel has not supplied the Twin room number.
+        "numbers": ["TWIN-1"],
         "weekday": Decimal("8500.00"),
         "image": "https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=1200&q=80",
         "amenities": COMMON_AMENITIES
@@ -154,6 +159,7 @@ ROOMS = [
         "bed_sw": "Kitanda cha King + Sebule ya Faragha",
         "total_rooms": 1,
         "website_allotment": 1,
+        "numbers": ["203"],
         "weekday": Decimal("18500.00"),
         "image": "https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=1200&q=80",
         "amenities": COMMON_AMENITIES
@@ -414,6 +420,13 @@ class Command(BaseCommand):
                     "needs_confirmation": True,
                 },
             )
+            # Keep the front desk's numbered rooms in step with the catalog.
+            # Status is deliberately not touched here: an occupied room must
+            # survive a re-seed.
+            for number in item["numbers"]:
+                Room.objects.update_or_create(
+                    number=number, defaults={"room_type": room}
+                )
             plan, _ = RatePlan.objects.update_or_create(
                 room_type=room,
                 code="flexible",

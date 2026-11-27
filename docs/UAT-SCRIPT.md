@@ -61,6 +61,7 @@
 | 4.4 | Simulate an overdue item and run escalation once. | Manager is alerted once, not on every poll. | |
 | 4.5 | As director/data manager, open overview, occupancy and payment reports; download CSV. | Totals match the bookings; phones masked; CSV opens in Excel without formula injection. | |
 | 4.6 | As marketing/ICT, try to open booking/reports/queue endpoints. | Access is denied; content management still works for marketing. | |
+| 4.7 | Open the Room status panel as front desk; mark 201 occupied, then free. Try the same endpoints as marketing. | All numbered rooms appear with a free/occupied status; the toggle updates the row and survives a refresh. `TWIN-1` is flagged as provisional. Marketing gets 403. | |
 
 ## 5. Notifications and localization
 

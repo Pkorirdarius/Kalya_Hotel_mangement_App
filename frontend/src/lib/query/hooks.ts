@@ -40,9 +40,11 @@ import {
   getRoomAvailability,
   getRooms,
   getStaffOverview,
+  getStaffRooms,
   initiateBookingPayment,
   initiateGymPayment,
   sendContactMessage,
+  setStaffRoomStatus,
   staffLogin,
   staffLogout,
   staffMe,
@@ -55,6 +57,7 @@ import type {
   GymDayPassCreate,
   NewsletterSubscribe,
   PaymentInitiate,
+  StaffRoomStatusRequest,
   TableBookingCreate,
   ContactMessageCreate,
 } from '../api/types';
@@ -363,6 +366,7 @@ export function useStaffLogoutMutation() {
       // the observer holding its previous data.
       void client.resetQueries({ queryKey: queryKeys.staffMe });
       client.removeQueries({ queryKey: ['frontdesk'] });
+      client.removeQueries({ queryKey: queryKeys.staffRooms });
     },
   });
 }
@@ -383,6 +387,27 @@ export function useFrontDeskActivity(limit = 12, options: Enabled = {}) {
     queryFn: () => getFrontDeskActivity(limit),
     enabled: options.enabled ?? true,
     retry: false,
+  });
+}
+
+export function useStaffRooms(options: Enabled = {}) {
+  return useQuery({
+    queryKey: queryKeys.staffRooms,
+    queryFn: getStaffRooms,
+    enabled: options.enabled ?? true,
+    retry: false,
+  });
+}
+
+export function useStaffRoomStatusMutation() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, ...body }: StaffRoomStatusRequest & { id: number }) =>
+      setStaffRoomStatus(id, { status: body.status }),
+    onSuccess: () => {
+      void client.invalidateQueries({ queryKey: queryKeys.staffRooms });
+      void client.invalidateQueries({ queryKey: ['staff', 'reports'] });
+    },
   });
 }
 

@@ -12,6 +12,7 @@ import type {
   DeskAction,
   DeskActionRequest,
   QueueItem,
+  StaffRoom,
   User,
 } from '../lib/api/types';
 import {
@@ -25,6 +26,8 @@ import {
   useStaffLogoutMutation,
   useStaffMe,
   useStaffOverview,
+  useStaffRoomStatusMutation,
+  useStaffRooms,
 } from '../lib/query/hooks';
 import { addDaysISO, todayISO } from '../utils';
 
@@ -280,6 +283,149 @@ function LoginScreen() {
         {HOTEL.name}
       </footer>
     </div>
+  );
+}
+
+function RoomsPanel() {
+  const { t } = useI18n();
+  const { showToast } = useToast();
+  const rooms = useStaffRooms();
+  const statusMutation = useStaffRoomStatusMutation();
+
+  const rows = [...(rooms.data ?? [])].sort((a, b) =>
+    a.number.localeCompare(b.number, undefined, { numeric: true }),
+  );
+  const freeCount = rows.filter((room) => room.status === 'free').length;
+  const occupiedCount = rows.length - freeCount;
+  const hasProvisional = rows.some((room) => room.number.startsWith('TWIN-'));
+
+  const changeStatus = async (room: StaffRoom) => {
+    const target = room.status === 'free' ? 'occupied' : 'free';
+    try {
+      await statusMutation.mutateAsync({ id: room.id, status: target });
+      showToast(
+        t(
+          target === 'occupied'
+            ? 'dash.rooms.markedOccupied'
+            : 'dash.rooms.markedFree',
+          { number: room.number },
+        ),
+        'success',
+      );
+    } catch {
+      showToast(t('dash.rooms.toggleError'), 'error');
+    }
+  };
+
+  return (
+    <section className="mt-8 rounded-3xl border border-white/10 bg-white/[0.04] p-5 lg:p-6">
+      <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
+        <div>
+          <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-gold">
+            {t('dash.rooms.eyebrow')}
+          </p>
+          <h2 className="mt-1 font-serif text-2xl text-white">{t('dash.rooms.title')}</h2>
+          <p className="mt-1 max-w-xl text-[11px] leading-relaxed text-white/40">
+            {t('dash.rooms.text')}
+          </p>
+        </div>
+        <div className="flex gap-2 text-[11px]">
+          <span className="rounded-full border border-emerald-400/30 bg-emerald-400/10 px-3 py-1 text-emerald-200">
+            {t('dash.rooms.free')}: <strong>{rooms.isPending ? '—' : freeCount}</strong>
+          </span>
+          <span className="rounded-full border border-amber-400/30 bg-amber-400/10 px-3 py-1 text-amber-200">
+            {t('dash.rooms.occupied')}:{' '}
+            <strong>{rooms.isPending ? '—' : occupiedCount}</strong>
+          </span>
+        </div>
+      </div>
+
+      {rooms.isError ? (
+        <div className="mt-4 flex flex-wrap items-center gap-3 rounded-xl border border-red-300/20 bg-red-500/10 px-3 py-2 text-[12px] text-red-100">
+          <span>{t('dash.rooms.error')}</span>
+          <button
+            type="button"
+            onClick={() => void rooms.refetch()}
+            className="font-semibold underline"
+          >
+            {t('dash.rooms.retry')}
+          </button>
+        </div>
+      ) : null}
+
+      {hasProvisional ? (
+        <p className="mt-4 flex items-start gap-2 rounded-xl border border-amber-300/20 bg-amber-400/[0.07] px-3 py-2 text-[11px] leading-relaxed text-amber-100/80">
+          <span className="material-symbols-outlined text-[16px] text-amber-200" aria-hidden="true">
+            info
+          </span>
+          <span>{t('dash.rooms.provisional')}</span>
+        </p>
+      ) : null}
+
+      {rooms.isPending ? (
+        <p className="mt-4 text-[12px] text-white/45" role="status">
+          {t('dash.rooms.loading')}
+        </p>
+      ) : rooms.isError ? null : rows.length === 0 ? (
+        <p className="mt-4 text-[12px] text-white/45">{t('dash.rooms.empty')}</p>
+      ) : (
+        <div className="mt-4 overflow-x-auto">
+          <table className="w-full min-w-[520px] text-left text-[11px]">
+            <thead className="text-white/40">
+              <tr>
+                <th className="py-2 pr-3 font-semibold">{t('dash.rooms.column.room')}</th>
+                <th className="py-2 pr-3 font-semibold">{t('dash.rooms.column.type')}</th>
+                <th className="py-2 pr-3 font-semibold">{t('dash.rooms.column.status')}</th>
+                <th className="py-2 pr-3 text-right font-semibold">
+                  {t('dash.rooms.column.action')}
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-white/5">
+              {rows.map((room) => {
+                const occupied = room.status === 'occupied';
+                return (
+                  <tr key={room.id}>
+                    <td className="py-2 pr-3 font-bold text-white">{room.number}</td>
+                    <td className="py-2 pr-3 text-white/55">{room.room_type_name}</td>
+                    <td className="py-2 pr-3">
+                      <span
+                        className={
+                          occupied
+                            ? 'rounded-full border border-amber-400/30 bg-amber-400/10 px-2 py-0.5 text-amber-200'
+                            : 'rounded-full border border-emerald-400/30 bg-emerald-400/10 px-2 py-0.5 text-emerald-200'
+                        }
+                      >
+                        {t(occupied ? 'dash.rooms.status.occupied' : 'dash.rooms.status.free')}
+                      </span>
+                    </td>
+                    <td className="py-2 pr-3 text-right">
+                      <button
+                        type="button"
+                        disabled={statusMutation.isPending}
+                        aria-label={t(
+                          occupied ? 'dash.rooms.markFree.aria' : 'dash.rooms.markOccupied.aria',
+                          { number: room.number },
+                        )}
+                        onClick={() => void changeStatus(room)}
+                        className="inline-flex min-h-[32px] items-center gap-1.5 rounded-full border border-gold/40 px-3 text-[11px] font-bold text-gold transition hover:bg-gold/10 disabled:opacity-50"
+                      >
+                        <span className="material-symbols-outlined text-[15px]" aria-hidden="true">
+                          {occupied ? 'cancel' : 'check_circle'}
+                        </span>
+                        <span>
+                          {t(occupied ? 'dash.rooms.markFree' : 'dash.rooms.markOccupied')}
+                        </span>
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </section>
   );
 }
 
@@ -1091,6 +1237,7 @@ function FrontDeskBoard({ user }: { user: User }) {
             </aside>
           </div>
 
+          {user.capabilities.manage_bookings ? <RoomsPanel /> : null}
           {user.capabilities.export_guest_data ? <ReportsPanel /> : null}
 
           <p className="mt-6 flex items-center justify-center gap-2 text-center text-[10px] text-white/30">

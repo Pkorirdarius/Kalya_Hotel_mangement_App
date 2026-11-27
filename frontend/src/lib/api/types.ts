@@ -11,6 +11,8 @@ export type Operations = operations;
 
 export type Room = Schemas['RoomTypePublic'];
 export type RoomDetail = Schemas['RoomTypeDetail'];
+export type StaffRoom = Schemas['RoomStaff'];
+export type StaffRoomStatusRequest = Schemas['PatchedRoomStatusRequest'];
 export type MealPlan = Schemas['MealPlan'];
 export type HotelSettings = Schemas['PublicHotelSetting'];
 export type AvailabilityRow = Schemas['AvailabilityRow'];

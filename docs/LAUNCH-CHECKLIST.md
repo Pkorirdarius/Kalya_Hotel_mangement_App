@@ -59,6 +59,13 @@ Update all three, then run `npm run check:brand` from `frontend/`.
       `rooms/0002_confirmed_room_slugs.py` renames legacy rows in place so existing
       bookings, rate plans and blocks keep their foreign keys; re-run `seed_hotel`
       after deploying to refresh copy and rates.
+- [x] Front desk can see every numbered room with a free/occupied status on the
+      dashboard and change it from there. Migrations `rooms/0003_room.py` and
+      `rooms/0004_seed_rooms.py` create the records; `seed_hotel` keeps them in
+      sync without resetting their status. Website availability is still
+      category-based — the numbered rooms are the front desk's physical record.
+- [ ] The hotel must supply the real Twin room number. Until then the front desk
+      record is `TWIN-1`, clearly flagged as provisional in the dashboard.
 - [ ] Tier rates confirmed with the hotel and `needs_confirmation` cleared.
 - [ ] Guest booking lookup tested with reference + email and reference + phone.
 - [ ] Front desk queue walks `pending_payment → pending_confirmation → confirmed`

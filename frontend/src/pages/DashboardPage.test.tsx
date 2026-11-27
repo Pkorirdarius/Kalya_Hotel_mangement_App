@@ -110,6 +110,24 @@ function mockFetch(
     }),
   ];
   const handled: Array<Record<string, unknown>> = [];
+  let rooms = [
+    {
+      id: 1,
+      number: '201',
+      room_type: 'superior',
+      room_type_name: 'Superior Room',
+      status: 'free',
+      updated_at: new Date().toISOString(),
+    },
+    {
+      id: 2,
+      number: 'TWIN-1',
+      room_type: 'twin',
+      room_type_name: 'Twin Room',
+      status: 'occupied',
+      updated_at: new Date().toISOString(),
+    },
+  ];
 
   return vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input);
@@ -135,6 +153,17 @@ function mockFetch(
     if (url.includes('/staff/auth/logout/') && method === 'POST') {
       authenticated = false;
       return jsonResponse(204, null);
+    }
+    if (url.includes('/staff/rooms/') && method === 'GET') {
+      return jsonResponse(200, rooms);
+    }
+    if (url.includes('/staff/rooms/') && method === 'PATCH') {
+      const body = JSON.parse(String(init?.body)) as { status: string };
+      const id = Number(url.match(/\/staff\/rooms\/(\d+)\/status\//)?.[1]);
+      rooms = rooms.map((room) =>
+        room.id === id ? { ...room, status: body.status } : room,
+      );
+      return jsonResponse(200, rooms.find((room) => room.id === id));
     }
     if (url.includes('/staff/frontdesk/queue/') && method === 'GET') {
       return jsonResponse(200, {
@@ -415,5 +444,37 @@ describe('DashboardPage', () => {
     expect(href).toContain('format=csv');
     expect(href).toContain('start=');
     expect(href).toContain('end=');
+  });
+
+  it('lists numbered rooms and lets front desk mark one occupied', async () => {
+    const fetchMock = mockFetch({ authenticated: true });
+    vi.stubGlobal('fetch', fetchMock);
+    const user = userEvent.setup();
+    renderDashboard();
+
+    expect(
+      await screen.findByRole('heading', { name: 'Room status' }),
+    ).toBeInTheDocument();
+    expect(await screen.findByText('201')).toBeInTheDocument();
+    expect(screen.getByText('TWIN-1')).toBeInTheDocument();
+    expect(screen.getByText(/TWIN-1 is a placeholder/)).toBeInTheDocument();
+
+    await user.click(
+      screen.getByRole('button', { name: 'Mark room 201 occupied' }),
+    );
+
+    expect(
+      await screen.findByText('Room 201 marked occupied'),
+    ).toBeInTheDocument();
+    expect(
+      await screen.findByRole('button', { name: 'Mark room 201 free' }),
+    ).toBeInTheDocument();
+
+    const patchCall = fetchMock.mock.calls.find(
+      ([input, init]) =>
+        String(input).includes('/staff/rooms/1/status/') && init?.method === 'PATCH',
+    );
+    expect(patchCall).toBeTruthy();
+    expect(JSON.parse(String(patchCall?.[1]?.body))).toEqual({ status: 'occupied' });
   });
 });

@@ -3492,6 +3492,97 @@ paths:
                 type: string
                 format: binary
           description: ''
+  /api/v1/staff/rooms/:
+    get:
+      operationId: v1_staff_rooms_list
+      description: Numbered rooms and the front desk's free/occupied view of them.
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - in: query
+        name: room_type
+        schema:
+          type: integer
+      - in: query
+        name: status
+        schema:
+          type: string
+          enum:
+          - free
+          - occupied
+        description: |-
+          * `free` - Free
+          * `occupied` - Occupied
+      tags:
+      - staff rooms
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RoomStaff'
+          description: ''
+  /api/v1/staff/rooms/{id}/:
+    get:
+      operationId: v1_staff_rooms_retrieve
+      description: Numbered rooms and the front desk's free/occupied view of them.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - staff rooms
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoomStaff'
+          description: ''
+  /api/v1/staff/rooms/{id}/status/:
+    patch:
+      operationId: v1_staff_rooms_status_partial_update
+      description: Numbered rooms and the front desk's free/occupied view of them.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - staff rooms
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedRoomStatusRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedRoomStatusRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedRoomStatusRequest'
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoomStaff'
+          description: ''
   /api/v1/staff/rooms/room-blocks/:
     get:
       operationId: v1_staff_rooms_room_blocks_list
@@ -6724,6 +6815,11 @@ components:
         reason:
           type: string
           maxLength: 200
+    PatchedRoomStatusRequest:
+      type: object
+      properties:
+        status:
+          $ref: '#/components/schemas/StatusE1bEnum'
     PatchedRoomTypeStaffRequest:
       type: object
       properties:
@@ -8057,6 +8153,34 @@ components:
       - end_date
       - room_type
       - start_date
+    RoomStaff:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        number:
+          type: string
+          readOnly: true
+          description: Physical room number, e.g. 201. Must be unique in the hotel.
+        room_type:
+          type: string
+          readOnly: true
+        room_type_name:
+          type: string
+          readOnly: true
+        status:
+          $ref: '#/components/schemas/StatusE1bEnum'
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - id
+      - number
+      - room_type
+      - room_type_name
+      - updated_at
     RoomTypeDetail:
       type: object
       properties:
@@ -8846,6 +8970,14 @@ components:
         * `confirmed` - Confirmed
         * `declined` - Declined
         * `cancelled` - Cancelled
+    StatusE1bEnum:
+      enum:
+      - free
+      - occupied
+      type: string
+      description: |-
+        * `free` - Free
+        * `occupied` - Occupied
     StatusF4cEnum:
       enum:
       - held

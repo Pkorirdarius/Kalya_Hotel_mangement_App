@@ -43,6 +43,8 @@ import type {
   ReviewList,
   Room,
   RoomDetail,
+  StaffRoom,
+  StaffRoomStatusRequest,
   TableBookingCreate,
   TableBookingCreateResponse,
   User,
@@ -221,6 +223,14 @@ export const staffMe = () => apiRequest<UserEnvelope>('/staff/auth/me/');
 export const getContentConfirmation = (params?: { limit?: number }) =>
   apiRequest<ContentConfirmationSummary>('/staff/common/content-confirmation/', {
     params,
+  });
+
+export const getStaffRooms = () => apiRequest<StaffRoom[]>('/staff/rooms/');
+
+export const setStaffRoomStatus = (id: number, body: StaffRoomStatusRequest) =>
+  apiRequest<StaffRoom>(`/staff/rooms/${id}/status/`, {
+    method: 'PATCH',
+    body,
   });
 
 export const getFrontDeskQueue = () =>
