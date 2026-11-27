@@ -1,7 +1,7 @@
 import { Link } from './LocalizedLink';
 import { HOTEL, addressText, mapLink, whatsappHref, type SocialLink } from '../config/hotel';
 import { useI18n } from '../i18n-context';
-import { Logo } from './Logo';
+import { BrandLockup } from './Logo';
 
 const SOCIAL_LINK =
   'flex h-11 w-11 items-center justify-center rounded-full bg-white/[0.08] text-white/80 ring-1 ring-white/10 transition hover:bg-gold hover:text-forest-dark';
@@ -60,7 +60,7 @@ export function Footer() {
       <footer className="bg-forest-dark text-white/70">
         <div className="container-page grid gap-12 py-16 lg:grid-cols-[1.5fr_1fr_1fr_1.35fr] lg:py-20">
           <div>
-            <Logo dark />
+            <BrandLockup dark />
             <p className="mt-6 max-w-xs text-sm leading-relaxed">{t('footer.about')}</p>
             <div className="mt-6">
               <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-white/70">

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react';
-import { BRAND_MARK_SRC, BRAND_WORDMARK_SRC } from '../components/Logo';
+import { BrandLockup } from '../components/Logo';
 import { Link } from '../components/LocalizedLink';
 
 import { usePageMeta } from '../components/Page';
@@ -117,27 +117,12 @@ function DashboardBrand() {
   return (
     <Link
       to="/"
-      className="group flex items-center gap-2.5"
+      className="group flex min-w-0 items-center"
       aria-label={`${HOTEL.name} — ${t('dash.frontDesk')}`}
     >
-      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/[0.95] p-1 ring-1 ring-white/20 transition group-hover:scale-[1.03]">
-        <img
-          src={BRAND_MARK_SRC}
-          alt=""
-          aria-hidden="true"
-          className="h-full w-full object-contain"
-        />
-      </span>
-      <span className="hidden flex-col leading-none sm:flex">
-        <img
-          src={BRAND_WORDMARK_SRC}
-          alt=""
-          aria-hidden="true"
-          className="h-5 w-auto object-contain brightness-0 invert transition group-hover:opacity-80"
-        />
-        <span className="mt-1.5 text-[8px] font-bold uppercase tracking-[0.28em] text-white/65">
-          {t('dash.frontDesk')}
-        </span>
+      <BrandLockup dark compact />
+      <span className="ml-2 hidden text-[9px] font-bold uppercase tracking-[0.24em] text-white/55 sm:inline sm:ml-3">
+        {t('dash.frontDesk')}
       </span>
     </Link>
   );

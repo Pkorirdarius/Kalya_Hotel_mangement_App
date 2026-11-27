@@ -25,6 +25,7 @@ const config: Config = {
         line: '#E3DCCD',
       },
       fontFamily: {
+        display: ['"Cormorant Garamond"', 'Newsreader', 'Georgia', 'serif'],
         serif: ['Newsreader', 'Georgia', 'serif'],
         sans: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
       },
