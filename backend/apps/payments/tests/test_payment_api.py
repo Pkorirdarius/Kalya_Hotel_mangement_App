@@ -200,6 +200,53 @@ def test_mpesa_callback_requires_secret_when_configured(
     assert accepted.status_code == 200
 
 
+def test_mpesa_callback_requires_an_allowed_source_ip(
+    api, booking_payload, settings
+):
+    settings.MPESA_CALLBACK_SECRET = ""
+    settings.MPESA_ALLOWED_IPS = ["203.0.113.10"]
+    reference = _create_booking(api, booking_payload)
+    initiated = _initiate(
+        api,
+        reference,
+        method="mpesa",
+        phone="0712345678",
+        email="amina@example.com",
+    )
+    checkout_id = initiated.json()["payment"]["checkout_request_id"]
+    payload = _mpesa_payload(checkout_id, amount=_payment_amount(initiated))
+    url = "/api/v1/payments/webhooks/mpesa/"
+
+    denied = api.post(url, payload, format="json", REMOTE_ADDR="203.0.113.11")
+    assert denied.status_code == 403
+    assert PaymentWebhookEvent.objects.count() == 0
+
+    accepted = api.post(url, payload, format="json", REMOTE_ADDR="203.0.113.10")
+    assert accepted.status_code == 200
+    assert PaymentWebhookEvent.objects.count() == 1
+
+
+def test_callback_secret_is_accepted_from_header(api, booking_payload, settings):
+    settings.CARD_CALLBACK_SECRET = "expected-secret"
+    reference = _create_booking(api, booking_payload)
+    initiated = _initiate(api, reference, method="card", email="amina@example.com")
+    payload = {
+        "event_id": "evt-card-header-secret",
+        "reference": initiated.json()["payment"]["provider_reference"],
+        "status": "succeeded",
+    }
+
+    response = api.post(
+        "/api/v1/payments/webhooks/card/",
+        payload,
+        format="json",
+        HTTP_X_CALLBACK_SECRET="expected-secret",
+    )
+
+    assert response.status_code == 200, response.content
+    assert PaymentWebhookEvent.objects.count() == 1
+
+
 def test_card_callback_is_idempotent_and_logged(api, booking_payload):
     reference = _create_booking(api, booking_payload)
     initiated = _initiate(api, reference, method="card", email="amina@example.com")
