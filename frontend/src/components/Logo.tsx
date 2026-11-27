@@ -1,39 +1,45 @@
 import { Link } from './LocalizedLink';
 import { HOTEL } from '../config/hotel';
 
+// Crops of the supplied brand artwork: a compact emblem for narrow screens and
+// the wordmark for wider ones. The full lockup lives at
+// /west-premier-logo.svg for pages that need the complete mark.
+const MARK_SRC = '/west-premier-logo-mark.svg';
+const WORDMARK_SRC = '/west-premier-logo-wordmark.svg';
+
 interface LogoProps {
   dark?: boolean;
   onClick?: () => void;
 }
 
 export function Logo({ dark = false, onClick }: LogoProps) {
-  const wordmark = dark ? 'text-white' : 'text-forest-dark';
-  const sub = dark ? 'text-white/55' : 'text-muted';
-
   return (
     <Link
       to="/"
       onClick={onClick}
-      className="group flex items-center gap-3"
+      aria-label={`${HOTEL.name} — ${HOTEL.logo.subline}`}
+      className="group flex items-center gap-2.5"
     >
-      <span
+      <img
+        src={MARK_SRC}
+        alt=""
         aria-hidden="true"
-        className={`relative flex h-11 w-11 items-center justify-center rounded-full shadow-soft transition group-hover:scale-[1.03] ${
-          dark ? 'bg-white/10 ring-1 ring-white/20' : 'bg-forest'
-        }`}
-      >
-        <span className="font-serif text-2xl leading-none text-gold">{HOTEL.monogram}</span>
-        <span
-          className={`absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full bg-gold ring-2 ${
-            dark ? 'ring-forest-dark' : 'ring-cream'
+        className="h-9 w-auto shrink-0 object-contain transition group-hover:scale-[1.03]"
+      />
+      <span className="hidden flex-col leading-none sm:flex">
+        <img
+          src={WORDMARK_SRC}
+          alt=""
+          aria-hidden="true"
+          className={`h-5 w-auto object-contain transition group-hover:opacity-80 ${
+            dark ? 'brightness-0 invert' : ''
           }`}
         />
-      </span>
-      <span className="flex flex-col leading-none">
-        <span className={`font-serif text-[26px] font-medium tracking-tight ${wordmark}`}>
-          {HOTEL.shortName}
-        </span>
-        <span className={`mt-1 text-[9px] font-bold uppercase tracking-[0.32em] ${sub}`}>
+        <span
+          className={`mt-1.5 text-[9px] font-bold uppercase tracking-[0.32em] ${
+            dark ? 'text-white/55' : 'text-muted'
+          }`}
+        >
           {HOTEL.logo.subline}
         </span>
       </span>
