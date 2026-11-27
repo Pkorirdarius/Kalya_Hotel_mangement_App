@@ -2057,7 +2057,9 @@ export interface components {
             description_en?: string;
             description_sw?: string;
             /** Format: double */
-            supplement_per_person_per_night: number;
+            supplement_per_room_per_night: number;
+            /** Format: double */
+            extra_person_per_night: number;
             active?: boolean;
             /** Format: int64 */
             sort_order?: number;
@@ -2069,7 +2071,9 @@ export interface components {
             description_en?: string;
             description_sw?: string;
             /** Format: double */
-            supplement_per_person_per_night: number;
+            supplement_per_room_per_night: number;
+            /** Format: double */
+            extra_person_per_night: number;
             active?: boolean;
             /** Format: int64 */
             sort_order?: number;
@@ -2632,7 +2636,9 @@ export interface components {
             description_en?: string;
             description_sw?: string;
             /** Format: double */
-            supplement_per_person_per_night?: number;
+            supplement_per_room_per_night?: number;
+            /** Format: double */
+            extra_person_per_night?: number;
             active?: boolean;
             /** Format: int64 */
             sort_order?: number;

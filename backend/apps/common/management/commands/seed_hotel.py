@@ -64,7 +64,9 @@ ROOMS = [
         "website_allotment": 2,
         # Physical rooms for front desk occupancy tracking.
         "numbers": ["201", "202"],
-        "weekday": Decimal("8500.00"),
+        # Confirmed rates for one guest: BB 7,000 / HB 8,500 / FB 10,000.
+        # Board supplements and the KES 1,500 extra-guest charge are on MealPlan.
+        "weekday": Decimal("6000.00"),
         "image": "https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=1200&q=80",
         "amenities": COMMON_AMENITIES
         + [
@@ -94,7 +96,8 @@ ROOMS = [
         "total_rooms": 6,
         "website_allotment": 6,
         "numbers": ["204", "205", "206", "207", "108", "109"],
-        "weekday": Decimal("12800.00"),
+        # Confirmed rates for one guest: BB 7,000 / HB 8,500 / FB 10,000.
+        "weekday": Decimal("6000.00"),
         "image": "https://images.unsplash.com/photo-1582719508461-905c673771fd?auto=format&fit=crop&w=1200&q=80",
         "amenities": COMMON_AMENITIES
         + [
@@ -127,7 +130,8 @@ ROOMS = [
         "website_allotment": 1,
         # Provisional identifier: the hotel has not supplied the Twin room number.
         "numbers": ["TWIN-1"],
-        "weekday": Decimal("8500.00"),
+        # Confirmed rates for one guest: BB 7,000 / HB 8,500 / FB 10,000.
+        "weekday": Decimal("6000.00"),
         "image": "https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=1200&q=80",
         "amenities": COMMON_AMENITIES
         + [
@@ -160,7 +164,9 @@ ROOMS = [
         "total_rooms": 1,
         "website_allotment": 1,
         "numbers": ["203"],
-        "weekday": Decimal("18500.00"),
+        # The hotel calls this the Executive Suite: BB 10,000 / HB 11,500 / FB 13,000
+        # for one guest.
+        "weekday": Decimal("9000.00"),
         "image": "https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=1200&q=80",
         "amenities": COMMON_AMENITIES
         + [
@@ -182,42 +188,47 @@ MEAL_PLANS = [
         "description_en": "No meals included.",
         "description_sw": "Hakuna milo iliyojumuishwa.",
         "supplement": Decimal("0.00"),
+        "extra": Decimal("0.00"),
         "sort_order": 1,
     },
     {
         "code": "breakfast",
         "name_en": "Bed & breakfast",
         "name_sw": "Chumba na kifungua kinywa",
-        "description_en": "Breakfast for each guest, each morning.",
-        "description_sw": "Kifungua kinywa kwa kila mgeni, kila asubuhi.",
-        "supplement": Decimal("1200.00"),
+        "description_en": "Breakfast for one guest; KES 1,500 per extra guest, per night.",
+        "description_sw": "Kifungua kinywa kwa mgeni mmoja; KES 1,500 kwa kila mgeni wa ziada, kwa usiku.",
+        "supplement": Decimal("1000.00"),
+        "extra": Decimal("1500.00"),
         "sort_order": 2,
     },
     {
         "code": "dinner",
         "name_en": "Dinner, bed & breakfast",
         "name_sw": "Chakula cha jioni, chumba na kifungua kinywa",
-        "description_en": "Dinner and breakfast each day.",
-        "description_sw": "Chakula cha jioni na kifungua kinywa kila siku.",
+        "description_en": "Dinner and breakfast for one guest; KES 1,500 per extra guest, per night.",
+        "description_sw": "Chakula cha jioni na kifungua kinywa kwa mgeni mmoja; KES 1,500 kwa kila mgeni wa ziada, kwa usiku.",
         "supplement": Decimal("1800.00"),
+        "extra": Decimal("1500.00"),
         "sort_order": 3,
     },
     {
         "code": "half-board",
         "name_en": "Half board",
         "name_sw": "Nusu bweni",
-        "description_en": "Breakfast and dinner each day.",
-        "description_sw": "Kifungua kinywa na chakula cha jioni kila siku.",
-        "supplement": Decimal("2800.00"),
+        "description_en": "Breakfast and dinner for one guest; KES 1,500 per extra guest, per night.",
+        "description_sw": "Kifungua kinywa na chakula cha jioni kwa mgeni mmoja; KES 1,500 kwa kila mgeni wa ziada, kwa usiku.",
+        "supplement": Decimal("2500.00"),
+        "extra": Decimal("1500.00"),
         "sort_order": 4,
     },
     {
         "code": "full-board",
         "name_en": "Full board",
         "name_sw": "Bweni kamili",
-        "description_en": "Breakfast, lunch and dinner each day.",
-        "description_sw": "Kifungua kinywa, chakula cha mchana na jioni kila siku.",
-        "supplement": Decimal("4200.00"),
+        "description_en": "Breakfast, lunch and dinner for one guest; KES 1,500 per extra guest, per night.",
+        "description_sw": "Kifungua kinywa, chakula cha mchana na jioni kwa mgeni mmoja; KES 1,500 kwa kila mgeni wa ziada, kwa usiku.",
+        "supplement": Decimal("4000.00"),
+        "extra": Decimal("1500.00"),
         "sort_order": 5,
     },
 ]
@@ -391,7 +402,8 @@ class Command(BaseCommand):
                     "name_sw": item["name_sw"],
                     "description_en": item["description_en"],
                     "description_sw": item["description_sw"],
-                    "supplement_per_person_per_night": item["supplement"],
+                    "supplement_per_room_per_night": item["supplement"],
+                    "extra_person_per_night": item["extra"],
                     "active": True,
                     "sort_order": item["sort_order"],
                 },

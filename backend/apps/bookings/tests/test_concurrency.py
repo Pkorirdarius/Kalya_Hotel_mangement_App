@@ -34,7 +34,7 @@ def test_only_one_of_many_concurrent_guests_gets_the_last_room():
     meal_plan = MealPlan.objects.create(
         code="room-only",
         name_en="Room only",
-        supplement_per_person_per_night=Decimal("0.00"),
+        supplement_per_room_per_night=Decimal("0.00"),
         active=True,
     )
     room_type = RoomType.objects.create(

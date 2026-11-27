@@ -18,7 +18,7 @@ import {
   useQuoteMutation,
   useRoomAvailability,
 } from '../lib/query/hooks';
-import { MEAL_PLANS, ROOMS, roomInventory, type MealPlanId } from '../types';
+import { MEAL_PLANS, ROOMS, type MealPlanId } from '../types';
 import {
   addDaysISO,
   newRequestId,
@@ -298,7 +298,9 @@ export function BookingPage() {
   const meal = MEAL_PLANS.find((item) => item.id === form.mealId) ?? MEAL_PLANS[1];
   const nights = Math.max(0, nightsBetween(form.checkin, form.checkout));
   const roomTotal = activeQuote?.accommodation_total ?? room.price * nights;
-  const mealTotal = activeQuote?.meal_total ?? meal.supplement * form.guests * nights;
+  const mealTotal =
+    activeQuote?.meal_total ??
+    (meal.supplement + meal.extraPerson * Math.max(0, form.guests - 1)) * nights;
   const discountTotal = activeQuote?.discount_total ?? 0;
   const taxTotal = activeQuote?.tax_total ?? 0;
   const taxIncluded = activeQuote?.tax_included ?? true;
@@ -933,30 +935,20 @@ export function BookingPage() {
                               <div className="flex flex-wrap items-start justify-between gap-1">
                                 <p className="text-[14px] font-bold text-forest">{t(item.nameKey)}</p>
                                 <p className="text-[13px] font-bold text-forest">
-                                  KES {formatMoney(item.price)}
+                                  KES {formatMoney(item.fromPrice)}
                                 </p>
                               </div>
                               <p className="mt-1 text-[11px] text-muted">
-                                {roomInventory(item, t)} · {t(`room.sleeps${item.sleeps}`)}
+                                {t(item.bedKey)} · {t(`room.sleeps${item.sleeps}`)}
                               </p>
                               {availability ? (
-                                <p
-                                  className={`mt-1 text-[11px] font-semibold ${
-                                    unavailable
-                                      ? 'text-red-600'
-                                      : availability.available_rooms <= 2
-                                        ? 'text-gold-deep'
-                                        : 'text-muted'
-                                  }`}
-                                >
-                                  {soldOut
-                                    ? t('booking.soldOut')
-                                    : tooSmall
-                                      ? t('booking.tooManyGuests')
-                                      : availability.available_rooms <= 2
-                                        ? `${availability.available_rooms} ${t('booking.roomsLeft')}`
-                                        : null}
-                                </p>
+                                unavailable ? (
+                                  <p className="mt-1 text-[11px] font-semibold text-red-600">
+                                    {soldOut
+                                      ? t('booking.soldOut')
+                                      : t('booking.tooManyGuests')}
+                                  </p>
+                                ) : null
                               ) : availabilityQuery.isFetching ? (
                                 <p className="mt-1 text-[11px] text-muted">
                                   {t('booking.checkingAvailability')}
@@ -1018,8 +1010,15 @@ export function BookingPage() {
                                 <p className="shrink-0 text-right text-[12px] font-bold text-forest">
                                   + KES {formatMoney(plan.supplement)}
                                   <span className="block text-[9px] font-semibold text-muted">
-                                    {t('meal.perGuestNight')}
+                                    {t('meal.perRoomNight')}
                                   </span>
+                                  {plan.extraPerson > 0 ? (
+                                    <span className="block text-[9px] font-semibold text-muted">
+                                      {t('meal.extraGuest', {
+                                        amount: formatMoney(plan.extraPerson),
+                                      })}
+                                    </span>
+                                  ) : null}
                                 </p>
                               )}
                             </div>

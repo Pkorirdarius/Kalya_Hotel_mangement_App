@@ -3,7 +3,7 @@ import { useLocation } from 'react-router-dom';
 import { Link } from '../components/LocalizedLink';
 import { usePageMeta } from '../components/Page';
 import { useI18n } from '../i18n-context';
-import { ROOMS, roomInventory, type RoomType } from '../types';
+import { ROOMS, type RoomType } from '../types';
 
 interface RoomDetail {
   id: string;
@@ -253,7 +253,7 @@ function RoomCard({ room, detail }: { room: RoomType; detail: RoomDetail }) {
               <span className="material-symbols-outlined text-[17px] text-gold-deep" aria-hidden="true">
                 meeting_room
               </span>
-              <span>{roomInventory(room, t)}</span>
+              <span>{t(room.bedKey)}</span>
             </span>
             <span className="inline-flex items-center gap-1.5">
               <span className="material-symbols-outlined text-[17px] text-gold-deep" aria-hidden="true">
@@ -263,9 +263,6 @@ function RoomCard({ room, detail }: { room: RoomType; detail: RoomDetail }) {
             </span>
           </div>
           <p className="mt-3 text-[12px] font-semibold text-gold-deep">{t(room.bestForKey)}</p>
-          {room.noteKey ? (
-            <p className="mt-1 text-[12px] font-medium text-muted">{t(room.noteKey)}</p>
-          ) : null}
 
           <div className="mt-5">
             <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-muted">
@@ -288,11 +285,10 @@ function RoomCard({ room, detail }: { room: RoomType; detail: RoomDetail }) {
               <div>
                 <p className="text-[11px] font-semibold text-muted">{t('common.from')}</p>
                 <p className="mt-0.5 text-2xl font-bold tracking-tight text-forest">
-                  KES {formatMoney(room.price)}{' '}
+                  KES {formatMoney(room.fromPrice)}{' '}
                   <span className="text-[11px] font-semibold text-muted">{t('common.perNight')}</span>
                 </p>
                 <p className="mt-1 text-[11px] text-muted">{t('common.taxesIncluded')}</p>
-                <p className="mt-1 text-[11px] font-medium text-gold-deep">{t('common.pricesPending')}</p>
               </div>
               <div className="flex flex-wrap gap-2">
                 <Link to={`/booking?room=${room.id}`} className="btn-primary btn-sm">

@@ -182,7 +182,13 @@ def calculate_quote(
         )
         cursor += timedelta(days=1)
 
-    meal_total = meal_plan.supplement_per_person_per_night * guests * nights
+    # Board rates are quoted for one guest. The supplement is per room per
+    # night; each additional guest pays the plan's extra-person charge.
+    extra_guests = max(0, guests - 1)
+    meal_total = (
+        meal_plan.supplement_per_room_per_night
+        + meal_plan.extra_person_per_night * extra_guests
+    ) * nights
 
     discount = (
         LongStayDiscount.objects.filter(

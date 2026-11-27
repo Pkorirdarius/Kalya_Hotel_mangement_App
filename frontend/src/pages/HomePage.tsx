@@ -5,7 +5,7 @@ import { NewsletterForm } from '../components/NewsletterForm';
 import { usePageMeta } from '../components/Page';
 import { whatsappHref } from '../config/hotel';
 import { useI18n } from '../i18n-context';
-import { ROOMS, roomInventory } from '../types';
+import { ROOMS } from '../types';
 
 function thumbnailSrc(src: string): string {
   return src.replace(/\.webp$/, '-thumb.webp');
@@ -330,7 +330,7 @@ export function HomePage() {
                         </span>
                       ) : null}
                       <span className="absolute bottom-4 right-4 rounded-full bg-forest/95 px-3.5 py-2 text-[12px] font-bold text-white backdrop-blur">
-                        {t('common.from')} KES {formatMoney(room.price)}
+                        {t('common.from')} KES {formatMoney(room.fromPrice)}
                         <span className="ml-1 font-medium text-white/70">{t('common.perNight')}</span>
                       </span>
                     </div>
@@ -345,7 +345,7 @@ export function HomePage() {
                           <span className="material-symbols-outlined text-[16px] text-gold-deep" aria-hidden="true">
                             meeting_room
                           </span>
-                          <span>{roomInventory(room, t)}</span>
+                          <span>{t(room.bedKey)}</span>
                         </span>
                         <span className="inline-flex items-center gap-1.5">
                           <span className="material-symbols-outlined text-[16px] text-gold-deep" aria-hidden="true">
@@ -357,9 +357,6 @@ export function HomePage() {
                       <p className="mt-3 text-[12px] font-semibold text-gold-deep">
                         {t(room.bestForKey)}
                       </p>
-                      {room.noteKey ? (
-                        <p className="mt-1 text-[11px] font-medium text-muted">{t(room.noteKey)}</p>
-                      ) : null}
                       <div className="mt-5 flex items-center justify-between border-t border-line pt-4">
                         <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-gold-deep">
                           <span className="material-symbols-outlined text-[15px]" aria-hidden="true">

@@ -56,7 +56,8 @@ class MealPlanAdmin(admin.ModelAdmin):
     list_display = (
         "code",
         "name_en",
-        "supplement_per_person_per_night",
+        "supplement_per_room_per_night",
+        "extra_person_per_night",
         "active",
         "sort_order",
     )

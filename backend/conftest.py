@@ -43,7 +43,7 @@ def meal_plan(db) -> MealPlan:
         code="room-only",
         name_en="Room only",
         name_sw="Chumba tu",
-        supplement_per_person_per_night=Decimal("0.00"),
+        supplement_per_room_per_night=Decimal("0.00"),
         active=True,
     )
 

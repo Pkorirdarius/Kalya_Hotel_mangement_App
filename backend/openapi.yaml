@@ -5375,7 +5375,14 @@ components:
         description_sw:
           type: string
           maxLength: 255
-        supplement_per_person_per_night:
+        supplement_per_room_per_night:
+          type: number
+          format: double
+          maximum: 10000000000
+          minimum: -10000000000
+          exclusiveMaximum: true
+          exclusiveMinimum: true
+        extra_person_per_night:
           type: number
           format: double
           maximum: 10000000000
@@ -5391,9 +5398,10 @@ components:
           format: int64
       required:
       - code
+      - extra_person_per_night
       - id
       - name_en
-      - supplement_per_person_per_night
+      - supplement_per_room_per_night
     MealPlanRequest:
       type: object
       properties:
@@ -5415,7 +5423,14 @@ components:
         description_sw:
           type: string
           maxLength: 255
-        supplement_per_person_per_night:
+        supplement_per_room_per_night:
+          type: number
+          format: double
+          maximum: 10000000000
+          minimum: -10000000000
+          exclusiveMaximum: true
+          exclusiveMinimum: true
+        extra_person_per_night:
           type: number
           format: double
           maximum: 10000000000
@@ -5431,8 +5446,9 @@ components:
           format: int64
       required:
       - code
+      - extra_person_per_night
       - name_en
-      - supplement_per_person_per_night
+      - supplement_per_room_per_night
     MenuItem:
       type: object
       properties:
@@ -6596,7 +6612,14 @@ components:
         description_sw:
           type: string
           maxLength: 255
-        supplement_per_person_per_night:
+        supplement_per_room_per_night:
+          type: number
+          format: double
+          maximum: 10000000000
+          minimum: -10000000000
+          exclusiveMaximum: true
+          exclusiveMinimum: true
+        extra_person_per_night:
           type: number
           format: double
           maximum: 10000000000

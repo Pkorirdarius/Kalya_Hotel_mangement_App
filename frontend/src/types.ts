@@ -19,36 +19,33 @@ export type PageId =
 export interface RoomType {
   id: string;
   nameKey: string;
+  /** Room-only nightly base used by the quote fallback. */
   price: number;
+  /** Nightly bed-and-breakfast total for one guest, shown to guests. */
+  fromPrice: number;
   sleeps: number;
-  roomCount: number;
-  roomNumbers: string;
   bedKey: string;
   image: string;
   bestForKey: string;
-  noteKey?: string;
 }
 
 export const ROOMS: RoomType[] = [
   {
     id: 'superior',
     nameKey: 'room.superior.name',
-    price: 8500,
+    price: 6000,
+    fromPrice: 7000,
     sleeps: 2,
-    roomCount: 2,
-    roomNumbers: '201, 202',
     bedKey: 'room.superior.bed',
     image: '/images/room-standard.webp',
     bestForKey: 'room.superior.bestFor',
-    noteKey: 'room.superior.note',
   },
   {
     id: 'deluxe',
     nameKey: 'room.deluxe.name',
-    price: 12800,
+    price: 6000,
+    fromPrice: 7000,
     sleeps: 2,
-    roomCount: 6,
-    roomNumbers: '204, 205, 206, 207, 108, 109',
     bedKey: 'room.deluxe.bed',
     image: '/images/room-deluxe.webp',
     bestForKey: 'room.deluxe.bestFor',
@@ -56,10 +53,9 @@ export const ROOMS: RoomType[] = [
   {
     id: 'twin',
     nameKey: 'room.twin.name',
-    price: 8500,
+    price: 6000,
+    fromPrice: 7000,
     sleeps: 2,
-    roomCount: 1,
-    roomNumbers: '',
     bedKey: 'room.twin.bed',
     image: '/images/room-gallery-3.webp',
     bestForKey: 'room.twin.bestFor',
@@ -67,42 +63,31 @@ export const ROOMS: RoomType[] = [
   {
     id: 'en-suite',
     nameKey: 'room.ensuite.name',
-    price: 18500,
+    price: 9000,
+    fromPrice: 10000,
     sleeps: 2,
-    roomCount: 1,
-    roomNumbers: '203',
     bedKey: 'room.ensuite.bed',
     image: '/images/room-mara.webp',
     bestForKey: 'room.ensuite.bestFor',
   },
 ];
 
-type Translation = (key: string, vars?: Record<string, string | number>) => string;
-
-/** Render the confirmed "count | numbers | bed" line for a room type. */
-export function roomInventory(room: RoomType, t: Translation): string {
-  const count =
-    room.roomCount === 1
-      ? t('room.count.one')
-      : t('room.count.other', { count: room.roomCount });
-  return [count, room.roomNumbers || null, t(room.bedKey)]
-    .filter(Boolean)
-    .join(' | ');
-}
-
 export type MealPlanId = 'room-only' | 'breakfast' | 'dinner' | 'half-board' | 'full-board';
 
 export interface MealPlan {
   id: MealPlanId;
   labelKey: string;
+  /** Board supplement for one guest, per room per night. */
   supplement: number;
+  /** Added per night for each guest beyond the first. */
+  extraPerson: number;
   noteKey: string;
 }
 
 export const MEAL_PLANS: MealPlan[] = [
-  { id: 'room-only', labelKey: 'meal.roomOnly', supplement: 0, noteKey: 'meal.roomOnlyNote' },
-  { id: 'breakfast', labelKey: 'meal.breakfast', supplement: 1200, noteKey: 'meal.breakfastNote' },
-  { id: 'dinner', labelKey: 'meal.dinner', supplement: 1800, noteKey: 'meal.dinnerNote' },
-  { id: 'half-board', labelKey: 'meal.halfBoard', supplement: 2800, noteKey: 'meal.halfBoardNote' },
-  { id: 'full-board', labelKey: 'meal.fullBoard', supplement: 4200, noteKey: 'meal.fullBoardNote' },
+  { id: 'room-only', labelKey: 'meal.roomOnly', supplement: 0, extraPerson: 0, noteKey: 'meal.roomOnlyNote' },
+  { id: 'breakfast', labelKey: 'meal.breakfast', supplement: 1000, extraPerson: 1500, noteKey: 'meal.breakfastNote' },
+  { id: 'dinner', labelKey: 'meal.dinner', supplement: 1800, extraPerson: 1500, noteKey: 'meal.dinnerNote' },
+  { id: 'half-board', labelKey: 'meal.halfBoard', supplement: 2500, extraPerson: 1500, noteKey: 'meal.halfBoardNote' },
+  { id: 'full-board', labelKey: 'meal.fullBoard', supplement: 4000, extraPerson: 1500, noteKey: 'meal.fullBoardNote' },
 ];
