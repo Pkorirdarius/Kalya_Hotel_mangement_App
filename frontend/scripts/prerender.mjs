@@ -1,5 +1,5 @@
 /**
- * Static prerender for the 12 indexable marketing routes in EN and SW.
+ * Static prerender for the 13 indexable marketing routes in EN and SW.
  *
  * Runs after `vite build` and reuses the real router/page components so the
  * generated HTML cannot drift from the app. CMS data is deliberately not
@@ -19,7 +19,7 @@ const DIST_DIR = path.join(FRONTEND_ROOT, 'dist');
 const TEMPLATE = path.join(DIST_DIR, 'index.html');
 const SOURCE_TEMPLATE = path.join(DIST_DIR, 'index.source.html');
 const LANGUAGES = ['en', 'sw'];
-const EXPECTED_CRITICAL_ROUTES = 12;
+const EXPECTED_CRITICAL_ROUTES = 13;
 
 function escapeAttribute(value) {
   return String(value)

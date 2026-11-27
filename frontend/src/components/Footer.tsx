@@ -191,6 +191,9 @@ export function Footer() {
               <Link className="transition hover:text-gold" to="/terms">
                 {t('footer.terms')}
               </Link>
+              <Link className="transition hover:text-gold" to="/cancellation">
+                {t('footer.cancellation')}
+              </Link>
               <Link className="transition hover:text-gold" to="/dashboard">
                 {t('footer.staff')}
               </Link>

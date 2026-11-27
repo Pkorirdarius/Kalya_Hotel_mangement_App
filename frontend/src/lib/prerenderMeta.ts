@@ -23,6 +23,10 @@ const META_KEYS: Record<string, MetaKeys> = {
   contact: { title: 'meta.contact.title', description: 'meta.contact.description' },
   privacy: { title: 'meta.privacy.title', description: 'meta.privacy.description' },
   terms: { title: 'meta.terms.title', description: 'meta.terms.description' },
+  cancellation: {
+    title: 'meta.cancellation.title',
+    description: 'meta.cancellation.description',
+  },
 };
 
 export interface PrerenderPage {
@@ -38,7 +42,7 @@ export interface PrerenderPage {
   jsonLd: Record<string, unknown>;
 }
 
-/** The 12 marketing routes that have complete static copy in both languages. */
+/** The 13 marketing routes that have complete static copy in both languages. */
 export function prerenderTargetRoutes(): SiteRoute[] {
   return INDEXABLE_ROUTES.filter((route) => !route.dynamic);
 }

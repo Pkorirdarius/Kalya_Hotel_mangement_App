@@ -35,6 +35,11 @@ export const ROUTE_COMPONENTS: Record<RouteComponentId, RouteComponent> = {
       default: () => <m.PolicyPage slug="terms" />,
     })),
   ),
+  cancellation: lazy(() =>
+    import('../pages/PolicyPage').then((m) => ({
+      default: () => <m.PolicyPage slug="cancellation" />,
+    })),
+  ),
   dashboard: lazy(() =>
     import('../pages/DashboardPage').then((m) => ({ default: m.DashboardPage })),
   ),

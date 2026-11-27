@@ -37,6 +37,7 @@ export const SSR_ROUTE_COMPONENTS: Record<RouteComponentId, ComponentType> = {
   contact: ContactPage,
   privacy: () => <PolicyPage slug="privacy" />,
   terms: () => <PolicyPage slug="terms" />,
+  cancellation: () => <PolicyPage slug="cancellation" />,
   dashboard: DashboardPage,
   'content-review': ContentConfirmationPage,
 };

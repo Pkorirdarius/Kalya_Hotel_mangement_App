@@ -1,6 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { initAnalytics, trackEvent, trackPageview } from './analytics';
+import {
+  analyticsEnabled,
+  initAnalytics,
+  trackEvent,
+  trackPageview,
+} from './analytics';
 
 type Queued = Array<[string, { props?: Record<string, unknown>; u?: string }?]>;
 
@@ -17,6 +22,14 @@ describe('analytics', () => {
   afterEach(() => {
     vi.unstubAllEnvs();
     delete window.plausible;
+  });
+
+  it('reports enabled only for a non-empty domain', () => {
+    vi.stubEnv('VITE_ANALYTICS_DOMAIN', '   ');
+    expect(analyticsEnabled()).toBe(false);
+
+    vi.stubEnv('VITE_ANALYTICS_DOMAIN', 'hotel.example');
+    expect(analyticsEnabled()).toBe(true);
   });
 
   it('does nothing until an analytics domain is configured', () => {

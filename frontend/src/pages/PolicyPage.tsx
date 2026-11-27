@@ -1,20 +1,21 @@
 import { Link } from '../components/LocalizedLink';
 import { usePageMeta } from '../components/Page';
 import { useI18n } from '../i18n-context';
+import { analyticsEnabled } from '../lib/analytics';
 import { usePolicy } from '../lib/query/hooks';
 
-type PolicySlug = 'privacy' | 'terms';
+type PolicySlug = 'privacy' | 'terms' | 'cancellation';
 
 interface PolicyPageProps {
   slug: PolicySlug;
 }
 
 /**
- * CMS-driven privacy notice / booking terms.
+ * CMS-driven, admin-editable legal pages.
  *
- * Text is seeded as a draft and must be reviewed by the hotel/legal adviser
- * before launch; the draft badge stays visible until that review clears
- * `needs_confirmation` in Django admin.
+ * Rows with `needs_confirmation=True` are hidden by the public API, so the
+ * pending-approval state is only visible to staff in Django admin and at
+ * /content-review. Guests never see unapproved wording.
  */
 export function PolicyPage({ slug }: PolicyPageProps) {
   const { t, language } = useI18n();
@@ -35,21 +36,13 @@ export function PolicyPage({ slug }: PolicyPageProps) {
     .split(/\n{2,}/)
     .map((paragraph) => paragraph.trim())
     .filter(Boolean);
+  const showAnalyticsNotice = slug === 'privacy' && Boolean(data) && analyticsEnabled();
 
   return (
     <section className="container-page section">
       <div className="mx-auto max-w-3xl">
         <p className="eyebrow">{t('footer.legal')}</p>
         <h1 className="display mt-4">{title}</h1>
-
-        {data?.needs_confirmation ? (
-          <p className="mt-5 inline-flex items-start gap-2 rounded-xl bg-gold-soft px-3 py-2 text-[12px] font-semibold text-gold-deep">
-            <span className="material-symbols-outlined text-[17px]" aria-hidden="true">
-              edit_note
-            </span>
-            <span>{t('policy.draft')}</span>
-          </p>
-        ) : null}
 
         {isLoading ? (
           <p className="mt-8 text-sm text-muted" role="status">
@@ -74,6 +67,12 @@ export function PolicyPage({ slug }: PolicyPageProps) {
               </p>
             ))}
           </div>
+        ) : null}
+
+        {showAnalyticsNotice ? (
+          <p className="mt-6 rounded-2xl bg-sand/60 p-4 text-[13px] leading-relaxed text-ink/70">
+            {t('policy.analytics')}
+          </p>
         ) : null}
 
         {data ? (

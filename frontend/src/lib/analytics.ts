@@ -27,9 +27,15 @@ declare global {
 
 const SCRIPT_MARKER = 'data-hotel-analytics';
 
-export function initAnalytics(): void {
+/** True only when a build-time analytics domain has been supplied. */
+export function analyticsEnabled(): boolean {
   const domain = import.meta.env.VITE_ANALYTICS_DOMAIN as string | undefined;
-  if (!domain || typeof document === 'undefined') return;
+  return Boolean(domain?.trim());
+}
+
+export function initAnalytics(): void {
+  if (!analyticsEnabled() || typeof document === 'undefined') return;
+  const domain = (import.meta.env.VITE_ANALYTICS_DOMAIN as string).trim();
   if (document.querySelector(`script[${SCRIPT_MARKER}]`)) return;
 
   // Queue calls made before the deferred script has loaded.

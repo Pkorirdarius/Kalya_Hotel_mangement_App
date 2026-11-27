@@ -1175,6 +1175,10 @@ export function BookingPage() {
                       <Link className="underline transition hover:text-forest" to="/terms">
                         {t('footer.terms')}
                       </Link>
+                      {' · '}
+                      <Link className="underline transition hover:text-forest" to="/cancellation">
+                        {t('footer.cancellation')}
+                      </Link>
                     </p>
                     <FieldError message={errors.terms} />
                     <label className="mt-3 flex cursor-pointer items-start gap-3">

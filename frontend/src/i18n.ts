@@ -82,6 +82,7 @@ const entries: Record<string, Entry> = {
   'footer.rights': { en: 'All rights reserved.', sw: 'Haki zote zimehifadhiwa.' },
   'footer.privacy': { en: 'Privacy', sw: 'Faragha' },
   'footer.terms': { en: 'Terms', sw: 'Masharti' },
+  'footer.cancellation': { en: 'Cancellation', sw: 'Kughairi' },
   'footer.legal': { en: 'Legal', sw: 'Kisheria' },
   'footer.staff': { en: 'Staff login', sw: 'Kuingia kwa wafanyakazi' },
   'footer.newsletter': { en: 'Join our monthly note', sw: 'Jiunge na barua yetu ya mwezi' },
@@ -1338,6 +1339,11 @@ const entries: Record<string, Entry> = {
     en: 'Booking, payment, cancellation and stay terms for {name}.',
     sw: 'Masharti ya kuweka nafasi, malipo, kughairi na kukaa kwa {name}.',
   },
+  'meta.cancellation.title': { en: 'Cancellation policy - {name}', sw: 'Sera ya kughairi - {name}' },
+  'meta.cancellation.description': {
+    en: 'Cancellation deadlines, charges and refunds for bookings at {name}.',
+    sw: 'Muda wa kughairi, ada na marejesho kwa nafasi zilizowekwa {name}.',
+  },
   'meta.dashboard.title': { en: 'Front Desk Dashboard — {name}', sw: 'Dashibodi ya Mapokezi — {name}' },
   'meta.contentReview.title': {
     en: 'Content needing confirmation — {name}',
@@ -1385,9 +1391,9 @@ const entries: Record<string, Entry> = {
   'contentReview.kind.room-type': { en: 'Room type', sw: 'Aina ya chumba' },
   'contentReview.kind.menu-item': { en: 'Menu item', sw: 'Kipengee cha menyu' },
 
-  'policy.draft': {
-    en: 'Draft wording — pending hotel and legal review before launch.',
-    sw: 'Maneno ya rasimu — yanasubiri kupitiwa na hoteli na sheria kabla ya kuzindua.',
+  'policy.analytics': {
+    en: 'Analytics: this site uses privacy-friendly, cookieless Plausible page analytics to understand which pages are visited. No advertising trackers are loaded.',
+    sw: 'Uchambuzi: tovuti hii hutumia Plausible ya kufuatilia kurasa bila vidakuzi ili kuelewa ni kurasa zipi zinazotembelewa. Hakuna waangalizi wa matangazo wanaopakiwa.',
   },
   'policy.unavailable': {
     en: 'This policy is temporarily unavailable. Please contact the hotel and we will send you the current wording.',

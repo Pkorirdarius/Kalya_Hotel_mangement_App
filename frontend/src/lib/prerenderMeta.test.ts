@@ -10,9 +10,9 @@ afterEach(() => {
 });
 
 describe('prerender metadata', () => {
-  it('covers exactly the 12 static indexable routes', () => {
+  it('covers exactly the 13 static indexable routes', () => {
     const targets = prerenderTargetRoutes();
-    expect(targets).toHaveLength(12);
+    expect(targets).toHaveLength(13);
     expect(targets.map((route) => route.id)).toEqual(
       INDEXABLE_ROUTES.filter((route) => !route.dynamic).map((route) => route.id),
     );
@@ -24,7 +24,7 @@ describe('prerender metadata', () => {
       buildPrerenderPage(route, 'sw'),
     ]);
 
-    expect(pages).toHaveLength(24);
+    expect(pages).toHaveLength(26);
     for (const field of ['title', 'description', 'canonical'] as const) {
       expect(new Set(pages.map((page) => page[field])).size).toBe(pages.length);
     }

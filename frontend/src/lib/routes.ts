@@ -17,6 +17,7 @@ export type RouteComponentId =
   | 'contact'
   | 'privacy'
   | 'terms'
+  | 'cancellation'
   | 'dashboard'
   | 'content-review';
 
@@ -50,6 +51,7 @@ export const SITE_ROUTES: readonly SiteRoute[] = [
   { path: '/contact', id: 'contact', indexable: true },
   { path: '/privacy', id: 'privacy', indexable: true },
   { path: '/terms', id: 'terms', indexable: true },
+  { path: '/cancellation', id: 'cancellation', indexable: true },
   { path: '/dashboard', id: 'dashboard', indexable: false },
   { path: '/content-review', id: 'content-review', indexable: false },
 ];
