@@ -23,7 +23,7 @@ Update all three, then run `npm run check:brand` from `frontend/`.
 | 2 | **Phone, WhatsApp and email are placeholders** (`+254 20 765 4321`, `254712345678`, `stay@westpremierhotel.co.ke`). | **BLOCKER** | Update `HOTEL_PHONE`, `HOTEL_PHONE_HREF`, `HOTEL_EMAIL`, `HotelSetting`, `HOTEL.contact`, and test a real call + email. |
 | 3 | **Social links point at generic domains** (`facebook.com`, `instagram.com`, `x.com`, `linkedin.com`). | **BLOCKER** | Replace `HOTEL.socials` with the hotel's real profiles, or remove the accounts that do not exist. |
 | 4 | **Gym name is unconfirmed** — Westside Fitness. Confirmed by the hotel: Tamarind Restaurant, C&K café, three conference halls (Kopoch Hall, The Attelo Hall, Executive Board Room) and four room types (Superior, Deluxe, Twin, En-suite). | OPEN | Confirm the gym name and spelling. Facility names stay translatable (`facility.*` keys); Swahili copy still needs marketing approval. |
-| 5 | **Sample prices are unconfirmed** — tier rates (Superior/Twin 8,500; Deluxe 12,800; En-suite 18,500), menu items (`needs_confirmation=True`), offers, conference half/full day (8,000 / 15,000) and gym day pass. The site currently shows "prices pending" placeholders in several cards. | **BLOCKER** | Confirm every amount, then clear `needs_confirmation` / replace placeholder labels. |
+| 5 | **Remaining prices are unconfirmed** — menu items (`needs_confirmation=True`), offers, conference half/full day (8,000 / 15,000) and gym day pass. Room board rates are now confirmed: Superior/Deluxe/Twin BB 7,000, HB 8,500, FB 10,000; Executive Suite (En-suite) BB 10,000, HB 11,500, FB 13,000 — each for one guest, plus KES 1,500 per extra guest per night. | **BLOCKER** | Confirm the remaining amounts, then clear `needs_confirmation` / replace placeholder labels. Room rates are covered by `test_board_rates.py`. |
 | 6 | **Gym price needs confirmation** — the site, seed and backend now use one value: KES 500 per day (`HotelSetting.gym_day_pass_price`, `frontend/src/config/prices.ts`). | **BLOCKER** | Confirm KES 500 is the current rate; change it only in `HotelSetting`, the seed and the frontend fallback together. `test_gym_price.py` fails if the values drift. |
 | 7 | **Unverified marketing claims** — "best rate guaranteed", airport transfers, review scores and similar copy are gated behind `claims_verified=False`. | **BLOCKER** | Marketing/legal approve each claim, then set `HOTEL_CLAIMS_VERIFIED=true` and `HotelSetting.claims_verified`. |
 | 8 | **Swahili is machine-translated** — all `sw` strings in `frontend/src/i18n.ts` and seed content. | **BLOCKER** | A native Swahili speaker / marketing must review every string before launch. |
@@ -66,7 +66,11 @@ Update all three, then run `npm run check:brand` from `frontend/`.
       category-based — the numbered rooms are the front desk's physical record.
 - [ ] The hotel must supply the real Twin room number. Until then the front desk
       record is `TWIN-1`, clearly flagged as provisional in the dashboard.
-- [ ] Tier rates confirmed with the hotel and `needs_confirmation` cleared.
+- [x] Room board rates confirmed with the hotel (see P0 item 5). Guests see only
+      the bed type and the one-guest bed-and-breakfast "from" price; physical
+      room numbers and per-type counts are front-desk-only. A room type shows
+      "fully booked" only when its live availability is zero, and other room
+      types remain selectable.
 - [ ] Guest booking lookup tested with reference + email and reference + phone.
 - [ ] Front desk queue walks `pending_payment → pending_confirmation → confirmed`
       correctly, including undo.

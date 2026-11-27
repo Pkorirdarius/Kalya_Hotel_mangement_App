@@ -183,7 +183,9 @@ function mockFetch(onQuote?: () => Response, bookingOverrides: Record<string, un
 
 async function reachStepTwo(user: ReturnType<typeof userEvent.setup>) {
   await user.click(screen.getByRole('button', { name: 'Choose a room' }));
-  await screen.findByText('2 rooms left');
+  await waitFor(() => {
+    expect(screen.queryAllByText(/checking availability/i)).toHaveLength(0);
+  });
   await user.click(screen.getByRole('button', { name: 'Add guest details' }));
   await screen.findByLabelText('First name');
 }
@@ -273,7 +275,9 @@ describe('BookingPage', () => {
     renderBookingPage();
 
     await user.click(screen.getByRole('button', { name: 'Choose a room' }));
-    await screen.findByText('2 rooms left');
+    await waitFor(() => {
+    expect(screen.queryAllByText(/checking availability/i)).toHaveLength(0);
+  });
     await user.click(screen.getByRole('button', { name: 'Add guest details' }));
 
     expect(
