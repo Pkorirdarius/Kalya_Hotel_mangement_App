@@ -1,5 +1,8 @@
 # Deployment
 
+For the short operator runbook and release gate, start at [`DEPLOY.md`](DEPLOY.md);
+this document is the detailed reference.
+
 The site is two deployables:
 
 | Part | Stack | Output |
@@ -298,9 +301,11 @@ Run the automated checks against staging first:
 python scripts/staging_smoke.py --api-base https://api.staging.example.com
 ```
 
-It verifies the health endpoint and then proves the throttle key is the real
-client IP: the same fake client is throttled, a second fake client is not, and
-a spoofed left-hand `X-Forwarded-For` entry does not move the bucket. It sends
+It verifies the health endpoint, core public JSON routes, policy approval
+gating, prerendered EN/SW HTML (including `/cancellation`), and then proves the
+throttle key is the real client IP: the same fake client is throttled, a second
+fake client is not, and a spoofed left-hand `X-Forwarded-For` entry does not move
+the bucket. It sends
 bad logins from the documentation-only `198.51.100.0/24` range, so it must only
 be pointed at staging; it leaves that fake bucket blocked for about a minute.
 The identity check assumes the recommended single proxy that appends to

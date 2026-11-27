@@ -19,22 +19,29 @@ remain (see `backend/apps/common/production.py`).
 
 ## 1. P0 — must be closed before launch
 
-| # | Item | Status | Notes / owner |
-| --- | --- | --- | --- |
-| 1 | **Location is contradictory** — the source material contains both a Westlands/Nairobi address and a Westlands/Kapenguria address. The site currently renders Kapenguria, West Pokot placeholders. | **BLOCKER** | Confirm town, county, street address and map pin. Update `HOTEL_TOWN`, `HOTEL_COUNTY`, `HOTEL_ADDRESS`, `HOTEL.location.*`, `HotelSetting`, maps embed and `HOTEL.location.mapQuery`. |
-| 2 | **Phone, WhatsApp and email are placeholders** (`+254 20 765 4321`, `254712345678`, `stay@westpremierhotel.co.ke`). | **BLOCKER** | Update `HOTEL_PHONE`, `HOTEL_PHONE_HREF`, `HOTEL_EMAIL`, `HotelSetting`, `HOTEL.contact`, and test a real call + email. |
-| 3 | **Social links point at generic domains** (`facebook.com`, `instagram.com`, `x.com`, `linkedin.com`). | **BLOCKER** | Replace `HOTEL.socials` with the hotel's real profiles, or remove the accounts that do not exist. |
-| 4 | **Gym name is unconfirmed** — Westside Fitness. Confirmed by the hotel: Tamarind Restaurant, C&K café, three conference halls (Kopoch Hall, The Attelo Hall, Executive Board Room) and four room types (Superior, Deluxe, Twin, En-suite). | OPEN | Confirm the gym name and spelling. Facility names stay translatable (`facility.*` keys); Swahili copy still needs marketing approval. |
-| 5 | **Remaining prices are unconfirmed** — menu items (`needs_confirmation=True`), offers, conference half/full day (8,000 / 15,000) and gym day pass. Room board rates are now confirmed: Superior/Deluxe/Twin BB 7,000, HB 8,500, FB 10,000; Executive Suite (En-suite) BB 10,000, HB 11,500, FB 13,000 — each for one guest, plus KES 1,500 per extra guest per night. | **BLOCKER** | Confirm the remaining amounts, then clear `needs_confirmation` / replace placeholder labels. Room rates are covered by `test_board_rates.py`. |
-| 6 | **Gym price needs confirmation** — the site, seed and backend now use one value: KES 500 per day (`HotelSetting.gym_day_pass_price`, `frontend/src/config/prices.ts`). | **BLOCKER** | Confirm KES 500 is the current rate; change it only in `HotelSetting`, the seed and the frontend fallback together. `test_gym_price.py` fails if the values drift. |
-| 7 | **Unverified marketing claims** — "best rate guaranteed", airport transfers, review scores and similar copy are gated behind `claims_verified=False`. | **BLOCKER** | Marketing/legal approve each claim, then set `HOTEL_CLAIMS_VERIFIED=true` and `HotelSetting.claims_verified`. |
-| 8 | **Swahili is machine-translated** — all `sw` strings in `frontend/src/i18n.ts` and seed content. | **BLOCKER** | A native Swahili speaker / marketing must review every string before launch. |
-| 9 | **Payment credentials are missing** — M-Pesa Daraja keys, card gateway, bank account details, callback secrets. Production refuses to start until the guards in `backend/apps/payments/production.py` pass. | **BLOCKER** | See "Payments" below and `docs/DEPLOYMENT.md`. |
-| 10 | **Email and SMS credentials are missing** — the console email backend and stub SMS provider are development-only. Production refuses to start with the console email backend. | **BLOCKER** | Configure SMTP, `DEFAULT_FROM_EMAIL`, `FRONT_DESK_EMAIL`, `MANAGER_EMAIL`, Africa's Talking keys and `SMS_SEND_ENABLED=true`. Send a live test of each template. |
-| 11 | **Privacy, terms and cancellation are still drafts** — `/privacy`, `/terms` and `/cancellation` are editable CMS `PolicyPage` rows seeded in EN and SW. Pending approval (`needs_confirmation=True`, `privacy_notice_version=2026-11-draft`) is hidden from guests: the public API returns 404 and the page shows only a contact link. Staff see the state in Django admin and `/content-review`. | **BLOCKER** | Hotel and legal must review the wording, edit it in Django admin, clear `needs_confirmation` on all three pages, bump `privacy_notice_version`, and confirm the consent text shown to guests. Do not clear the flags until sign-off. |
-| 12 | **Staff accounts and roles** — at least one director, one front desk and (optionally) one data manager account. | **BLOCKER** | Create named accounts with `manage.py create_staff_from_csv --csv staff.csv --dry-run` then without `--dry-run`, set each password with `manage.py changepassword <username>`, test the capability matrix in `docs/SECURITY.md`, and confirm 2FA at the host/proxy level if available. Marketing may edit menus/blog/promotions but must not see guest data or numbered rooms. |
-| 13 | **Conference hall prices are contradictory** — the source lists half-day 15,000 / full-day 8,000, while seeded admin values are half-day 8,000 / full-day 15,000. The public API omits all conference prices and guests see "Request a quotation" until `HotelSetting.conference_prices_confirmed=true`. | **BLOCKER** | Hotel supplies written half-day, full-day and catering prices in KES. Staff enters them in Django admin, verifies the quote, then enables `conference_prices_confirmed`; confirm `ConferencePage.test.tsx` after launch. |
-| 14 | **Legacy dinner plan is unconfirmed** — `HotelSetting.dinner_plan_enabled=false` hides "Dinner, bed & breakfast" from the booking wizard. The seeded supplement is a placeholder, not a confirmed rate. | **BLOCKER** | Hotel confirms whether the plan is still sold and its price. If yes, staff sets the amount in `MealPlan` and enables `dinner_plan_enabled`. |
+"TBC" means no person has been nominated yet; a role is not a sign-off. Record
+the actual name and date in `docs/UAT-SCRIPT.md` and attach the verification
+evidence before changing any status to **Done**.
+
+| # | Item | Status | Owner | Verification / evidence |
+| --- | --- | --- | --- | --- |
+| 1 | **Location is contradictory** — the source material contains both a Westlands/Nairobi address and a Westlands/Kapenguria address. The site currently renders Kapenguria, West Pokot placeholders. | **BLOCKER** | Hotel management — TBC | Written town, county, street address and map pin; `HOTEL_TOWN`, `HOTEL_COUNTY`, `HOTEL_ADDRESS`, `HOTEL.location.*`, `HotelSetting` and map embed all match; contact/map screenshot. |
+| 2 | **Phone, WhatsApp and email are placeholders** (`+254 20 765 4321`, `254712345678`, `stay@westpremierhotel.co.ke`). | **BLOCKER** | Hotel front office — TBC | Live call, WhatsApp message and email; `HOTEL_PHONE`, `HOTEL_PHONE_HREF`, `HOTEL_EMAIL`, `HotelSetting` and `HOTEL.contact` match. |
+| 3 | **Social links point at generic domains** (`facebook.com`, `instagram.com`, `x.com`, `linkedin.com`). | **BLOCKER** | Marketing — TBC | Each `HOTEL.socials` link opens the hotel's real profile, or the account is removed; screenshot of footer. |
+| 4 | **Gym name is unconfirmed** — Westside Fitness. Confirmed by the hotel: Tamarind Restaurant, C&K café, three conference halls (Kopoch Hall, The Attelo Hall, Executive Board Room) and four room types (Superior, Deluxe, Twin, En-suite). | OPEN | Hotel operations — TBC | Written gym name and spelling; `facility.*` EN/SW copy updated and reviewed. |
+| 5 | **Remaining prices are unconfirmed** — menu items (`needs_confirmation=True`), offers, conference half/full day (8,000 / 15,000) and gym day pass. Room board rates are now confirmed: Superior/Deluxe/Twin BB 7,000, HB 8,500, FB 10,000; Executive Suite (En-suite) BB 10,000, HB 11,500, FB 13,000 — each for one guest, plus KES 1,500 per extra guest per night. | **BLOCKER** | Hotel management + Marketing — TBC | Signed price list; admin rows corrected and `needs_confirmation` cleared; `test_board_rates.py` green. |
+| 6 | **Gym price needs confirmation** — the site, seed and backend now use one value: KES 500 per day (`HotelSetting.gym_day_pass_price`, `frontend/src/config/prices.ts`). | **BLOCKER** | Hotel management — TBC | Written current rate; `HotelSetting`, seed and frontend fallback agree; `test_gym_price.py` green. |
+| 7 | **Unverified marketing claims** — "best rate guaranteed", airport transfers, review scores and similar copy are gated behind `claims_verified=False`. | **BLOCKER** | Marketing + Legal — TBC | Claim-by-claim approval; `HOTEL_CLAIMS_VERIFIED=true` and `HotelSetting.claims_verified`; screenshot of gated copy. |
+| 8 | **Swahili is machine-translated** — all `sw` strings in `frontend/src/i18n.ts` and seed content. | **BLOCKER** | Native speaker / Marketing — TBC | Signed review of UI strings, seeded CMS text and EN/SW messages; UAT step 5.3. |
+| 9 | **Payment credentials are missing** — M-Pesa Daraja keys, card gateway, bank account details, callback secrets. Production refuses to start until the guards in `backend/apps/payments/production.py` pass. | **BLOCKER** | ICT + Hotel finance — TBC | `manage.py check --deploy --settings=config.settings.prod` green; callback/SMS tests and a staged sandbox transaction recorded. |
+| 10 | **Email and SMS credentials are missing** — the console email backend and stub SMS provider are development-only. Production refuses to start with the console email backend. | **BLOCKER** | ICT — TBC | SMTP/SMS live tests for every template; `NotificationLog` rows; production startup guard green. |
+| 11 | **Privacy, terms and cancellation are still drafts** — `/privacy`, `/terms` and `/cancellation` are editable CMS `PolicyPage` rows seeded in EN and SW. Pending approval (`needs_confirmation=True`, `privacy_notice_version=2026-11-draft`) is hidden from guests: the public API returns 404 and the page shows only a contact link. Staff see the state in Django admin and `/content-review`. | **BLOCKER** | Hotel + Legal — TBC | All three rows approved in EN/SW, version bumped, public text visible and drafts return 404; consent links checked. |
+| 12 | **Staff accounts and roles** — at least one director, one front desk and (optionally) one data manager account. | **BLOCKER** | ICT — TBC | `create_staff_from_csv` dry-run and import output; `changepassword` completed per account; capability matrix in UAT 4.6/4.7. |
+| 13 | **Conference hall prices are contradictory** — the source lists half-day 15,000 / full-day 8,000, while seeded admin values are half-day 8,000 / full-day 15,000. The public API omits all conference prices and guests see "Request a quotation" until `HotelSetting.conference_prices_confirmed=true`. | **BLOCKER** | Hotel management — TBC | Written half-day, full-day and catering prices; admin values verified before `conference_prices_confirmed=true`; UAT 3.3. |
+| 14 | **Legacy dinner plan is unconfirmed** — `HotelSetting.dinner_plan_enabled=false` hides "Dinner, bed & breakfast" from the booking wizard. The seeded supplement is a placeholder, not a confirmed rate. | **BLOCKER** | Hotel management — TBC | Written confirmation that the plan is or is not sold; if sold, rate in `MealPlan` and `dinner_plan_enabled=true`; UAT 2.7. |
+
+Run the staged deployment and smoke checks from `docs/DEPLOY.md` only after this
+table and the UAT sign-off are complete.
 
 ## 2. Payments
 
@@ -191,8 +198,8 @@ formatting in Kiswahili; dates use `sw-KE`/`en-GB`.
 **C10 note:** the prerender set comes from
 `INDEXABLE_ROUTES.filter((route) => !route.dynamic)`: `/`, `/rooms`, `/booking`,
 `/facilities`, `/dining`, `/conference`, `/gym`, `/offers`, `/blog`, `/contact`,
-`/privacy` and `/terms`, plus their `/sw` variants. Private routes
-(`/dashboard`, `/booking/manage`) are not prerendered or indexable.
+`/privacy`, `/terms` and `/cancellation`, plus their `/sw` variants. Private
+routes (`/dashboard`, `/booking/manage`) are not prerendered or indexable.
 
 ## 6. Accessibility and QA
 
@@ -215,7 +222,7 @@ formatting in Kiswahili; dates use `sw-KE`/`en-GB`.
 - [x] All five automated checks green:
       `npm run typecheck`, `npm run lint`, `npm test`, `npm run build`,
       `npm run check:brand`; backend `..\.venv\Scripts\python.exe -m pytest -q`.
-      Latest: frontend 125 tests / 29 files, backend 174 passed / 1 skipped.
+      Latest: frontend 141 tests / 30 files, backend 247 passed / 1 skipped.
 
 **Group D CI evidence:** motion [45211085265](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45211085265), axe/keyboard [45385570039](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45385570039), Playwright a–g [45403334223](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45403334223), Lighthouse/D4 [45781024001](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45781024001) and [45784395555](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45784395555), report-only CSP [45782053634](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45782053634). All three CI jobs (backend/Postgres, frontend, E2E) are green on each run. Full scores and audit notes are in `docs/ACCEPTANCE-REPORT.md` §§1.6–1.10.
 

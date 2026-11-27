@@ -16,6 +16,7 @@
 | 0.5 | Seed state | `seed_hotel` has been run once. All sample content/claims remain `needs_confirmation=True` / `claims_verified=False`. | Admin screenshots |
 | 0.6 | CI green | The three CI jobs (backend/Postgres, frontend, Playwright E2E) are green for the commit under test. | CI run link |
 | 0.7 | Build artifacts | `frontend/dist` contains 26 prerendered `index.html` files and `prerender-report.json`. | `npm run build` output |
+| 0.8 | Staging smoke | `python scripts/check_staging_stack.py` and `python scripts/staging_smoke.py --api-base <staging-api> --site-base <staging-site>` pass for the commit under test. | Script output |
 
 ## 1. Public content, language and SEO (C7–C10)
 
