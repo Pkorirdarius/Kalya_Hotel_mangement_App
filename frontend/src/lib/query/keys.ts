@@ -34,6 +34,8 @@ export const queryKeys = {
   paymentMethods: ['payment-methods'] as const,
   payment: (reference: string) => ['payment', reference] as const,
   staffMe: ['staff', 'me'] as const,
+  contentConfirmation: ['staff', 'content-confirmation'] as const,
+  staffRooms: ['staff', 'rooms'] as const,
   frontDeskQueue: ['frontdesk', 'queue'] as const,
   frontDeskActivity: (limit: number) => ['frontdesk', 'activity', limit] as const,
   staffOverview: (date: string) => ['staff', 'reports', 'overview', date] as const,

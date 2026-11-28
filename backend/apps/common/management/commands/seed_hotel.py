@@ -22,85 +22,160 @@ from apps.facilities.models import MenuItem
 from apps.content.models import PolicyPage
 from apps.notifications.models import NewsletterSubscriber
 from apps.rates.models import LongStayDiscount, MealPlan, RatePlan
-from apps.rooms.models import RoomType
+from apps.rooms.models import Room, RoomType
+
+def amenity(icon: str, label_en: str, label_sw: str) -> dict[str, str]:
+    return {"icon": icon, "label_en": label_en, "label_sw": label_sw}
+
+
+COMMON_AMENITIES = [
+    amenity("wifi", "Strong WiFi", "WiFi imara"),
+    amenity("tv", "Smart TV", "TV janja"),
+    amenity("room_service", "Room Service", "Huduma ya chumbani"),
+    amenity("lock", "Safe Box", "Sanduku la usalama"),
+    amenity("iron", "Ironing Facilities", "Vifaa vya kupasia"),
+    amenity("door_front", "Smart Card Doors", "Milango ya kadi janja"),
+]
 
 ROOMS = [
     {
-        "slug": "standard-executive",
-        "name_en": "Standard Executive",
-        "name_sw": "Chumba cha Kawaida cha Msimamizi",
+        "slug": "superior",
+        "name_en": "Superior Room",
+        "name_sw": "Chumba cha Superior",
         "description_en": (
-            "A calm, city-facing room with a queen bed, work desk and rain "
-            "shower. Placeholder copy pending hotel confirmation."
+            "King Bed, orthopedic mattress, spacious room and bathroom, "
+            "Strong WiFi, Smart TV, Safe Box, ironing box, room service and "
+            "smart card doors. Best for couples and solo travellers wanting "
+            "extra comfort. 202 is multipurpose room,Can work as superior room too."
         ),
         "description_sw": (
-            "Chumba tulivu kinachoelekea mji, chenye kitanda cha queen, meza ya "
-            "kazi na bafu ya mvua. Maandishi ya nafasi yanasubiri uthibitisho."
+            "Kitanda cha King, godoro la mifupa, chumba na bafu kubwa, WiFi "
+            "imara, TV janja, sanduku la usalama, sanduku la pasi, huduma ya "
+            "chumbani na milango ya kadi janja. Bora kwa wanandoa na wasafiri "
+            "peke yao wanaotaka faraja zaidi. 202 is multipurpose room,Can work "
+            "as superior room too."
         ),
         "sleeps": 2,
-        "size_sqm": 28,
-        "bed_en": "1 queen bed",
-        "bed_sw": "Kitanda kimoja cha queen",
-        "total_rooms": 15,
-        "website_allotment": 8,
-        "weekday": Decimal("8500.00"),
+        # Room sizes have not been supplied; zero means unknown and is not shown.
+        "size_sqm": 0,
+        "bed_en": "King Bed",
+        "bed_sw": "Kitanda cha King",
+        "total_rooms": 2,
+        "website_allotment": 2,
+        # Physical rooms for front desk occupancy tracking.
+        "numbers": ["201", "202"],
+        # Confirmed rates for one guest: BB 7,000 / HB 8,500 / FB 10,000.
+        # Board supplements and the KES 1,500 extra-guest charge are on MealPlan.
+        "weekday": Decimal("6000.00"),
         "image": "https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=1200&q=80",
-        "amenities": [
-            {"icon": "wifi", "label_en": "Free Wi-Fi", "label_sw": "Wi-Fi bila malipo"},
-            {"icon": "ac_unit", "label_en": "Air conditioning", "label_sw": "Kiyoyozi"},
-            {"icon": "tv", "label_en": "Satellite TV", "label_sw": "Televisheni ya satelaiti"},
+        "amenities": COMMON_AMENITIES
+        + [
+            amenity("iron", "Ironing box", "Sanduku la pasi"),
         ],
     },
     {
-        "slug": "deluxe-garden-suite",
-        "name_en": "Deluxe Garden Suite",
-        "name_sw": "Suite ya Bustani ya Deluxe",
+        "slug": "deluxe",
+        "name_en": "Deluxe Room",
+        "name_sw": "Chumba cha Deluxe",
         "description_en": (
-            "A generous suite opening to the garden, with a lounge corner and "
-            "separate bath. Placeholder copy pending hotel confirmation."
+            "Queen Bed, orthopedic mattress, spacious room and bathroom, "
+            "Strong WiFi, Smart TV, Safe Box, ironing box, room service, smart "
+            "card doors, fridge and balcony. Best for families, business "
+            "travellers and long stays."
         ),
         "description_sw": (
-            "Suite pana inayofungukia bustani, yenye kona ya mapumziko na bafu "
-            "tofauti. Maandishi ya nafasi yanasubiri uthibitisho."
+            "Kitanda cha Queen, godoro la mifupa, chumba na bafu kubwa, WiFi "
+            "imara, TV janja, sanduku la usalama, sanduku la pasi, huduma ya "
+            "chumbani, milango ya kadi janja, friji na balkoni. Bora kwa "
+            "familia, wasafiri wa biashara na kukaa kwa muda mrefu."
         ),
         "sleeps": 2,
-        "size_sqm": 42,
-        "bed_en": "1 king bed",
-        "bed_sw": "Kitanda kimoja cha king",
-        "total_rooms": 13,
+        "size_sqm": 0,
+        "bed_en": "Queen Bed",
+        "bed_sw": "Kitanda cha Queen",
+        "total_rooms": 6,
         "website_allotment": 6,
-        "weekday": Decimal("12800.00"),
+        "numbers": ["204", "205", "206", "207", "108", "109"],
+        # Confirmed rates for one guest: BB 7,000 / HB 8,500 / FB 10,000.
+        "weekday": Decimal("6000.00"),
         "image": "https://images.unsplash.com/photo-1582719508461-905c673771fd?auto=format&fit=crop&w=1200&q=80",
-        "amenities": [
-            {"icon": "wifi", "label_en": "Free Wi-Fi", "label_sw": "Wi-Fi bila malipo"},
-            {"icon": "deck", "label_en": "Garden terrace", "label_sw": "Terrace ya bustani"},
-            {"icon": "bathtub", "label_en": "Separate bath", "label_sw": "Bafu tofauti"},
+        "amenities": COMMON_AMENITIES
+        + [
+            amenity("iron", "Ironing box", "Sanduku la pasi"),
+            amenity("kitchen", "Fridge", "Friji"),
+            amenity("balcony", "Balcony", "Balkoni"),
         ],
     },
     {
-        "slug": "mara-residence",
-        "name_en": "Mara Residence",
-        "name_sw": "Makazi ya Mara",
+        "slug": "twin",
+        "name_en": "Twin Room",
+        "name_sw": "Chumba cha vitanda viwili",
         "description_en": (
-            "Our largest residence with a private sitting room, dining nook and "
-            "space for a third guest. Placeholder copy pending hotel confirmation."
+            "Single beds with orthopedic mattresses, spacious room and "
+            "bathroom, Strong WiFi, Smart TV, Safe Box, ironing box, room "
+            "service, smart card doors and fridge. Best for friends, colleagues "
+            "and family."
         ),
         "description_sw": (
-            "Makazi yetu makubwa zaidi yenye sebule ya faragha, eneo la kulia na "
-            "nafasi ya mgeni wa tatu. Maandishi yanasubiri uthibitisho."
+            "Vitanda vya mtu mmoja vyenye magodoro ya mifupa, chumba na bafu "
+            "kubwa, WiFi imara, TV janja, sanduku la usalama, sanduku la pasi, "
+            "huduma ya chumbani, milango ya kadi janja na friji. Bora kwa "
+            "marafiki, wafanyakazi wenzako na familia."
         ),
-        "sleeps": 3,
-        "size_sqm": 58,
-        "bed_en": "1 king bed + 1 sofa bed",
-        "bed_sw": "Kitanda cha king + kitanda cha sofa",
-        "total_rooms": 10,
-        "website_allotment": 4,
-        "weekday": Decimal("18500.00"),
+        "sleeps": 2,
+        "size_sqm": 0,
+        "bed_en": "Single Beds",
+        "bed_sw": "Vitanda vya mtu mmoja",
+        "total_rooms": 1,
+        "website_allotment": 1,
+        # Provisional identifier: the hotel has not supplied the Twin room number.
+        "numbers": ["TWIN-1"],
+        # Confirmed rates for one guest: BB 7,000 / HB 8,500 / FB 10,000.
+        "weekday": Decimal("6000.00"),
         "image": "https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=1200&q=80",
-        "amenities": [
-            {"icon": "wifi", "label_en": "Free Wi-Fi", "label_sw": "Wi-Fi bila malipo"},
-            {"icon": "weekend", "label_en": "Private sitting room", "label_sw": "Sebule ya faragha"},
-            {"icon": "room_service", "label_en": "Room service", "label_sw": "Huduma ya chumbani"},
+        "amenities": COMMON_AMENITIES
+        + [
+            amenity("iron", "Ironing box", "Sanduku la pasi"),
+            amenity("kitchen", "Fridge", "Friji"),
+        ],
+    },
+    {
+        "slug": "en-suite",
+        "name_en": "En-suite Room",
+        "name_sw": "Chumba chenye bafu ya ndani",
+        "description_en": (
+            "King Bed, orthopedic mattress, spacious room and bathroom, "
+            "Strong WiFi, Smart TV, Safe Box, ironing stand and iron box, room "
+            "service, smart card doors, fridge, microwave, mini kitchenette, "
+            "IP phone and a spacious lounge area with seating for four. Best "
+            "for VIP guests, families and special occasions."
+        ),
+        "description_sw": (
+            "Kitanda cha King, godoro la mifupa, chumba na bafu kubwa, WiFi "
+            "imara, TV janja, sanduku la usalama, stendi ya pasi na sanduku la "
+            "pasi, huduma ya chumbani, milango ya kadi janja, friji, "
+            "maikrowevu, jikoni ndogo, simu ya IP na sebule kubwa yenye viti "
+            "vinne. Bora kwa wageni wa VIP, familia na hafla maalum."
+        ),
+        "sleeps": 2,
+        "size_sqm": 0,
+        "bed_en": "King Bed + Private Lounge",
+        "bed_sw": "Kitanda cha King + Sebule ya Faragha",
+        "total_rooms": 1,
+        "website_allotment": 1,
+        "numbers": ["203"],
+        # The hotel calls this the Executive Suite: BB 10,000 / HB 11,500 / FB 13,000
+        # for one guest.
+        "weekday": Decimal("9000.00"),
+        "image": "https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=1200&q=80",
+        "amenities": COMMON_AMENITIES
+        + [
+            amenity("iron", "Ironing stand and iron box", "Stendi ya pasi na sanduku la pasi"),
+            amenity("kitchen", "Fridge", "Friji"),
+            amenity("microwave", "Microwave", "Maikrowevu"),
+            amenity("countertops", "Mini kitchenette", "Jikoni ndogo"),
+            amenity("phone", "IP phone", "Simu ya IP"),
+            amenity("groups", "Spacious lounge area with seating for four", "Sebule kubwa yenye viti vinne"),
         ],
     },
 ]
@@ -113,42 +188,47 @@ MEAL_PLANS = [
         "description_en": "No meals included.",
         "description_sw": "Hakuna milo iliyojumuishwa.",
         "supplement": Decimal("0.00"),
+        "extra": Decimal("0.00"),
         "sort_order": 1,
     },
     {
         "code": "breakfast",
         "name_en": "Bed & breakfast",
         "name_sw": "Chumba na kifungua kinywa",
-        "description_en": "Breakfast for each guest, each morning.",
-        "description_sw": "Kifungua kinywa kwa kila mgeni, kila asubuhi.",
-        "supplement": Decimal("1200.00"),
+        "description_en": "Breakfast for one guest; KES 1,500 per extra guest, per night.",
+        "description_sw": "Kifungua kinywa kwa mgeni mmoja; KES 1,500 kwa kila mgeni wa ziada, kwa usiku.",
+        "supplement": Decimal("1000.00"),
+        "extra": Decimal("1500.00"),
         "sort_order": 2,
     },
     {
         "code": "dinner",
         "name_en": "Dinner, bed & breakfast",
         "name_sw": "Chakula cha jioni, chumba na kifungua kinywa",
-        "description_en": "Dinner and breakfast each day.",
-        "description_sw": "Chakula cha jioni na kifungua kinywa kila siku.",
+        "description_en": "Dinner and breakfast for one guest; KES 1,500 per extra guest, per night.",
+        "description_sw": "Chakula cha jioni na kifungua kinywa kwa mgeni mmoja; KES 1,500 kwa kila mgeni wa ziada, kwa usiku.",
         "supplement": Decimal("1800.00"),
+        "extra": Decimal("1500.00"),
         "sort_order": 3,
     },
     {
         "code": "half-board",
         "name_en": "Half board",
         "name_sw": "Nusu bweni",
-        "description_en": "Breakfast and dinner each day.",
-        "description_sw": "Kifungua kinywa na chakula cha jioni kila siku.",
-        "supplement": Decimal("2800.00"),
+        "description_en": "Breakfast and dinner for one guest; KES 1,500 per extra guest, per night.",
+        "description_sw": "Kifungua kinywa na chakula cha jioni kwa mgeni mmoja; KES 1,500 kwa kila mgeni wa ziada, kwa usiku.",
+        "supplement": Decimal("2500.00"),
+        "extra": Decimal("1500.00"),
         "sort_order": 4,
     },
     {
         "code": "full-board",
         "name_en": "Full board",
         "name_sw": "Bweni kamili",
-        "description_en": "Breakfast, lunch and dinner each day.",
-        "description_sw": "Kifungua kinywa, chakula cha mchana na jioni kila siku.",
-        "supplement": Decimal("4200.00"),
+        "description_en": "Breakfast, lunch and dinner for one guest; KES 1,500 per extra guest, per night.",
+        "description_sw": "Kifungua kinywa, chakula cha mchana na jioni kwa mgeni mmoja; KES 1,500 kwa kila mgeni wa ziada, kwa usiku.",
+        "supplement": Decimal("4000.00"),
+        "extra": Decimal("1500.00"),
         "sort_order": 5,
     },
 ]
@@ -227,6 +307,33 @@ POLICY_PAGES = [
             "nafasi hiyo."
         ),
     },
+    {
+        "slug": "cancellation",
+        "title_en": "Cancellation policy",
+        "title_sw": "Sera ya kughairi",
+        "version": "2026-11-draft",
+        "body_en": (
+            "This is a draft cancellation policy pending review by the hotel and "
+            "its legal adviser.\n\n"
+            "The free cancellation deadline shown when you book is the deadline "
+            "that applies to your stay. Cancel before it to avoid a cancellation "
+            "charge. After that time, the hotel may charge the amount shown at "
+            "booking.\n\n"
+            "Any refund is handled under the terms shown when you booked. Contact "
+            "the front desk if you need to change dates instead of cancelling."
+        ),
+        "body_sw": (
+            "Sera hii ya kughairi ni rasimu inayosubiri kupitiwa na hoteli na "
+            "mshauri wake wa sheria.\n\n"
+            "Muda wa mwisho wa kughairi bila malipo unaoonyeshwa unapoweka nafasi "
+            "ndio unaotumika kwa kukaa kwako. Ghairi kabla ya muda huo ili "
+            "kuepuka ada ya kughairi. Baada ya muda huo, hoteli inaweza kutoza "
+            "kiasi kilichoonyeshwa wakati wa kuweka nafasi.\n\n"
+            "Kurejesha malipo kunafuata masharti yaliyoonyeshwa ulipoweka nafasi. "
+            "Wasiliana na mapokezi ikiwa unataka kubadilisha tarehe badala ya "
+            "kughairi."
+        ),
+    },
 ]
 
 BLOG_POSTS = [
@@ -297,8 +404,9 @@ class Command(BaseCommand):
         settings_obj.gym_capacity = 20
         settings_obj.gym_day_pass_price = Decimal("500.00")
         settings_obj.gym_monthly_price = Decimal("3000.00")
-        # The brief listed half-day 8,000 and full-day 15,000. Confirm which way
-        # round the hotel intends; these remain flagged in ASSUMPTIONS.md.
+        # Unconfirmed admin values only: the public API omits these while
+        # conference_prices_confirmed is false, and guests see "Request a
+        # quotation". Confirm which way round the hotel intends before enabling.
         settings_obj.conference_half_day_price = Decimal("8000.00")
         settings_obj.conference_full_day_price = Decimal("15000.00")
         settings_obj.bank_name = "Equity Bank Kenya"
@@ -322,7 +430,8 @@ class Command(BaseCommand):
                     "name_sw": item["name_sw"],
                     "description_en": item["description_en"],
                     "description_sw": item["description_sw"],
-                    "supplement_per_person_per_night": item["supplement"],
+                    "supplement_per_room_per_night": item["supplement"],
+                    "extra_person_per_night": item["extra"],
                     "active": True,
                     "sort_order": item["sort_order"],
                 },
@@ -351,6 +460,13 @@ class Command(BaseCommand):
                     "needs_confirmation": True,
                 },
             )
+            # Keep the front desk's numbered rooms in step with the catalog.
+            # Status is deliberately not touched here: an occupied room must
+            # survive a re-seed.
+            for number in item["numbers"]:
+                Room.objects.update_or_create(
+                    number=number, defaults={"room_type": room}
+                )
             plan, _ = RatePlan.objects.update_or_create(
                 room_type=room,
                 code="flexible",
@@ -369,6 +485,11 @@ class Command(BaseCommand):
                 defaults={"percent": Decimal("10.00"), "active": True},
             )
             self.stdout.write(f"Room seeded: {room.name_en}")
+
+        # Retire superseded catalog entries when an existing database is re-seeded.
+        RoomType.objects.exclude(
+            slug__in=[item["slug"] for item in ROOMS]
+        ).update(active=False)
 
         for venue, category, name_en, name_sw, price in MENU_ITEMS:
             MenuItem.objects.update_or_create(

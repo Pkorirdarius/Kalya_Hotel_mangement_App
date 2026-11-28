@@ -19,43 +19,56 @@ export type PageId =
 export interface RoomType {
   id: string;
   nameKey: string;
+  /** Room-only nightly base used by the quote fallback. */
   price: number;
+  /** Nightly bed-and-breakfast total for one guest, shown to guests. */
+  fromPrice: number;
   sleeps: number;
-  size: number;
   bedKey: string;
   image: string;
+  bestForKey: string;
 }
 
 export const ROOMS: RoomType[] = [
   {
-    id: 'standard-executive',
-    nameKey: 'room.standard.name',
-    price: 8500,
+    id: 'superior',
+    nameKey: 'room.superior.name',
+    price: 6000,
+    fromPrice: 7000,
     sleeps: 2,
-    size: 28,
-    bedKey: 'room.standard.bed',
-    image:
-      'https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=1200&q=80',
+    bedKey: 'room.superior.bed',
+    image: '/images/room-standard.webp',
+    bestForKey: 'room.superior.bestFor',
   },
   {
-    id: 'deluxe-garden-suite',
+    id: 'deluxe',
     nameKey: 'room.deluxe.name',
-    price: 12800,
+    price: 6000,
+    fromPrice: 7000,
     sleeps: 2,
-    size: 42,
     bedKey: 'room.deluxe.bed',
-    image:
-      'https://images.unsplash.com/photo-1582719508461-905c673771fd?auto=format&fit=crop&w=1200&q=80',
+    image: '/images/room-deluxe.webp',
+    bestForKey: 'room.deluxe.bestFor',
   },
   {
-    id: 'mara-residence',
-    nameKey: 'room.mara.name',
-    price: 18500,
-    sleeps: 3,
-    size: 58,
-    bedKey: 'room.mara.bed',
-    image:
-      'https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=1200&q=80',
+    id: 'twin',
+    nameKey: 'room.twin.name',
+    price: 6000,
+    fromPrice: 7000,
+    sleeps: 2,
+    bedKey: 'room.twin.bed',
+    image: '/images/room-gallery-3.webp',
+    bestForKey: 'room.twin.bestFor',
+  },
+  {
+    id: 'en-suite',
+    nameKey: 'room.ensuite.name',
+    price: 9000,
+    fromPrice: 10000,
+    sleeps: 2,
+    bedKey: 'room.ensuite.bed',
+    image: '/images/room-mara.webp',
+    bestForKey: 'room.ensuite.bestFor',
   },
 ];
 
@@ -64,14 +77,17 @@ export type MealPlanId = 'room-only' | 'breakfast' | 'dinner' | 'half-board' | '
 export interface MealPlan {
   id: MealPlanId;
   labelKey: string;
+  /** Board supplement for one guest, per room per night. */
   supplement: number;
+  /** Added per night for each guest beyond the first. */
+  extraPerson: number;
   noteKey: string;
 }
 
 export const MEAL_PLANS: MealPlan[] = [
-  { id: 'room-only', labelKey: 'meal.roomOnly', supplement: 0, noteKey: 'meal.roomOnlyNote' },
-  { id: 'breakfast', labelKey: 'meal.breakfast', supplement: 1200, noteKey: 'meal.breakfastNote' },
-  { id: 'dinner', labelKey: 'meal.dinner', supplement: 1800, noteKey: 'meal.dinnerNote' },
-  { id: 'half-board', labelKey: 'meal.halfBoard', supplement: 2800, noteKey: 'meal.halfBoardNote' },
-  { id: 'full-board', labelKey: 'meal.fullBoard', supplement: 4200, noteKey: 'meal.fullBoardNote' },
+  { id: 'room-only', labelKey: 'meal.roomOnly', supplement: 0, extraPerson: 0, noteKey: 'meal.roomOnlyNote' },
+  { id: 'breakfast', labelKey: 'meal.breakfast', supplement: 1000, extraPerson: 1500, noteKey: 'meal.breakfastNote' },
+  { id: 'dinner', labelKey: 'meal.dinner', supplement: 1800, extraPerson: 1500, noteKey: 'meal.dinnerNote' },
+  { id: 'half-board', labelKey: 'meal.halfBoard', supplement: 2500, extraPerson: 1500, noteKey: 'meal.halfBoardNote' },
+  { id: 'full-board', labelKey: 'meal.fullBoard', supplement: 4000, extraPerson: 1500, noteKey: 'meal.fullBoardNote' },
 ];

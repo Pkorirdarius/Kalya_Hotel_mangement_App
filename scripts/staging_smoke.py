@@ -12,8 +12,14 @@ project virtualenv:
 
 Checks:
 
-1. ``GET /api/v1/health/`` answers 200 with a reachable database.
-2. The login throttle keys on the real client IP taken from
+1. ``GET /api/v1/health/`` answers 200 with a reachable database and carries
+   the audit-only CSP header (but not the enforcing header).
+2. When ``--site-base`` is supplied, the prerendered EN and ``/sw`` HTML is
+   served with the expected language, H1, canonical link and audit-only CSP,
+   including the cancellation policy route.
+3. Core public API routes answer, and a policy is either hidden as a draft (404)
+   or served without exposing its staff-only ``needs_confirmation`` flag.
+4. The login throttle keys on the real client IP taken from
    ``X-Forwarded-For``. That is what ``NUM_PROXIES`` controls:
 
    * the same client gets 429 once its bucket is spent;
@@ -43,6 +49,12 @@ SPOOFED_LEFT = "203.0.113.99"
 LOGIN_PATH = "/api/v1/staff/auth/login/"
 CSRF_PATH = "/api/v1/auth/csrf/"
 HEALTH_PATH = "/api/v1/health/"
+HOTEL_PATH = "/api/v1/common/hotel/"
+ROOMS_PATH = "/api/v1/rooms/"
+POLICY_PATH = "/api/v1/content/policies/privacy/"
+MISSING_POLICY_PATH = "/api/v1/content/policies/no-such-policy/"
+CSP_REPORT_ONLY = "content-security-policy-report-only"
+CSP_ENFORCING = "content-security-policy"
 
 BAD_CREDENTIALS = {
     "username": "staging-smoke-nonexistent",
@@ -59,14 +71,14 @@ class Client:
             urllib.request.HTTPCookieProcessor(self.jar)
         )
 
-    def request(
+    def request_full(
         self,
         path: str,
         *,
         method: str = "GET",
         payload: dict | None = None,
         headers: dict | None = None,
-    ) -> tuple[int, bytes]:
+    ) -> tuple[int, dict[str, str], bytes]:
         data = None
         merged = {"Accept": "application/json"}
         if payload is not None:
@@ -80,9 +92,28 @@ class Client:
         )
         try:
             with self.opener.open(request, timeout=self.timeout) as response:
-                return response.status, response.read()
+                response_headers = {
+                    key.lower(): value for key, value in response.headers.items()
+                }
+                return response.status, response_headers, response.read()
         except urllib.error.HTTPError as exc:
-            return exc.code, exc.read()
+            response_headers = {
+                key.lower(): value for key, value in exc.headers.items()
+            }
+            return exc.code, response_headers, exc.read()
+
+    def request(
+        self,
+        path: str,
+        *,
+        method: str = "GET",
+        payload: dict | None = None,
+        headers: dict | None = None,
+    ) -> tuple[int, bytes]:
+        status, _headers, body = self.request_full(
+            path, method=method, payload=payload, headers=headers
+        )
+        return status, body
 
     def forwarded_for(self, client_ip: str, spoofed_left: str | None = None) -> dict:
         value = f"{spoofed_left}, {client_ip}" if spoofed_left else client_ip
@@ -97,8 +128,18 @@ def _fail(message: str) -> None:
     print(f"[FAIL] {message}")
 
 
+def _csp_ok(headers: dict[str, str]) -> bool:
+    if not headers.get(CSP_REPORT_ONLY):
+        _fail("missing Content-Security-Policy-Report-Only header")
+        return False
+    if headers.get(CSP_ENFORCING):
+        _fail("enforcing Content-Security-Policy header is present; keep report-only")
+        return False
+    return True
+
+
 def health_check(client: Client) -> bool:
-    status, body = client.request(HEALTH_PATH)
+    status, headers, body = client.request_full(HEALTH_PATH)
     if status != 200:
         _fail(f"health check returned HTTP {status}; expected 200")
         return False
@@ -110,7 +151,71 @@ def health_check(client: Client) -> bool:
     if not payload.get("database"):
         _fail("health check says the database is unreachable")
         return False
-    _ok(f"health check: {payload.get('status')} (database reachable)")
+    if not _csp_ok(headers):
+        return False
+    _ok(f"health check: {payload.get('status')} (database reachable, CSP report-only)")
+    return True
+
+
+def frontend_check(client: Client) -> bool:
+    routes = (
+        ("/", "en"),
+        ("/sw/rooms", "sw"),
+        ("/cancellation", "en"),
+        ("/sw/cancellation", "sw"),
+    )
+    for path, language in routes:
+        status, headers, body = client.request_full(path)
+        if status != 200:
+            _fail(f"{path} returned HTTP {status}; expected 200")
+            return False
+        html = body.decode("utf-8", errors="replace")
+        for needle in (f'lang="{language}"', "<h1", 'rel="canonical"'):
+            if needle not in html:
+                _fail(f"{path} is missing prerendered marker {needle!r}")
+                return False
+        if not _csp_ok(headers):
+            return False
+        _ok(f"{path} serves prerendered {language} HTML with report-only CSP")
+    return True
+
+
+def public_api_check(client: Client) -> bool:
+    """Prove the guest API is up and never leaks draft policy state."""
+    for path in (HOTEL_PATH, ROOMS_PATH):
+        status, body = client.request(path)
+        if status != 200:
+            _fail(f"{path} returned HTTP {status}; expected 200")
+            return False
+        try:
+            json.loads(body)
+        except ValueError:
+            _fail(f"{path} did not return JSON")
+            return False
+        _ok(f"{path} returns JSON")
+
+    status, body = client.request(MISSING_POLICY_PATH)
+    if status != 404:
+        _fail(f"unknown policy returned HTTP {status}; expected 404")
+        return False
+    _ok("unknown policies return 404")
+
+    status, body = client.request(POLICY_PATH)
+    if status == 404:
+        _ok("privacy policy is still hidden pending approval")
+    elif status == 200:
+        try:
+            payload = json.loads(body)
+        except ValueError:
+            _fail("approved policy did not return JSON")
+            return False
+        if not isinstance(payload, dict) or "needs_confirmation" in payload:
+            _fail("public policy exposes the staff-only needs_confirmation flag")
+            return False
+        _ok("approved privacy policy is public without staff-only fields")
+    else:
+        _fail(f"privacy policy returned HTTP {status}; expected 200 or 404")
+        return False
     return True
 
 
@@ -221,6 +326,10 @@ def main() -> int:
         help="Base URL of the API, e.g. https://api.staging.example.com",
     )
     parser.add_argument(
+        "--site-base",
+        help="Optional base URL of the static site, e.g. https://staging.example.com",
+    )
+    parser.add_argument(
         "--limit",
         type=int,
         default=10,
@@ -246,9 +355,15 @@ def main() -> int:
     try:
         if not health_check(client):
             return 1
+        if not public_api_check(client):
+            return 1
         token = csrf_token(client)
         if not token:
             return 1
+        if args.site_base:
+            site = Client(args.site_base, args.timeout)
+            if not frontend_check(site):
+                return 1
         if not identity_check(client, token, args.limit, args.attempts, args.probes):
             return 1
     except (urllib.error.URLError, TimeoutError, OSError) as exc:

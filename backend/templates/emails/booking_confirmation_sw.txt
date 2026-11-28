@@ -6,8 +6,8 @@ Asante kwa kuchagua {{ hotel.name }}. Taarifa za nafasi yako ziko hapa chini.
 
 Kumbukumbu: {{ booking.reference }}
 Chumba: {{ booking.room_type.name_sw|default:booking.room_type.name_en }}
-Kuingia: {{ booking.checkin|date:"D d M Y" }} kuanzia saa 8 mchana
-Kutoka: {{ booking.checkout|date:"D d M Y" }} kabla ya saa 5 asubuhi
+Kuingia: {{ booking.checkin|date:"j/n/Y" }} kuanzia saa 8 mchana
+Kutoka: {{ booking.checkout|date:"j/n/Y" }} kabla ya saa 5 asubuhi
 Wageni: {{ booking.guests }}
 Mpango wa milo: {{ booking.meal_plan.name_sw|default:booking.meal_plan.name_en }}
 Jumla: KES {{ booking.total|floatformat:0 }}

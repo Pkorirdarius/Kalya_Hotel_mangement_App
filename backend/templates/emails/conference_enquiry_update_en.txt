@@ -4,9 +4,10 @@ Dear {{ enquiry.guest_name }},
 
 Reference: {{ enquiry.reference }}
 Date: {{ enquiry.date|date:"D, j M Y" }}
-Session: {{ enquiry.get_session_display }}
+Session: {{ session_label }}
+Hall: {{ hall_label }}
 Guests: {{ enquiry.people }}
-Layout: {{ enquiry.get_layout_display }}
+Layout: {{ layout_label }}
 {% if enquiry.company %}Company: {{ enquiry.company }}
 {% endif %}{% if enquiry.notes %}Notes: {{ enquiry.notes }}
 {% endif %}

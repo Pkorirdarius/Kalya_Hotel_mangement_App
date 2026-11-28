@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
+import { Link } from '../components/LocalizedLink';
 import { HoneypotField } from '../components/HoneypotField';
 import { usePageMeta } from '../components/Page';
 import { useToast } from '../components/ToastProvider';
@@ -11,6 +12,7 @@ import { errorMessage, fieldErrors } from '../lib/query/errors';
 import {
   useCompleteSandboxPaymentMutation,
   useCreateBookingMutation,
+  useHotelSettings,
   useInitiateBookingPaymentMutation,
   usePayment,
   usePaymentMethods,
@@ -25,13 +27,6 @@ import {
   todayISO,
 } from '../utils';
 import {
-  fieldErrorKeys,
-  guestDetailsSchema,
-  normaliseKenyanPhone,
-  paymentDetailsSchema,
-  stayDatesSchema,
-} from '../lib/validation';
-import {
   backendPaymentMethod,
   formatCountdown,
   isHoldExpired,
@@ -41,6 +36,15 @@ import {
   quoteKeyFor,
   secondsRemaining,
 } from './bookingFlow';
+
+type ValidationModule = typeof import('../lib/validation');
+
+let validationModulePromise: Promise<ValidationModule> | null = null;
+
+function loadValidation(): Promise<ValidationModule> {
+  validationModulePromise ??= import('../lib/validation');
+  return validationModulePromise;
+}
 
 type PaymentMethod = 'mpesa' | 'card' | 'bank';
 
@@ -124,10 +128,6 @@ const DOT_ACTIVE = 'border-forest bg-forest text-white';
 const DOT_COMPLETE = 'border-gold bg-gold text-forest-dark';
 const DOT_UPCOMING = 'border-line bg-white text-muted';
 
-function isMealPlanId(value: string | null): value is MealPlanId {
-  return MEAL_PLANS.some((plan) => plan.id === value);
-}
-
 function errorClass(hasError: boolean): string {
   return hasError ? '!border-red-400' : '';
 }
@@ -146,6 +146,15 @@ export function BookingPage() {
 
   const today = todayISO();
   const offer = searchParams.get('offer');
+  const settingsQuery = useHotelSettings();
+  const dinnerPlanEnabled = settingsQuery.data?.dinner_plan_enabled === true;
+  const visibleMealPlans = useMemo(
+    () =>
+      MEAL_PLANS.filter(
+        (plan) => dinnerPlanEnabled || plan.id !== 'dinner',
+      ),
+    [dinnerPlanEnabled],
+  );
 
   const defaults = useMemo(() => {
     let checkin = searchParams.get('checkin') ?? addDaysISO(today, 7);
@@ -170,7 +179,9 @@ export function BookingPage() {
         : ROOMS.find((room) => room.id === requestedRoom)?.id ?? ROOMS[0].id;
 
     const requestedMeal = searchParams.get('meal');
-    const mealId = isMealPlanId(requestedMeal) ? requestedMeal : 'breakfast';
+    const mealId = visibleMealPlans.some((plan) => plan.id === requestedMeal)
+      ? (requestedMeal as MealPlanId)
+      : 'breakfast';
 
     const requestedGuests = Number(searchParams.get('guests') ?? 2);
     const guests =
@@ -179,7 +190,7 @@ export function BookingPage() {
         : 2;
 
     return { checkin, checkout, roomId, mealId, guests };
-  }, [offer, searchParams, today]);
+  }, [offer, searchParams, today, visibleMealPlans]);
 
   const [step, setStep] = useState(1);
   const [form, setForm] = useState<BookingForm>({
@@ -224,7 +235,7 @@ export function BookingPage() {
   const createBookingMutation = useCreateBookingMutation();
   const initiatePaymentMutation = useInitiateBookingPaymentMutation();
   const sandboxMutation = useCompleteSandboxPaymentMutation();
-  const paymentMethodsQuery = usePaymentMethods();
+  const paymentMethodsQuery = usePaymentMethods(step >= 4);
 
   const quoteKey = quoteKeyFor({
     room: form.roomId,
@@ -292,10 +303,13 @@ export function BookingPage() {
   }, [paymentSucceeded, showToast, t]);
 
   const room = ROOMS.find((item) => item.id === form.roomId) ?? ROOMS[0];
-  const meal = MEAL_PLANS.find((item) => item.id === form.mealId) ?? MEAL_PLANS[1];
+  const meal =
+    visibleMealPlans.find((item) => item.id === form.mealId) ?? visibleMealPlans[1];
   const nights = Math.max(0, nightsBetween(form.checkin, form.checkout));
   const roomTotal = activeQuote?.accommodation_total ?? room.price * nights;
-  const mealTotal = activeQuote?.meal_total ?? meal.supplement * form.guests * nights;
+  const mealTotal =
+    activeQuote?.meal_total ??
+    (meal.supplement + meal.extraPerson * Math.max(0, form.guests - 1)) * nights;
   const discountTotal = activeQuote?.discount_total ?? 0;
   const taxTotal = activeQuote?.tax_total ?? 0;
   const taxIncluded = activeQuote?.tax_included ?? true;
@@ -369,7 +383,8 @@ export function BookingPage() {
     return Object.keys(next).length === 0;
   };
 
-  const validateDates = (): boolean => {
+  const validateDates = async (): Promise<boolean> => {
+    const { fieldErrorKeys, stayDatesSchema } = await loadValidation();
     const result = stayDatesSchema(today).safeParse({
       checkin: form.checkin,
       checkout: form.checkout,
@@ -377,7 +392,8 @@ export function BookingPage() {
     return applyValidation(fieldErrorKeys(result));
   };
 
-  const validateGuestDetails = (): boolean => {
+  const validateGuestDetails = async (): Promise<boolean> => {
+    const { fieldErrorKeys, guestDetailsSchema } = await loadValidation();
     const result = guestDetailsSchema.safeParse({
       firstName: form.firstName,
       lastName: form.lastName,
@@ -388,7 +404,8 @@ export function BookingPage() {
     return applyValidation(fieldErrorKeys(result));
   };
 
-  const validatePayment = (): boolean => {
+  const validatePayment = async (): Promise<boolean> => {
+    const { fieldErrorKeys, paymentDetailsSchema } = await loadValidation();
     const result = paymentDetailsSchema.safeParse({
       method: form.payment,
       mpesaPhone: form.mpesaPhone,
@@ -428,8 +445,12 @@ export function BookingPage() {
       setErrors({ roomId: t('booking.checkingAvailability') });
       return;
     }
-    if (availabilityQuery.isError || !row) {
+    if (availabilityQuery.isError) {
       setErrors({ roomId: t('booking.availabilityError') });
+      return;
+    }
+    if (!row) {
+      setErrors({ roomId: t('booking.soldOut') });
       return;
     }
     if (!row.fits_guests) {
@@ -437,7 +458,7 @@ export function BookingPage() {
       return;
     }
     if (row.available_rooms < 1) {
-      setErrors({ roomId: t('booking.roomUnavailable') });
+      setErrors({ roomId: t('booking.soldOut') });
       return;
     }
     const result = await loadQuote();
@@ -447,7 +468,7 @@ export function BookingPage() {
   };
 
   const handleDetailsContinue = async () => {
-    if (!validateGuestDetails()) {
+    if (!(await validateGuestDetails())) {
       return;
     }
     if (!activeQuote) {
@@ -460,6 +481,7 @@ export function BookingPage() {
   };
 
   const initiatePaymentFor = async (target: Booking) => {
+    const { normaliseKenyanPhone } = await loadValidation();
     const method = backendPaymentMethod(form.payment);
     const result = await initiatePaymentMutation.mutateAsync({
       reference: target.reference,
@@ -494,6 +516,7 @@ export function BookingPage() {
   };
 
   const submitBooking = async () => {
+    const { normaliseKenyanPhone } = await loadValidation();
     setSubmitting(true);
     setFlowError('');
 
@@ -589,7 +612,7 @@ export function BookingPage() {
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (step !== 4 || !validatePayment()) {
+    if (step !== 4 || !(await validatePayment())) {
       return;
     }
     await submitBooking();
@@ -706,8 +729,8 @@ export function BookingPage() {
             <div className="relative">
               <div className="absolute left-5 right-5 top-5 h-px bg-line" aria-hidden="true" />
               <div
-                className="absolute left-5 top-5 h-px bg-forest transition-all duration-300"
-                style={{ width: `${((step - 1) / 4) * 100}%` }}
+                className="absolute left-5 right-5 top-5 h-px origin-left bg-forest transition-transform duration-300 ease-out"
+                style={{ transform: `scaleX(${(step - 1) / 4})` }}
                 aria-hidden="true"
               />
               <ol className="relative flex items-start justify-between gap-1">
@@ -873,8 +896,8 @@ export function BookingPage() {
                     <button
                       type="button"
                       className="btn-primary sm:ml-auto"
-                      onClick={() => {
-                        if (validateDates()) goToStep(2);
+                      onClick={async () => {
+                        if (await validateDates()) goToStep(2);
                       }}
                     >
                       <span>{t('booking.step1.continue')}</span>
@@ -897,7 +920,9 @@ export function BookingPage() {
                     {ROOMS.map((item) => {
                       const selected = form.roomId === item.id;
                       const availability = availabilityByRoom.get(item.id);
-                      const soldOut = availability ? availability.available_rooms < 1 : false;
+                      const soldOut =
+                        availabilityQuery.isSuccess &&
+                        (availability?.available_rooms ?? 0) < 1;
                       const tooSmall = availability ? !availability.fits_guests : false;
                       const unavailable = soldOut || tooSmall;
                       return (
@@ -916,7 +941,7 @@ export function BookingPage() {
                           />
                           <div className="flex gap-3 rounded-2xl border border-line p-3 transition peer-checked:border-forest peer-checked:bg-forest-50 peer-checked:ring-1 peer-checked:ring-forest/25">
                             <img
-                              src={item.image.replace('w=1200', 'w=400').replace('q=80', 'q=70')}
+                              src={item.image.replace(/\.webp$/, '-thumb.webp')}
                               alt=""
                               className="h-20 w-24 shrink-0 rounded-xl object-cover"
                               loading="lazy"
@@ -925,29 +950,17 @@ export function BookingPage() {
                               <div className="flex flex-wrap items-start justify-between gap-1">
                                 <p className="text-[14px] font-bold text-forest">{t(item.nameKey)}</p>
                                 <p className="text-[13px] font-bold text-forest">
-                                  KES {formatMoney(item.price)}
+                                  KES {formatMoney(item.fromPrice)}
                                 </p>
                               </div>
                               <p className="mt-1 text-[11px] text-muted">
-                                {t(`room.sleeps${item.sleeps}`)} · {item.size} m² · {t(item.bedKey)}
+                                {t(item.bedKey)} · {t(`room.sleeps${item.sleeps}`)}
                               </p>
-                              {availability ? (
-                                <p
-                                  className={`mt-1 text-[11px] font-semibold ${
-                                    unavailable
-                                      ? 'text-red-600'
-                                      : availability.available_rooms <= 2
-                                        ? 'text-gold-deep'
-                                        : 'text-muted'
-                                  }`}
-                                >
+                              {unavailable ? (
+                                <p className="mt-1 text-[11px] font-semibold text-red-600">
                                   {soldOut
                                     ? t('booking.soldOut')
-                                    : tooSmall
-                                      ? t('booking.tooManyGuests')
-                                      : availability.available_rooms <= 2
-                                        ? `${availability.available_rooms} ${t('booking.roomsLeft')}`
-                                        : null}
+                                    : t('booking.tooManyGuests')}
                                 </p>
                               ) : availabilityQuery.isFetching ? (
                                 <p className="mt-1 text-[11px] text-muted">
@@ -985,7 +998,7 @@ export function BookingPage() {
                       {t('meal.title')}
                     </legend>
                     <div className="mt-3 space-y-2">
-                      {MEAL_PLANS.map((plan) => {
+                      {visibleMealPlans.map((plan) => {
                         const selected = form.mealId === plan.id;
                         return (
                           <label key={plan.id} className="block cursor-pointer">
@@ -1010,8 +1023,15 @@ export function BookingPage() {
                                 <p className="shrink-0 text-right text-[12px] font-bold text-forest">
                                   + KES {formatMoney(plan.supplement)}
                                   <span className="block text-[9px] font-semibold text-muted">
-                                    {t('meal.perGuestNight')}
+                                    {t('meal.perRoomNight')}
                                   </span>
+                                  {plan.extraPerson > 0 ? (
+                                    <span className="block text-[9px] font-semibold text-muted">
+                                      {t('meal.extraGuest', {
+                                        amount: formatMoney(plan.extraPerson),
+                                      })}
+                                    </span>
+                                  ) : null}
                                 </p>
                               )}
                             </div>
@@ -1154,6 +1174,10 @@ export function BookingPage() {
                       {' · '}
                       <Link className="underline transition hover:text-forest" to="/terms">
                         {t('footer.terms')}
+                      </Link>
+                      {' · '}
+                      <Link className="underline transition hover:text-forest" to="/cancellation">
+                        {t('footer.cancellation')}
                       </Link>
                     </p>
                     <FieldError message={errors.terms} />
@@ -1638,7 +1662,7 @@ export function BookingPage() {
               <div className="bg-forest p-5 text-white">
                 <div className="flex items-center justify-between gap-3">
                   <h2 className="font-serif text-xl">{t('summary.title')}</h2>
-                  <span className="pill bg-white/10 text-gold ring-1 ring-white/15">
+                  <span className="pill bg-white/10 text-gold-soft ring-1 ring-white/15">
                     <span className="material-symbols-outlined text-[13px]" aria-hidden="true">
                       event_available
                     </span>
@@ -1657,7 +1681,7 @@ export function BookingPage() {
                     <button
                       type="button"
                       onClick={() => goToStep(1)}
-                      className="mt-2 inline-flex min-h-[36px] items-center gap-1 text-[11px] font-semibold text-gold transition hover:text-gold-soft"
+                      className="mt-2 inline-flex min-h-[36px] items-center gap-1 text-[11px] font-semibold text-gold-soft transition hover:text-white"
                     >
                       <span className="material-symbols-outlined text-[14px]" aria-hidden="true">
                         edit_calendar

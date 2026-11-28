@@ -20,13 +20,13 @@ describe('bookingFlow helpers', () => {
 
   it('builds a stable key for every quote input', () => {
     const input = {
-      room: 'standard-executive',
+      room: 'superior',
       meal: 'breakfast',
       checkin: '2026-12-01',
       checkout: '2026-12-03',
       guests: 2,
     };
-    expect(quoteKeyFor(input)).toBe('standard-executive|breakfast|2026-12-01|2026-12-03|2');
+    expect(quoteKeyFor(input)).toBe('superior|breakfast|2026-12-01|2026-12-03|2');
     expect(quoteKeyFor(input)).toBe(quoteKeyFor({ ...input }));
     expect(quoteKeyFor({ ...input, guests: 3 })).not.toBe(quoteKeyFor(input));
   });

@@ -50,6 +50,14 @@ class Booking(TimeStampedModel):
     room_type = models.ForeignKey(
         RoomType, on_delete=models.PROTECT, related_name="bookings"
     )
+    room = models.ForeignKey(
+        "rooms.Room",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="bookings",
+        help_text="Numbered room assigned when this booking starts reserving inventory.",
+    )
     rate_plan = models.ForeignKey(
         RatePlan, on_delete=models.PROTECT, related_name="bookings"
     )
@@ -116,6 +124,7 @@ class Booking(TimeStampedModel):
         ordering = ("-created_at",)
         indexes = [
             models.Index(fields=["room_type", "checkin", "checkout", "status"]),
+            models.Index(fields=["room", "status", "checkin", "checkout"]),
             models.Index(fields=["status", "hold_expires_at"]),
             models.Index(fields=["email"]),
             models.Index(fields=["phone"]),

@@ -24,8 +24,8 @@ function bookingBody(overrides: Record<string, unknown> = {}) {
     reference: 'WP-2026-0001',
     status: 'confirmed',
     status_display: 'Confirmed',
-    room_type: 'standard-executive',
-    room_type_name: 'Standard Executive',
+    room_type: 'superior',
+    room_type_name: 'Superior Room',
     room_type_image: '',
     rate_plan: 'flexible',
     meal_plan: 'breakfast',
@@ -157,7 +157,7 @@ describe('BookingManagePage', () => {
 
     await lookup(user);
 
-    expect(await screen.findByText('Standard Executive')).toBeInTheDocument();
+    expect(await screen.findByText('Superior Room')).toBeInTheDocument();
     expect(screen.getByText('Confirmed')).toBeInTheDocument();
     expect(screen.getByText('Payment received')).toBeInTheDocument();
     expect(screen.getByText(/Free cancellation until/)).toBeInTheDocument();
@@ -182,7 +182,7 @@ describe('BookingManagePage', () => {
     renderManagePage();
 
     await lookup(user);
-    await screen.findByText('Standard Executive');
+    await screen.findByText('Superior Room');
 
     await user.click(screen.getByRole('button', { name: 'Cancel this booking' }));
     expect(screen.getByText('Cancel this booking?')).toBeInTheDocument();
@@ -234,7 +234,7 @@ describe('BookingManagePage', () => {
     renderManagePage();
 
     await lookup(user);
-    await screen.findByText('Standard Executive');
+    await screen.findByText('Superior Room');
     await user.click(screen.getByRole('button', { name: 'Cancel this booking' }));
     await user.click(screen.getByRole('button', { name: 'Yes, cancel booking' }));
 
@@ -256,6 +256,6 @@ describe('BookingManagePage', () => {
     expect(
       await screen.findByText(/We could not find a booking with those details/),
     ).toBeInTheDocument();
-    expect(screen.queryByText('Standard Executive')).not.toBeInTheDocument();
+    expect(screen.queryByText('Superior Room')).not.toBeInTheDocument();
   });
 });

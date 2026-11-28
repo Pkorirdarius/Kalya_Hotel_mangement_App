@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react';
-import { Link } from 'react-router-dom';
+import { BrandLockup } from '../components/Logo';
+import { Link } from '../components/LocalizedLink';
 
 import { usePageMeta } from '../components/Page';
 import { useToast } from '../components/ToastProvider';
@@ -12,6 +13,7 @@ import type {
   DeskAction,
   DeskActionRequest,
   QueueItem,
+  StaffRoom,
   User,
 } from '../lib/api/types';
 import {
@@ -25,6 +27,8 @@ import {
   useStaffLogoutMutation,
   useStaffMe,
   useStaffOverview,
+  useStaffRoomStatusMutation,
+  useStaffRooms,
 } from '../lib/query/hooks';
 import { addDaysISO, todayISO } from '../utils';
 
@@ -108,22 +112,27 @@ function itemKey(item: Pick<QueueItem, 'entity_type' | 'id'>): string {
   return `${item.entity_type}:${item.id}`;
 }
 
-function BrandHeader({ children }: { children: ReactNode }) {
+function DashboardBrand() {
   const { t } = useI18n();
+  return (
+    <Link
+      to="/"
+      className="group flex min-w-0 items-center"
+      aria-label={`${HOTEL.name} — ${t('dash.frontDesk')}`}
+    >
+      <BrandLockup dark compact />
+      <span className="ml-2 hidden text-[9px] font-bold uppercase tracking-[0.24em] text-white/55 sm:inline sm:ml-3">
+        {t('dash.frontDesk')}
+      </span>
+    </Link>
+  );
+}
+
+function BrandHeader({ children }: { children: ReactNode }) {
   return (
     <header className="border-b border-white/10 bg-forest-dark">
       <div className="mx-auto flex min-h-[68px] max-w-[1440px] items-center justify-between gap-4 px-4 lg:px-8">
-        <Link to="/" className="flex items-center gap-2.5" aria-label={t('common.homeLabel')}>
-          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 ring-1 ring-white/20">
-            <span className="font-serif text-xl text-gold">{HOTEL.monogram}</span>
-          </span>
-          <span className="hidden flex-col leading-none sm:flex">
-            <span className="font-serif text-[22px] text-white">{HOTEL.shortName}</span>
-            <span className="mt-0.5 text-[8px] font-bold uppercase tracking-[0.28em] text-white/50">
-              {t('dash.frontDesk')}
-            </span>
-          </span>
-        </Link>
+        <DashboardBrand />
         <div className="flex items-center gap-2 sm:gap-3">{children}</div>
       </div>
     </header>
@@ -136,11 +145,11 @@ function LanguageButton() {
     <button
       type="button"
       onClick={toggleLanguage}
-      aria-label={t('header.language')}
+      aria-label={`EN | SW — ${t('header.language')}`}
       className="inline-flex min-h-[40px] items-center gap-1.5 rounded-full bg-white/[0.08] px-3 text-[10px] font-bold uppercase tracking-[0.12em] text-white ring-1 ring-white/10 transition hover:bg-white/[0.12]"
     >
       <span className={language === 'en' ? 'text-gold' : 'text-white/60'}>EN</span>
-      <span className="text-white/30">|</span>
+      <span className="text-white/55">|</span>
       <span className={language === 'sw' ? 'text-gold' : 'text-white/60'}>SW</span>
     </button>
   );
@@ -231,7 +240,7 @@ function LoginScreen() {
                   setUsername(event.target.value);
                   if (login.isError) login.reset();
                 }}
-                className="h-12 w-full rounded-xl border border-white/15 bg-white/[0.08] px-4 text-[15px] text-white placeholder:text-white/30 focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/20"
+                className="h-12 w-full rounded-xl border border-white/15 bg-white/[0.08] px-4 text-[15px] text-white placeholder:text-white/55 focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/20"
               />
             </div>
             <div>
@@ -251,7 +260,7 @@ function LoginScreen() {
                   setPassword(event.target.value);
                   if (login.isError) login.reset();
                 }}
-                className="h-12 w-full rounded-xl border border-white/15 bg-white/[0.08] px-4 text-[15px] text-white placeholder:text-white/30 focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/20"
+                className="h-12 w-full rounded-xl border border-white/15 bg-white/[0.08] px-4 text-[15px] text-white placeholder:text-white/55 focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/20"
               />
             </div>
 
@@ -273,13 +282,156 @@ function LoginScreen() {
             </button>
           </form>
 
-          <p className="mt-5 text-[11px] leading-relaxed text-white/35">{t('dash.login.note')}</p>
+          <p className="mt-5 text-[11px] leading-relaxed text-white/60">{t('dash.login.note')}</p>
         </section>
       </main>
       <footer className="border-t border-white/5 py-4 text-center text-[10px] text-white/25">
         {HOTEL.name}
       </footer>
     </div>
+  );
+}
+
+function RoomsPanel() {
+  const { t } = useI18n();
+  const { showToast } = useToast();
+  const rooms = useStaffRooms();
+  const statusMutation = useStaffRoomStatusMutation();
+
+  const rows = [...(rooms.data ?? [])].sort((a, b) =>
+    a.number.localeCompare(b.number, undefined, { numeric: true }),
+  );
+  const freeCount = rows.filter((room) => room.status === 'free').length;
+  const occupiedCount = rows.length - freeCount;
+  const hasProvisional = rows.some((room) => room.number.startsWith('TWIN-'));
+
+  const changeStatus = async (room: StaffRoom) => {
+    const target = room.status === 'free' ? 'occupied' : 'free';
+    try {
+      await statusMutation.mutateAsync({ id: room.id, status: target });
+      showToast(
+        t(
+          target === 'occupied'
+            ? 'dash.rooms.markedOccupied'
+            : 'dash.rooms.markedFree',
+          { number: room.number },
+        ),
+        'success',
+      );
+    } catch {
+      showToast(t('dash.rooms.toggleError'), 'error');
+    }
+  };
+
+  return (
+    <section className="mt-8 rounded-3xl border border-white/10 bg-white/[0.04] p-5 lg:p-6">
+      <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
+        <div>
+          <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-gold">
+            {t('dash.rooms.eyebrow')}
+          </p>
+          <h2 className="mt-1 font-serif text-2xl text-white">{t('dash.rooms.title')}</h2>
+          <p className="mt-1 max-w-xl text-[11px] leading-relaxed text-white/60">
+            {t('dash.rooms.text')}
+          </p>
+        </div>
+        <div className="flex gap-2 text-[11px]">
+          <span className="rounded-full border border-emerald-400/30 bg-emerald-400/10 px-3 py-1 text-emerald-200">
+            {t('dash.rooms.free')}: <strong>{rooms.isPending ? '—' : freeCount}</strong>
+          </span>
+          <span className="rounded-full border border-amber-400/30 bg-amber-400/10 px-3 py-1 text-amber-200">
+            {t('dash.rooms.occupied')}:{' '}
+            <strong>{rooms.isPending ? '—' : occupiedCount}</strong>
+          </span>
+        </div>
+      </div>
+
+      {rooms.isError ? (
+        <div className="mt-4 flex flex-wrap items-center gap-3 rounded-xl border border-red-300/20 bg-red-500/10 px-3 py-2 text-[12px] text-red-100">
+          <span>{t('dash.rooms.error')}</span>
+          <button
+            type="button"
+            onClick={() => void rooms.refetch()}
+            className="font-semibold underline"
+          >
+            {t('dash.rooms.retry')}
+          </button>
+        </div>
+      ) : null}
+
+      {hasProvisional ? (
+        <p className="mt-4 flex items-start gap-2 rounded-xl border border-amber-300/20 bg-amber-400/[0.07] px-3 py-2 text-[11px] leading-relaxed text-amber-100/80">
+          <span className="material-symbols-outlined text-[16px] text-amber-200" aria-hidden="true">
+            info
+          </span>
+          <span>{t('dash.rooms.provisional')}</span>
+        </p>
+      ) : null}
+
+      {rooms.isPending ? (
+        <p className="mt-4 text-[12px] text-white/60" role="status">
+          {t('dash.rooms.loading')}
+        </p>
+      ) : rooms.isError ? null : rows.length === 0 ? (
+        <p className="mt-4 text-[12px] text-white/60">{t('dash.rooms.empty')}</p>
+      ) : (
+        <div className="mt-4 overflow-x-auto">
+          <table className="w-full min-w-[520px] text-left text-[11px]">
+            <thead className="text-white/60">
+              <tr>
+                <th className="py-2 pr-3 font-semibold">{t('dash.rooms.column.room')}</th>
+                <th className="py-2 pr-3 font-semibold">{t('dash.rooms.column.type')}</th>
+                <th className="py-2 pr-3 font-semibold">{t('dash.rooms.column.status')}</th>
+                <th className="py-2 pr-3 text-right font-semibold">
+                  {t('dash.rooms.column.action')}
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-white/5">
+              {rows.map((room) => {
+                const occupied = room.status === 'occupied';
+                return (
+                  <tr key={room.id}>
+                    <td className="py-2 pr-3 font-bold text-white">{room.number}</td>
+                    <td className="py-2 pr-3 text-white/55">{room.room_type_name}</td>
+                    <td className="py-2 pr-3">
+                      <span
+                        className={
+                          occupied
+                            ? 'rounded-full border border-amber-400/30 bg-amber-400/10 px-2 py-0.5 text-amber-200'
+                            : 'rounded-full border border-emerald-400/30 bg-emerald-400/10 px-2 py-0.5 text-emerald-200'
+                        }
+                      >
+                        {t(occupied ? 'dash.rooms.status.occupied' : 'dash.rooms.status.free')}
+                      </span>
+                    </td>
+                    <td className="py-2 pr-3 text-right">
+                      <button
+                        type="button"
+                        disabled={statusMutation.isPending}
+                        aria-label={t(
+                          occupied ? 'dash.rooms.markFree.aria' : 'dash.rooms.markOccupied.aria',
+                          { number: room.number },
+                        )}
+                        onClick={() => void changeStatus(room)}
+                        className="inline-flex min-h-[32px] items-center gap-1.5 rounded-full border border-gold/40 px-3 text-[11px] font-bold text-gold transition hover:bg-gold/10 disabled:opacity-50"
+                      >
+                        <span className="material-symbols-outlined text-[15px]" aria-hidden="true">
+                          {occupied ? 'cancel' : 'check_circle'}
+                        </span>
+                        <span>
+                          {t(occupied ? 'dash.rooms.markFree' : 'dash.rooms.markOccupied')}
+                        </span>
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </section>
   );
 }
 
@@ -349,11 +501,11 @@ function ReportsPanel() {
             {t('dash.reports.eyebrow')}
           </p>
           <h2 className="mt-1 font-serif text-2xl text-white">{t('dash.reports.title')}</h2>
-          <p className="mt-1 max-w-xl text-[11px] leading-relaxed text-white/40">
+          <p className="mt-1 max-w-xl text-[11px] leading-relaxed text-white/60">
             {t('dash.reports.text')}
           </p>
         </div>
-        <div className="text-[11px] text-white/50">
+        <div className="text-[11px] text-white/65">
           <span>{t('dash.reports.revenue')}: </span>
           <strong className="text-gold">
             {formatMoney(overview.data?.revenue_today ?? 0)}
@@ -378,11 +530,11 @@ function ReportsPanel() {
       <div className="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
         {stats.map((stat) => (
           <div key={stat.key} className="rounded-2xl border border-white/10 bg-white/[0.05] p-4">
-            <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-white/45">
+            <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-white/60">
               {t(`dash.reports.${stat.key}`)}
             </p>
             <p className="mt-1 font-serif text-3xl text-white">{stat.value}</p>
-            {stat.note ? <p className="text-[10px] text-white/35">{stat.note}</p> : null}
+            {stat.note ? <p className="text-[10px] text-white/60">{stat.note}</p> : null}
           </div>
         ))}
       </div>
@@ -394,7 +546,7 @@ function ReportsPanel() {
               <h3 className="text-[15px] font-bold text-white">
                 {t('dash.reports.paymentsTitle')}
               </h3>
-              <p className="mt-0.5 text-[10px] leading-relaxed text-white/40">
+              <p className="mt-0.5 text-[10px] leading-relaxed text-white/60">
                 {t('dash.reports.paymentsText')}
               </p>
             </div>
@@ -410,19 +562,31 @@ function ReportsPanel() {
           </div>
 
           <div className="mt-3 flex flex-wrap items-end gap-3">
-            <label className="text-[10px] font-bold uppercase tracking-[0.12em] text-white/45">
-              <span className="mb-1 block">{t('dash.reports.start')}</span>
+            <div>
+              <label
+                htmlFor="report-start"
+                className="mb-1 block text-[10px] font-bold uppercase tracking-[0.12em] text-white/60"
+              >
+                {t('dash.reports.start')}
+              </label>
               <input
+                id="report-start"
                 type="date"
                 value={start}
                 max={end}
                 onChange={(event) => setStart(event.target.value)}
                 className="h-9 rounded-lg border border-white/15 bg-white/[0.08] px-2 text-[12px] text-white focus:border-gold focus:outline-none"
               />
-            </label>
-            <label className="text-[10px] font-bold uppercase tracking-[0.12em] text-white/45">
-              <span className="mb-1 block">{t('dash.reports.end')}</span>
+            </div>
+            <div>
+              <label
+                htmlFor="report-end"
+                className="mb-1 block text-[10px] font-bold uppercase tracking-[0.12em] text-white/60"
+              >
+                {t('dash.reports.end')}
+              </label>
               <input
+                id="report-end"
                 type="date"
                 value={end}
                 min={start}
@@ -430,11 +594,11 @@ function ReportsPanel() {
                 onChange={(event) => setEnd(event.target.value)}
                 className="h-9 rounded-lg border border-white/15 bg-white/[0.08] px-2 text-[12px] text-white focus:border-gold focus:outline-none"
               />
-            </label>
+            </div>
           </div>
 
           {payments.isPending ? (
-            <p className="mt-4 text-[12px] text-white/45" role="status">
+            <p className="mt-4 text-[12px] text-white/60" role="status">
               {t('dash.reports.loading')}
             </p>
           ) : payments.isError ? (
@@ -446,10 +610,10 @@ function ReportsPanel() {
               {t('dash.reports.retry')}
             </button>
           ) : (payments.data?.results.length ?? 0) === 0 ? (
-            <p className="mt-4 text-[12px] text-white/45">{t('dash.reports.empty')}</p>
+            <p className="mt-4 text-[12px] text-white/60">{t('dash.reports.empty')}</p>
           ) : (
             <>
-              <p className="mt-3 text-[11px] text-white/50">
+              <p className="mt-3 text-[11px] text-white/65">
                 {t('dash.reports.count', { count: payments.data?.count ?? 0 })} ·{' '}
                 {t('dash.reports.total')}:{' '}
                 <strong className="text-white">
@@ -458,7 +622,7 @@ function ReportsPanel() {
               </p>
               <div className="mt-2 overflow-x-auto">
                 <table className="w-full min-w-[420px] text-left text-[11px]">
-                  <thead className="text-white/40">
+                  <thead className="text-white/60">
                     <tr>
                       <th className="py-2 pr-3 font-semibold">{t('dash.reports.reference')}</th>
                       <th className="py-2 pr-3 font-semibold">{t('dash.reports.provider')}</th>
@@ -497,16 +661,16 @@ function ReportsPanel() {
           <h3 className="text-[15px] font-bold text-white">
             {t('dash.reports.occupancyTitle')}
           </h3>
-          <p className="mt-0.5 text-[10px] leading-relaxed text-white/40">
+          <p className="mt-0.5 text-[10px] leading-relaxed text-white/60">
             {t('dash.reports.occupancyText')}
           </p>
 
           {occupancy.isPending ? (
-            <p className="mt-4 text-[12px] text-white/45" role="status">
+            <p className="mt-4 text-[12px] text-white/60" role="status">
               {t('dash.reports.loading')}
             </p>
           ) : (occupancy.data?.results.length ?? 0) === 0 ? (
-            <p className="mt-4 text-[12px] text-white/45">
+            <p className="mt-4 text-[12px] text-white/60">
               {t('dash.reports.noOccupancy')}
             </p>
           ) : (
@@ -523,7 +687,7 @@ function ReportsPanel() {
                       month: 'short',
                     }).format(new Date(`${row.date}T12:00:00`))}
                   </span>
-                  <span className="text-white/45">
+                  <span className="text-white/60">
                     {t('dash.reports.nights', {
                       percent: row.occupancy_percent,
                       bookings: row.in_house_bookings,
@@ -591,6 +755,8 @@ function FrontDeskBoard({ user }: { user: User }) {
 
   const targetMinutes = queue.data?.target_minutes ?? 10;
   const escalateMinutes = queue.data?.escalate_minutes ?? 8;
+  const newBookingCount = queue.data?.new_booking_count ?? 0;
+  const newBookingWindow = queue.data?.new_booking_window_minutes ?? 10;
   const undoSecondsLeft =
     lastAction?.action.undo_deadline != null
       ? secondsUntil(lastAction.action.undo_deadline, now)
@@ -683,28 +849,27 @@ function FrontDeskBoard({ user }: { user: User }) {
         <header className="border-b border-white/10 bg-forest-dark">
           <div className="mx-auto flex min-h-[68px] max-w-[1440px] items-center justify-between gap-4 px-4 lg:px-8">
             <div className="flex items-center gap-6">
-              <Link to="/" className="flex items-center gap-2.5" aria-label={t('common.homeLabel')}>
-                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 ring-1 ring-white/20">
-                  <span className="font-serif text-xl text-gold">{HOTEL.monogram}</span>
-                </span>
-                <span className="hidden flex-col leading-none sm:flex">
-                  <span className="font-serif text-[22px] text-white">{HOTEL.shortName}</span>
-                  <span className="mt-0.5 text-[8px] font-bold uppercase tracking-[0.28em] text-white/50">
-                    {t('dash.frontDesk')}
-                  </span>
-                </span>
-              </Link>
+              <DashboardBrand />
               <div className="hidden h-8 w-px bg-white/10 md:block" />
               <div className="hidden items-center gap-2 md:flex">
-                <span className="h-2 w-2 animate-gentle-pulse rounded-full bg-[#3DDC84]" />
+                <span className="h-2 w-2 rounded-full bg-[#3DDC84]" />
                 <span className="text-[11px] font-bold uppercase tracking-[0.16em] text-white/60">
                   {t('dash.live')}
                 </span>
-                <span className="text-[11px] text-white/40">{dateLabel}</span>
+                <span className="text-[11px] text-white/60">{dateLabel}</span>
               </div>
             </div>
 
             <div className="flex items-center gap-2 sm:gap-3">
+              <Link
+                to="/content-review"
+                className="hidden min-h-[40px] items-center gap-1.5 rounded-full border border-white/15 px-3 text-[11px] font-semibold text-white/70 transition hover:border-white/30 hover:text-white sm:inline-flex"
+              >
+                <span className="material-symbols-outlined text-[16px]" aria-hidden="true">
+                  fact_check
+                </span>
+                <span>{t('dash.contentReview')}</span>
+              </Link>
               <LanguageButton />
               <ViewSiteLink />
               <div className="flex items-center gap-2.5 rounded-full bg-white/[0.08] py-1 pl-1 pr-2 ring-1 ring-white/10">
@@ -713,12 +878,13 @@ function FrontDeskBoard({ user }: { user: User }) {
                 </span>
                 <span className="hidden flex-col leading-tight sm:flex">
                   <span className="text-[11px] font-bold text-white">{displayName(user)}</span>
-                  <span className="text-[9px] text-white/50">{user.role_display}</span>
+                  <span className="text-[9px] text-white/65">{user.role_display}</span>
                 </span>
                 <button
                   type="button"
                   onClick={handleLogout}
                   disabled={logoutMutation.isPending}
+                  aria-label={t('dash.logout')}
                   className="ml-1 inline-flex min-h-[34px] items-center gap-1 rounded-full px-2 text-[10px] font-bold uppercase tracking-[0.1em] text-white/60 transition hover:bg-white/10 hover:text-white disabled:opacity-50"
                 >
                   <span className="material-symbols-outlined text-[15px]" aria-hidden="true">
@@ -738,7 +904,7 @@ function FrontDeskBoard({ user }: { user: User }) {
               <h1 className="mt-2 font-serif text-3xl text-white sm:text-4xl">
                 {greeting}, {displayName(user).split(' ')[0]}.
               </h1>
-              <p className="mt-1 text-sm text-white/50">{t('dash.subtitle')}</p>
+              <p className="mt-1 text-sm text-white/65">{t('dash.subtitle')}</p>
             </div>
             <div className="flex flex-col items-start gap-1 sm:items-end">
               <button
@@ -752,12 +918,32 @@ function FrontDeskBoard({ user }: { user: User }) {
                 <span>{t('dash.refresh')}</span>
               </button>
               {queue.data?.generated_at ? (
-                <p className="text-[10px] text-white/35">
+                <p className="text-[10px] text-white/60">
                   {t('dash.updated', { time: formatClock(queue.data.generated_at, language) })}
                 </p>
               ) : null}
             </div>
           </div>
+
+          {newBookingCount > 0 ? (
+            <div
+              role="status"
+              className="mt-5 flex items-start gap-3 rounded-2xl border border-[#3DDC84]/30 bg-[#3DDC84]/10 px-4 py-3"
+            >
+              <span
+                className="material-symbols-outlined inline-flex h-5 w-5 shrink-0 items-center justify-center overflow-hidden text-[20px] leading-none text-[#3DDC84]"
+                aria-hidden="true"
+              >
+                notifications
+              </span>
+              <p className="min-w-0 flex-1 break-words text-[12px] leading-relaxed text-white/80">
+                {t('dash.newBooking.alert', {
+                  count: newBookingCount,
+                  minutes: newBookingWindow,
+                })}
+              </p>
+            </div>
+          ) : null}
 
           <div className="mt-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
             {[
@@ -799,7 +985,7 @@ function FrontDeskBoard({ user }: { user: User }) {
                 <div className="flex items-center justify-between gap-2">
                   <p
                     className={`text-[10px] font-bold uppercase tracking-[0.14em] ${
-                      stat.accent ? 'text-gold' : 'text-white/45'
+                      stat.accent ? 'text-gold' : 'text-white/60'
                     }`}
                   >
                     {t(`dash.stats.${stat.key}`)}
@@ -809,7 +995,7 @@ function FrontDeskBoard({ user }: { user: User }) {
                   </span>
                 </div>
                 <p className="mt-2 font-serif text-4xl text-white">{stat.value}</p>
-                <p className={`mt-0.5 text-[10px] ${stat.accent ? 'text-gold/70' : 'text-white/40'}`}>
+                <p className={`mt-0.5 text-[10px] ${stat.accent ? 'text-gold/70' : 'text-white/60'}`}>
                   {stat.note}
                 </p>
               </div>
@@ -847,11 +1033,11 @@ function FrontDeskBoard({ user }: { user: User }) {
             <section>
               <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
                 <div>
-                  <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/40">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/60">
                     {t('dash.queue.eyebrow')}
                   </p>
                   <h2 className="mt-1 font-serif text-2xl text-white">{t('dash.queue.title')}</h2>
-                  <p className="mt-1 max-w-xl text-[11px] leading-relaxed text-white/40">
+                  <p className="mt-1 max-w-xl text-[11px] leading-relaxed text-white/60">
                     {t('dash.queue.text')}
                   </p>
                 </div>
@@ -871,14 +1057,14 @@ function FrontDeskBoard({ user }: { user: User }) {
                         : t('dash.escalate.button')}
                     </span>
                   </button>
-                  <p className="max-w-[240px] text-right text-[10px] leading-relaxed text-white/30">
+                  <p className="max-w-[240px] text-right text-[10px] leading-relaxed text-white/55">
                     {t('dash.escalate.note', { minutes: escalateMinutes })}
                   </p>
                 </div>
               </div>
 
               {queue.isPending ? (
-                <div className="mt-4 flex min-h-[160px] items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04] text-sm text-white/50" role="status">
+                <div className="mt-4 flex min-h-[160px] items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04] text-sm text-white/65" role="status">
                   {t('dash.queue.loading')}
                 </div>
               ) : queue.isError ? (
@@ -898,7 +1084,7 @@ function FrontDeskBoard({ user }: { user: User }) {
                     task_alt
                   </span>
                   <h3 className="mt-2 font-serif text-xl text-white">{t('dash.queue.emptyTitle')}</h3>
-                  <p className="mx-auto mt-1 max-w-sm text-[12px] leading-relaxed text-white/45">
+                  <p className="mx-auto mt-1 max-w-sm text-[12px] leading-relaxed text-white/60">
                     {t('dash.queue.emptyText')}
                   </p>
                 </div>
@@ -1072,7 +1258,7 @@ function FrontDeskBoard({ user }: { user: User }) {
               </section>
 
               <section className="rounded-2xl border border-white/10 bg-white/[0.04] p-5">
-                <p className="flex items-start gap-2 text-[11px] leading-relaxed text-white/45">
+                <p className="flex items-start gap-2 text-[11px] leading-relaxed text-white/60">
                   <span className="material-symbols-outlined text-[16px] text-gold" aria-hidden="true">
                     verified_user
                   </span>
@@ -1082,9 +1268,10 @@ function FrontDeskBoard({ user }: { user: User }) {
             </aside>
           </div>
 
+          {user.capabilities.manage_bookings ? <RoomsPanel /> : null}
           {user.capabilities.export_guest_data ? <ReportsPanel /> : null}
 
-          <p className="mt-6 flex items-center justify-center gap-2 text-center text-[10px] text-white/30">
+          <p className="mt-6 flex items-center justify-center gap-2 text-center text-[10px] text-white/55">
             <span className="material-symbols-outlined text-[14px]" aria-hidden="true">
               lock
             </span>

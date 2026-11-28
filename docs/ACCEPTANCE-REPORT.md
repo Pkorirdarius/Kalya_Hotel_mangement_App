@@ -1,9 +1,9 @@
 # Acceptance report — `feat/finish-frontend`
 
-**Audit date:** 14 November 2026; report updated 17 November 2026  
-**Branch tip at audit:** `230e6a9`; pre-C7 security work proceeds from `2883310`  
+**Audit date:** 14 November 2026; report updated 26 November 2026  
+**Branch under test:** `feat/finish-frontend` (code tip `e3035ee`; documentation finalized in the following commit). C7 work proceeded from `c5047d2`.  
 **Target:** `v0.1.0-rc1` release candidate (no merge, no production deploy)  
-**Scope:** prove the definition of done, close gaps, stage and package the release. No new guest features and no UI redesign.
+**Scope:** prove the definition of done, close gaps, stage and package the release. No new guest features beyond the required C9 blog routes and E4 staff content-confirmation page. No UI redesign.
 
 Status legend:
 
@@ -29,12 +29,41 @@ All commands were run from the repository root unless stated. Backend commands r
 | 7 | `npm run check:brand` | `Brand check passed: no hard-coded brand strings in code or tests.` |
 | 8 | `USE_SQLITE=false ... python -m pytest -q` (Postgres 16 in Docker) | **104 passed** in 22.72s (after B6), including `test_concurrency.py` (8 threads, 1 room, exactly 1 booking). Two Postgres-only defects fixed first: notification `entity_type` truncation and `select_for_update` over nullable joins. The pre-C7 suite is proven on Postgres by CI run [44046794171](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/44046794171). |
 | 9 | `python -m pytest -q apps/common/tests/test_throttles.py apps/accounts/tests/test_role_boundaries.py apps/common/tests/test_seed_users.py` | **19 passed** in 3.43s (B6 security tests plus browse/lookup throttle coverage). |
+| 10 | `..\.venv\Scripts\python.exe -m pytest -q` (after C7) | **156 passed, 1 skipped** in 8.61s. Skip remains `apps/bookings/tests/test_concurrency.py:30 — Row-lock concurrency needs Postgres`. |
+| 11 | `..\.venv\Scripts\python.exe manage.py makemigrations --check --dry-run` | No changes detected after adding `facilities/0004_alter_conferenceenquiry_language_and_more.py`; the earlier `0003_guest_language` used `preserve_default=False`, and `0004` restores the model default in migration state. |
+| 12 | `npm run check` (after C7) | Typecheck and lint passed; **80 passed** across **18 test files**; `Brand check passed: no hard-coded brand strings in code or tests.` |
+| 13 | `npm run build` (after C7) | Passed. Vite 6.4.5 transformed 221 modules and emitted `dist/index.html`, `dist/robots.txt`, `dist/sitemap.xml` and hashed assets. |
+| 14 | `..\.venv\Scripts\python.exe manage.py check` (after C7) | `System check identified no issues (0 silenced).` |
+| 15 | `npm run check` (after C8) | Typecheck and lint passed; **97 passed** across **23 test files**; `Brand check passed: no hard-coded brand strings in code or tests.` |
+| 16 | `npm run build` (after C8) | Passed. Vite 6.4.5 transformed 224 modules and emitted `dist/index.html`, `dist/robots.txt`, `dist/sitemap.xml` and hashed assets. The built `index.html` contains `en`, `sw` and `x-default` alternate links. |
+| 17 | `Select-String -Pattern hreflang frontend/dist/index.html` | Built HTML contains `<link rel="alternate" hreflang="en" href="https://westpremierhotel.co.ke/" />`, `hreflang="sw" ... /sw/` and `hreflang="x-default"` (inspection artifact for C8). |
+| 18 | `npm run check` (after C9) | Typecheck and lint passed; **105 passed** across **25 test files**; `Brand check passed: no hard-coded brand strings in code or tests.` |
+| 19 | `npm run build` (after C9) | Passed. Vite 6.4.5 transformed 227 modules; `dist/sitemap.xml` grew to 8.86 kB with EN/SW entries and `dist/robots.txt` disallows both `/booking/manage` and `/sw/booking/manage` plus both dashboard paths. |
+| 20 | `Get-Content frontend/dist/robots.txt` / `Get-Content frontend/dist/sitemap.xml` | Inspected artifacts: robots has four `Disallow` lines and the sitemap has reciprocal `xhtml:link` alternates for each language. |
+| 21 | `npm run check` (after C10) | Typecheck and lint passed; **108 passed** across **26 test files** (adds `prerenderMeta.test.ts`); `Brand check passed: no hard-coded brand strings in code or tests.` |
+| 22 | `npm run build` (after C10) | Passed. Vite 6.4.5 transformed 227 modules; the new prerender step generated **24 HTML pages from 12 critical routes** plus `dist/prerender-report.json`. |
+| 23 | `npm run prerender` (repeat) | Passed without rebuilding assets; it reuses `dist/index.source.html`, so the command is idempotent. |
+| 24 | Inspected `frontend/dist/index.html`, `dist/rooms/index.html`, `dist/sw/rooms/index.html`, `dist/prerender-report.json` and the `index.html` tree | 24 `index.html` files exist (12 EN + 12 `/sw`). Each inspected file has the right `lang`, unique head metadata, reciprocal hreflang links, a `WebPage` JSON-LD node, one non-empty H1 in the body and the hashed hydration script. Report fields match the head tags. |
 
-**Not run (therefore unverified):** Docker/Compose staging stack, Playwright browser suite, Lighthouse, `manage.py check --deploy`, live M-Pesa/card/SMTP calls, backup/restore drill. The Postgres-backed suite now runs locally and in CI. Docker Desktop is not running in this environment, so local Postgres proof is currently unavailable; CI is the Postgres proof instead.
+| 25 | `npm run check` (after D1 motion normalization) | Typecheck and lint passed; **108 passed** across **26 test files**; brand check passed. CI [45211085265](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45211085265). |
+| 26 | `npm run check` (after D2 axe/keyboard tests) | Typecheck and lint passed; **120 passed** across **27 test files**; brand check passed. CI [45385570039](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45385570039). |
+| 27 | `$env:PLAYWRIGHT_CHANNEL=$null; $env:CI='true'; npm run test:e2e` (D3) | **15 passed** locally with bundled Playwright Chromium; the seven specs a–g also pass in CI run [45403334223](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45403334223). |
+| 28 | `npm run check` + `npm run build` (after D4 asset optimization) | **120 passed** across **27 test files**; build passed and generated 24 prerendered pages. CI [45781024001](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45781024001). |
+| 29 | `npm run check` + `npm run build` (after D4 font subset/deferral follow-up) | **122 passed** across **28 test files**; build passed and generated 24 prerendered pages. CI [45784395555](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45784395555). |
+| 30 | Lighthouse 13.6.0, mobile, against the gzipped production `dist` | Home **88** and **93** performance in two final runs, Rooms **88**, Booking **90**; accessibility, best practices and SEO were **100** in the stable runs. LCP 2.9 s on Home, TBT 150–300 ms, CLS 0; no failing `target-size` or `color-contrast` audit. One earlier Rooms run showed transient footer contrast failures before CSS settled; the repeat run passed. |
+| 31 | Backend + frontend tests after D5 | Backend `..\.venv\Scripts\python.exe -m pytest -q`: **158 passed, 1 skipped** (Postgres row-lock skip locally). Targeted CSP suites: **2 passed** backend and **2 passed** frontend. `npm run check`: **122 passed** across **28 test files**. CI [45782053634](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45782053634). |
+| 32 | E1 staging validation | `python scripts/check_staging_stack.py`, `python manage.py check --settings=config.settings.staging` and `docker compose -f docker-compose.staging.yml config --quiet` all passed locally and in CI [45785986169](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45785986169). |
+| 33 | E2 backup/restore drill | `python scripts/postgres_backup_restore.py drill` passed in CI on `8067a98` after removing a client/server version mismatch: newer `pg_dump` emitted `SET transaction_timeout = 0;`, which the Postgres 16 service rejects. The drill uses two scratch databases, never the application DB. Green CI [45790178207](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45790178207). |
+| 34 | E3 monitoring/retention checks | Backend suite **171 passed, 1 skipped**; `python manage.py apply_retention --dry-run` passed in CI and wrote nothing. `LOG_FORMAT=json` uses `SafeJSONFormatter` with redacted extras; `SENTRY_DSN` stays empty by default. Green CI [45790178207](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45790178207). |
+| 35 | E4 content confirmation | Backend suite **171 passed, 1 skipped** including 4 new endpoint tests; `npm run check`: **124 passed** across **29 test files** including 2 page tests; `npm run build` prerendered 24 pages. Green CI [45790520902](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45790520902). |
+| 36 | E5 UAT kit | Added `docs/UAT-SCRIPT.md` and `CHANGELOG.md`; stabilized the axe scan so it evaluates settled contrast after entrance animations. Green CI [45795777125](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45795777125). |
+| 37 | Phase 8 verification | `npm run check`: **141 passed** across **30 test files**; `npm run test:e2e`: **19 passed** across eight specs (a–h); `npm run build`: **26 prerendered pages from 13 indexable routes** with all five static performance budgets passing; backend `pytest -q`: **247 passed, 1 skipped** (Postgres row-lock skip); `makemigrations --check --dry-run`: no changes detected. |
+
+**Not run (therefore unverified):** a live deployed staging smoke run (Docker Desktop is unavailable locally, so E1 proof is static manifest/config validation plus CI), `manage.py check --deploy` with real production env, live M-Pesa/card/SMTP/SMS calls, native Swahili review, and the CSP violation review needed before switching from report-only to enforcement. The Postgres-backed suite and the backup/restore drill now run in CI. Playwright and Lighthouse are no longer unverified: both were run locally and in CI (Playwright), with recorded reports for Lighthouse.
 
 ### 1.1 GitHub Actions — `ci.yml`
 
-The workflow runs on every push to `main` and `feat/**`: backend (Postgres 16 service, `manage.py check`, migration drift, `pytest -q`) and frontend (`npm ci`, `npm run check`, `npm run build`).
+The workflow runs on every push to `main` and `feat/**`: backend (Postgres 16 service, `manage.py check`, migration drift, `pytest -q`), frontend (`npm ci`, `npm run check`, `npm run build`) and, since D3, a "Frontend E2E (Playwright)" job that builds the Vite bundle, serves it with `vite preview`, installs Chromium and runs the eight specs a–h (Phase 8 adds 360 px layout/axe QA).
 
 | Run | Commit | Result |
 | --- | --- | --- |
@@ -42,12 +71,322 @@ The workflow runs on every push to `main` and `feat/**`: backend (Postgres 16 se
 | [43721258237](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/43721258237) | `2883310` | Failed — same step, 23 s; frontend job passed |
 | [44046536724](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/44046536724) | `0b5ed0f` | Failed — same step |
 | [44046794171](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/44046794171) | `25e500a` | **Passed** — Backend (Postgres) 38 s, Frontend 49 s |
+| [44587238492](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/44587238492) | `8df45f4` | Failed — backend “Tests against Postgres”; frontend passed. One fallback test inserted an unsupported 7-character language into a `varchar(2)` column. |
+| [44588274783](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/44588274783) | `be29347` | **Passed** — Backend (Postgres) and Frontend green after the test used the two-letter unsupported value `fr`. |
+| [44594967401](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/44594967401) | `d08fdbd` | **Passed** — C8 backend (Postgres) and frontend jobs green. |
+| [44599206435](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/44599206435) | `173c932` | **Passed** — C9 backend (Postgres) and frontend jobs green. |
+| [45002723727](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45002723727) | `2830252` | **Passed** — C10 backend (Postgres) and frontend jobs green; the frontend build generated 24 prerendered pages. |
+| [45211085265](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45211085265) | `305d51d` | **Passed** — D1 backend (Postgres) and frontend green. |
+| [45385570039](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45385570039) | `f0f1a7c` | **Passed** — D2 axe/keyboard tests; backend and frontend green. |
+| [45403334223](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45403334223) | `6d4393f` | **Passed** — D3 adds the "Frontend E2E (Playwright)" job; backend, frontend and E2E green. |
+| [45781024001](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45781024001) | `8883481` | **Passed** — D4 asset optimization; backend, frontend and E2E green. |
+| [45782053634](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45782053634) | `2b26881` | **Passed** — D5 report-only CSP; backend, frontend and E2E green. |
+| [45784395555](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45784395555) | `ce358f2` | **Passed** — D4 icon-font subset and deferral-scope follow-up; backend, frontend and E2E green. |
+| [45785986169](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45785986169) | `ab22df9` | **Passed** — E1 staging stack, settings check and Compose validation; all jobs green. |
+| [45786225329](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45786225329), [45787349157](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45787349157), [45787378955](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45787378955), [45789319573](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45789319573), [45789740582](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45789740582) | `b12d7f3` → `d5ac152` | Failed — E2 `Postgres backup/restore drill`; frontend and E2E jobs stayed green. Diagnosis was exposed as a public check annotation. |
+| [45790178207](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45790178207) | `8067a98` | **Passed** — E2/E3 green after stripping the newer client's `transaction_timeout` setting; staging checks, retention dry run and all three jobs green. |
+| [45790520902](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45790520902) | `9932a9b` | **Passed** — E4 staff content confirmation; backend, frontend and E2E green. |
+| [45793922355](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45793922355) | `5b60707` | Failed — E2E axe `color-contrast` on three offer CTAs while fade-up opacity was still animating; backend and frontend green. |
+| [45795777125](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45795777125) | `e3035ee` | **Passed** — E5 UAT kit plus reduced-motion axe stabilization; backend, frontend and E2E green. |
 
 **Cause:** the workflow installed only `backend/requirements.txt`, which is the production set and does not include pytest, so `python -m pytest -q` exited 1. `25e500a` adds `backend/requirements-dev.txt` and installs it in CI; the production image still uses `requirements.txt`. The frontend job passed on every run. Run `44046794171` is green on both jobs, including `test_concurrency.py` against Postgres.
 
+### 1.2 C7 verification — guest language for facilities
+
+C7 stores the form language on `TableBooking` and `ConferenceEnquiry`
+(`GUEST_LANGUAGE_CHOICES`, `language` default `en`, indexed; migration
+`0003_guest_language` backfills existing rows to `en`, and `0004` restores the
+model default in migration state). The active UI language is sent by
+`DiningPage`/`ConferencePage`; `frontend/src/pages/DiningPage.test.tsx` and
+`ConferencePage.test.tsx` assert both `en` and `sw` payloads. Unknown values are
+rejected by the API and normalized to `en` by the services; `guest_language()`
+also falls back to `en` for old rows.
+
+Guest messages now use the stored language with an English fallback:
+confirmation, decline and next-day reminders for both tables and conferences
+(email **and** SMS), plus room-booking confirmation/cancellation/reminder.
+Swahili conference messages translate session and layout labels through
+`conference_labels()` instead of Django's English choice labels, and Swahili
+date strings avoid English month/day names. `setup_schedules` registers
+`send_facility_reminders` as a daily job. `backend/apps/notifications/tests/test_facility_emails.py`
+covers EN, SW, invalid-language fallback, both statuses, SMS capture and the
+reminder job; `test_booking_emails.py` covers localized booking dates.
+
+Generated artifacts are committed too: `backend/openapi.yaml` (including the
+previously missing `FormGuardEvent`/form-guard summary schemas) and
+`frontend/src/lib/api-schema.d.ts` were regenerated with `manage.py spectacular`
+and `npm run api:types`.
+
+CI for C7: [run 44588274783](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/44588274783) is **green** on `be29347` (backend + Postgres + frontend). The earlier [run 44587238492](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/44587238492) exposed a Postgres-only test bug: the fallback test used `"unknown"` in a `varchar(2)` column. It now uses `"fr"`, which is two characters and still unsupported.
+
+### 1.3 C8 verification — URL-based language routing
+
+C8 makes the URL the source of truth. Unprefixed paths are English; the same
+route tree is mounted at `/sw` for Kiswahili, including `/sw/dashboard`. The
+language switcher navigates to the equivalent path and preserves the query
+string and hash. A persisted `hotel.language` value is still written for
+non-URL contexts, but it never causes a redirect: direct links and crawlers
+always get the language encoded in the path. `App.routing.test.tsx` proves that
+a stored `sw` preference does not change an unprefixed URL and a stored `en`
+preference does not change a `/sw/*` URL.
+
+All internal `Link` imports now alias `components/LocalizedLink`, which adds or
+removes the `/sw` prefix through the shared helpers in `lib/routes.ts`;
+`BookingSearchForm` uses `useLocalizedNavigate()`. `Header` strips the prefix
+before computing the active nav item, and the 404 page is reachable and
+translated at `/sw/*`.
+
+`usePageMeta` now writes a per-language canonical, `og:url`, `og:locale`,
+`og:locale:alternate` and `rel="alternate"` links for `en`, `sw` and
+`x-default`; private/noindex routes remove the alternates. `index.html` and the
+built `dist/index.html` also seed those tags for non-JS crawlers.
+`Page.test.tsx` covers both languages and the noindex case. `formatMoney()`
+now uses `sw-KE` when the active language is Swahili, while `formatDate()`
+continues to use `sw-KE`/`en-GB`; `i18n.formatting.test.ts` covers both.
+
+Verification: `npm run check` (97 tests, 23 files) and `npm run build` both
+passed locally; the built HTML was inspected for the alternate tags. CI for C8:
+[run 44594967401](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/44594967401)
+is **green** on `d08fdbd` (backend + Postgres + frontend). The shared route
+manifest (`lib/routes.ts`) is in place but the sitemap/robots are not yet
+generated from it — that is C9.
+
+### 1.4 C9 verification — manifest-driven SEO and CMS blog routes
+
+C9 closes the manifest loop. `SITE_ROUTES` now lists every page including
+`/blog` and the dynamic `/blog/:slug`; `App.tsx` generates both language trees
+from it through `ROUTE_COMPONENTS`, so adding a route without a component fails
+`seo.test.ts`. `lib/seo.ts` builds `sitemap.xml` and `robots.txt` from the same
+manifest: indexable routes appear in both languages with reciprocal
+`hreflang="en"`, `hreflang="sw"` and `x-default` links, while private routes are
+`noindex` in the page meta and disallowed in both language variants in robots.
+
+The frontend `/blog` index and `/blog/:slug` post pages render CMS data from
+the existing `usePosts`/`usePost` hooks. They prefer Swahili fields with English
+fallback, keep the draft warning from `needs_confirmation`, and use localized
+dates. `BlogPages.test.tsx` covers index/post rendering, both languages, the
+English fallback and localized links. Concrete post slugs are refreshed from
+`GET /api/v1/content/posts/` with `scripts/refresh_blog_routes.py` into
+`frontend/src/content/blog-routes.json`; the checked-in list is empty until
+real posts are published, and `sitemapPaths(['first-post'])` is tested for
+dynamic expansion.
+
+Verification: `npm run check` (105 tests, 25 files) and `npm run build` passed;
+the built robots and sitemap were inspected. CI for C9:
+[run 44599206435](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/44599206435)
+is **green** on `173c932` (backend + Postgres + frontend).
+
+### 1.5 C10 verification — static prerender for crawlers
+
+`npm run build` now runs `tsc --noEmit && vite build && node scripts/prerender.mjs`.
+The prerender step loads the real `App`, router and page components through Vite
+SSR with a non-lazy component map and `MemoryRouter`, then writes one HTML file
+per indexable static route in EN and `/sw`. It intentionally does **not** call
+the CMS: the deterministic bilingual copy is the static fallback when the API is
+unreachable, and React Query refreshes live data after hydration. Dynamic
+`/blog/:slug` remains excluded; concrete slugs enter `sitemap.xml` via
+`scripts/refresh_blog_routes.py`. No route was dropped.
+
+The target set is computed from
+`INDEXABLE_ROUTES.filter((route) => !route.dynamic)`: 12 routes × 2 languages =
+24 pages. The script fails loudly for a critical page if the route count
+changes, title/description/canonical is missing, the rendered body does not have
+exactly one non-empty `<h1>`, a required head tag or the hydration script is
+absent, or title/description/canonical/`og:title`/`og:url`/H1/JSON-LD `@id` is
+duplicated. An unavailable API is not a build failure.
+
+Verified locally: `npm run check` (108 tests, 26 files), `npm run build` (227
+modules, 24 prerendered pages), and a repeated `npm run prerender` from
+`dist/index.source.html`. Inspected `dist/index.html`, `dist/rooms/index.html`,
+`dist/sw/rooms/index.html`, the full `index.html` tree and
+`dist/prerender-report.json`: every page has the correct `lang`, unique title,
+description, canonical and OG URL, reciprocal EN/SW/x-default alternates, a
+`WebPage` JSON-LD node with a unique `@id`, the H1 rendered in the body, and the
+hashed module script. Inspected H1s include "A warm welcome in the heart of
+Kapenguria.", "Choose your kind of calm." and "Chagua aina yako ya utulivu."
+
+The 12 critical pages are `/`, `/rooms`, `/booking`, `/facilities`, `/dining`,
+`/conference`, `/gym`, `/offers`, `/blog`, `/contact`, `/privacy` and `/terms`,
+plus their `/sw` variants. `/blog/:slug` is dynamic and is deliberately not
+prerendered; it still renders client-side from the CMS.
+
+CI for C10: [run 45002723727](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45002723727)
+is **green** on `2830252` (backend + Postgres + frontend); the frontend job runs
+the full build including the prerender step.
+
+### 1.6 D1 verification — motion budget
+
+All interaction transitions and entrance animations now use transform/opacity
+and last 150–350 ms with ease-out; image zooms were shortened from 500/700 ms.
+Indeterminate spinners and pulses may repeat for longer by design, but
+`src/styles/main.css` overrides every animation and transition to 0.01 ms with
+one iteration under `@media (prefers-reduced-motion: reduce)`.
+`frontend/scripts/check_motion.mjs` statically checks the declared durations
+and the reduced-motion block in CI. `npm run check` passed with 108 tests / 26
+files; CI [45211085265](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45211085265)
+is **green**.
+
+### 1.7 D2 verification — accessibility automation
+
+`frontend/src/app.a11y.test.tsx` runs `axe-core` against Home, Rooms,
+Facilities, Offers, Contact and Booking in both EN and `/sw` (12 cases). It uses
+`iframes: false` because ContactPage embeds a Google Maps iframe and disables
+the jsdom-unreliable `color-contrast` rule; real-browser colour contrast and
+keyboard/focus behaviour are covered by the Playwright spec and Lighthouse.
+`frontend/e2e/accessibility.spec.ts` runs axe with WCAG 2.0/2.1 A/AA tags in a
+real browser, checks that the first Tab reaches the skip link, and asserts that
+`prefers-reduced-motion: reduce` reduces both a transition and an entrance
+animation to ≤1 ms. `npm run check` passed with 120 tests / 27 files; CI
+[45385570039](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45385570039)
+is **green**.
+
+### 1.8 D3 verification — Playwright E2E in CI
+
+`frontend/playwright.config.ts` serves the production Vite bundle through
+`vite preview` and needs no Django, database, mail or payment service:
+`frontend/e2e/mocks.ts` installs deterministic route handlers for the APIs the
+pages call. Eight specs cover (a) booking, (b) payment methods, (c) manage
+booking, (d) localization, (e) SEO metadata, (f) accessibility/keyboard/reduced
+motion, (g) the staff dashboard and (h) Phase 8 360 px layout/axe QA.
+Hydration-safe waits were added to the booking/manage and metadata specs.
+Locally, with `PLAYWRIGHT_CHANNEL` unset and `CI=true`, the bundled Chromium run
+reported **15 passed** at D3 and **19 passed** after Phase 8. The CI job
+"Frontend E2E (Playwright)" installs Chromium and runs the same specs; the
+then-current suite was green in CI run
+[45795777125](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45795777125),
+and the Phase 8 suite is validated by the local 19-test run above. The axe run
+uses reduced motion so color-contrast is measured after entrance animations
+settle.
+`PLAYWRIGHT_CHANNEL` is only an opt-in for using an installed Chrome locally.
+
+### 1.9 D4 verification — Lighthouse mobile
+
+The production `dist` was served through a gzip static server and measured with
+Lighthouse 13.6.0 in mobile mode against `/`, `/rooms` and `/booking`. Stable
+final scores:
+
+| Page | Performance | Accessibility | Best practices | SEO | LCP | TBT | CLS |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Home (run 2) | 88 | 100 | 100 | 100 | 2.9 s | 300 ms | 0 |
+| Home (final run) | 93 | 100 | 100 | 100 | 2.9 s | 150 ms | 0 |
+| Rooms | 88 | 100 | 100 | 100 | 3.8 s | 130 ms | 0 |
+| Booking | 90 | 100 | 100 | 100 | 2.1 s | 320 ms | 0 |
+
+All performance scores are ≥85. `target-size` and `color-contrast` pass in the
+stable reports. One earlier Rooms report showed footer contrast failures while
+CSS was still settling; the repeat run passed. Optimization kept the WebP hero
+and room variants, self-hosted fonts with `font-display: swap`, and scoped
+`data-content-defer` below the fold. The Material Symbols outlined font was
+subset from 250,668 to 9,084 bytes with the reproducible
+`frontend/scripts/subset_material_icons.py`; two Home sections whose deferral
+produced false overlap/contrast findings were removed from deferral. Preload
+changes, `critters`, idle/deferred hydration and generic `content-visibility`
+were tried and reverted because they did not improve the stable score. CI
+[45781024001](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45781024001)
+and the follow-up [45784395555](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45784395555)
+are **green**; both builds still generated 24 prerendered pages.
+
+Phase 8 adds targeted regression guards without replacing those measurements:
+`frontend/e2e/phase8-visual-qa.spec.ts` checks EN/SW `/rooms`, the booking room
+step and the dashboard room panel at 360 px for horizontal overflow, visible
+controls and axe WCAG 2.0/2.1 A/AA compliance; `frontend/e2e/seo.spec.ts` now
+checks `/cancellation` metadata and sitemap entries. Every `npm run build` also
+enforces static budgets for entry JS, total JS, CSS, prerendered HTML and the
+largest WebP, so a bundle or asset regression fails CI before release. Lighthouse
+must still be re-run after the final hotel content and brand values are applied.
+
+### 1.10 D5 verification — report-only CSP
+
+`frontend/vercel.json` sends `Content-Security-Policy-Report-Only` on `/(.*)`
+with `default-src 'self'`, `frame-ancestors 'none'`, `object-src 'none'`,
+Plausible for script/connect and Google Maps for frames. It deliberately sends
+no enforcing header. `backend/apps/common/middleware.py` adds the same
+audit-only pattern to API and Django admin responses from
+`settings.CSP_REPORT_ONLY_POLICY`, which allows the inline styles/scripts the
+built-in admin needs. Backend tests assert the header on `/api/v1/health/` and
+on an admin request; frontend tests assert the Vercel config and the preserved
+SPA rewrite. Targeted suites: 2 passed on each side; the suites at that point
+were 158 passed / 1 skipped (backend) and 122 passed / 28 files (frontend),
+reaching 171 passed / 1 skipped and 124 passed / 29 files by E4/E5. CI
+[45782053634](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45782053634)
+is **green**. Enforcement is intentionally deferred until real violations are
+reviewed.
+
+### 1.11 E1 verification — production-like staging stack
+
+`docker-compose.staging.yml` defines four services: `db` (`postgres:16-alpine`),
+`web` (gunicorn, `config.settings.staging`, `DEBUG=False`), `worker` (exactly one
+supervised `python manage.py qcluster`) and `proxy` (one nginx). `NUM_PROXIES=1`
+matches the single proxy that appends `X-Forwarded-For`. No live payment, SMTP or
+SMS credentials are present; `.env.staging.example` keeps
+`PAYMENTS_SANDBOX=true`, console email and stub SMS.
+
+`ops/nginx-staging.conf` proxies `/api/`, `/admin/`, `/static/` and `/media/` to
+Django and serves the frontend with
+`try_files $uri $uri/index.html /index.html;`, so prerendered nested HTML wins
+over the SPA fallback (including `/sw/*`). It also sends the report-only CSP.
+`scripts/check_staging_stack.py` checks the manifest statically,
+`scripts/staging_smoke.py` checks a live stack, and CI runs
+`python manage.py check --settings=config.settings.staging` plus
+`docker compose ... config --quiet`. Green CI:
+[45785986169](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45785986169).
+A live Compose run was not possible locally because Docker Desktop is
+unavailable; this is recorded as an operational caveat, not a missing artifact.
+
+### 1.12 E2 verification — backup and restore drill
+
+`scripts/postgres_backup_restore.py` provides `backup` and `restore` commands
+using pg_dump custom format, and a CI-safe `drill` that creates
+`hotel_backup_source` and `hotel_backup_restore`, writes a marker row, dumps it
+with plain SQL, restores it with `psql -v ON_ERROR_STOP=1`, verifies the token
+and drops both scratch databases. It never connects to the application DB for
+writes.
+
+The first five CI attempts failed instantly. A public check annotation exposed
+the real error: the runner's newer `pg_dump` emitted
+`SET transaction_timeout = 0;`, which the Postgres 16 service rejects. The
+drill now removes that client-only setting before restoring. Green CI:
+[45790178207](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45790178207).
+
+### 1.13 E3 verification — monitoring, safe logs and retention
+
+`SENTRY_DSN` is empty by default: no SDK hook or network call is made unless a
+project explicitly opts in. `LOG_FORMAT=json` switches Django logging to
+`SafeJSONFormatter`, which adds a request ID and redacts sensitive keys and
+obvious email/number identifiers from extras. `apply_retention` is dry-run by
+default; only `--apply` deletes expired `FormGuardEvent` rows and anonymises old
+`AuditLog`/`NotificationLog` rows (30 days per configured month), recording an
+audit event. CI ran migrations, the full backend suite (171 passed, 1 skipped)
+and the retention dry run. Green CI:
+[45790178207](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45790178207).
+
+### 1.14 E4 verification — staff content confirmation
+
+`GET /api/v1/staff/common/content-confirmation/` is read-only and gated by
+`CanManageContent`. It aggregates every `needs_confirmation=True` row from blog
+posts, offers, policy pages, reviews, room types and menu items, returns counts
+plus newest-first items, and accepts a bounded `limit` (1–500). Four backend
+tests prove coverage, permission denial, authentication and limiting;
+`openapi.yaml` and `api-schema.d.ts` were regenerated.
+
+The frontend `/content-review` page (also `/sw/content-review`) is private and
+`noindex`, linked from the dashboard, and renders outside the public site
+layout. It shows counts, item labels, kind, last-updated date (or “Inactive”)
+and IDs, with loading/error/empty states. Two frontend tests cover a signed-in
+staff user and the sign-in gate. No flag is changed by this page. Green CI:
+[45790520902](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45790520902).
+
+### 1.15 E5 verification — UAT kit
+
+`docs/UAT-SCRIPT.md` gives executable scenarios for public content/language,
+booking, facilities, front desk, notifications, the content-confirmation page,
+operations, accessibility and performance, with a role-based sign-off table.
+`CHANGELOG.md` records C7–C10, D1–D5 and E1–E5 for `0.1.0-rc1` and explicitly
+notes that no production release has been made. Green CI: [45795777125](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45795777125).
+
 ## 2. Acceptance table
 
-**Status after A1–A3, B4–B6 and the pre-C7 anti-spam/throttle item:** **35 Done**, **6 Partial**, **13 Missing**, **1 Unverified**, **1 Pending** (56 rows). Remaining P0 work is tracked in the Step 2 order below.
+**Status after A1–A3, B4–B6, the pre-C7 anti-spam/throttle item, C7–C10, D1–D5 and E1–E5:** **55 Done**, **0 Partial**, **1 Missing**, **0 Unverified**, **1 Pending** (57 rows). The remaining Missing row is the optional new-item sound opt-in; the Pending row is the release PR/tag. UAT and hotel decisions are sign-off gates, not engineering gaps.
 
 ### 2.1 Booking and payments
 
@@ -86,49 +425,50 @@ The workflow runs on every push to `main` and `feat/**`: backend (Postgres 16 se
 | Undo (with closing window) | **Done** | `frontdesk/services.py:230-293`; `hooks.ts:379`; `test_frontdesk_api.py::test_booking_confirm_marks_bank_transfer_paid_and_undo_reverses`, `::test_undo_is_rejected_after_the_window_closes`. | None. |
 | Activity log | **Done** | `frontdesk/services.py:364-389`; `test_frontdesk_api.py::test_activity_returns_recent_actions`; rendered in `DashboardPage.tsx`. | None. |
 | 8-minute escalation | **Done** (code/test) | `HotelSetting.frontdesk_escalate_minutes` default 8 (`common/models.py:73`); `frontdesk/services.py:395-464`; `test_frontdesk_api.py::test_escalation_alerts_manager_once_for_overdue_items`; schedule in `common/management/commands/setup_schedules.py:30`. | The scheduled job was not run end to end; verify in staging (Step 3). |
-| Booking confirmation/cancellation/reminder notifications | **Done** | `notifications/services.py:111-193`, `reminders.py`; `test_booking_emails.py::test_booking_confirmation_email_includes_manage_link`; EN/SW templates. | Live SMTP test pending. |
-| Table/conference guest notifications | **Partial** | `notifications/services.py:216-261` explicitly documents English-only because `TableBooking`/`ConferenceEnquiry` have no language field; tests `test_facility_emails.py`. | Add `language` fields, migration, templates and tests (Step 2.3). |
+| Booking confirmation/cancellation/reminder notifications | **Done** | `notifications/services.py`, `reminders.py`; `test_booking_emails.py::test_booking_confirmation_email_includes_manage_link` and `test_facility_emails.py::test_booking_cancellation_uses_the_stored_language`; EN/SW templates. C7 also replaced English month/day names in the Swahili templates/SMS with numeric dates and uses the Swahili room name when available. | Live SMTP test pending. |
+| Table/conference guest notifications | **Done** | `GUEST_LANGUAGE_CHOICES` and indexed `language` fields on `TableBooking`/`ConferenceEnquiry` (`facilities/models.py`), migrations `0003_guest_language` (explicit `en` backfill) and `0004`, create serializers/services/views, and admin filters. EN/SW confirmation, decline and reminder email/SMS templates in `backend/templates/emails`; `notifications/services.py` (`guest_language`, `conference_labels`, `notify_table_booking`, `notify_table_booking_reminder`, `notify_conference_enquiry`, `notify_conference_enquiry_reminder`) and `reminders.py::send_facility_reminders`, registered daily in `setup_schedules.py`. Tests: `facilities/tests/test_table_booking_venue.py`, `test_conference_language.py`, `notifications/tests/test_facility_emails.py` (EN, SW, fallback, confirmation/decline/reminder, SMS) plus frontend payload assertions in `DiningPage.test.tsx`/`ConferencePage.test.tsx`. | Native Swahili review and live SMTP/SMS delivery remain launch blockers; gym day-pass messages remain English-only because no gym language is collected. |
 | Exports (payments, occupancy, HotelPlus) | **Done** | `integrations/views.py:87-271`; `test_reports.py` (10 tests); role gate `CanExportGuestData` (`accounts/permissions.py:49-50`). | Confirm the accounting format with finance in UAT. |
 
 ### 2.4 Language, SEO and content
 
 | Requirement | Status | Evidence | Action |
 | --- | --- | --- | --- |
-| EN/SW UI and persisted language choice | **Done** | `frontend/src/i18n.ts` (full dictionary, `localStorage`, `hotel:languagechange`), `LanguageSwitch.tsx`; tests in `Page.test.tsx` / page tests. | Native Swahili review remains a hotel blocker. |
-| `/sw/` URL routing on every route | **Missing** | `App.tsx:59-74` has one route table with no language prefix; language is client-side state only. No `/sw/` entry in `dist/sitemap.xml`. | Add URL-based language routing and a shared route manifest (Step 2.3–2.4). |
-| hreflang and per-language canonical URLs | **Missing** | `index.html:13-17` has one canonical; `components/Page.tsx:32-35` rewrites the same canonical; no `rel="alternate"` tags. | Generate canonical + `hreflang` for each route/language. |
-| Per-language sitemap entries | **Missing** | `vite.config.ts:56-66` hard-codes 9 paths; generated `dist/sitemap.xml` has 9 English URLs only. | Generate from the shared route manifest, including `/sw/`. |
-| Sitemap/robots cannot drift from the router | **Missing** | Router list and sitemap list are maintained separately (`App.tsx` vs `vite.config.ts`); no test. | One shared manifest consumed by router, sitemap and tests. |
-| Unique title/description/OG per page | **Done** | `Page.tsx:6-42`; `usePageMeta` on every page; brand injection and JSON-LD in `vite.config.ts:1-49`. | Prerender the tags for crawlers (Step 2.5). |
-| Prerendered marketing pages | **Missing** | SPA with `vercel.json` rewrite to `index.html`; no SSG/prerender dependency or config. | Add `vite-react-ssg` (or equivalent) for Home, Rooms, Facilities, Dining, Conference, Gym, Offers, Blog index, Contact, Privacy, Terms in EN and SW. |
-| Blog index and post pages | **Missing** | API exists (`content/urls.py:11-12`), but no frontend `/blog` route, page or `useBlog` hook. | Add the routes/pages required for prerendering the blog index. |
+| EN/SW UI and persisted language choice | **Done** | `frontend/src/i18n.ts` (full dictionary, `localStorage`, `hotel:languagechange`), `LanguageSwitch.tsx`; the switcher now changes the URL as well as the active language. `App.routing.test.tsx`, `LanguageSwitch.test.tsx` and page tests cover both languages and stored preferences. | Native Swahili review remains a hotel blocker. |
+| `/sw/` URL routing on every route | **Done** | `App.tsx` mounts the full route tree unprefixed and again at `/sw`, including `/sw/dashboard`; `LocalizedLink`, `useLocalizedNavigate()` and `localizedPath()` keep internal links in the active language; the translated 404 works at `/sw/*`. Tests: `routes.test.ts`, `LocalizedLink.test.tsx`, `App.routing.test.tsx`. | Per-language sitemap entries are C9. |
+| hreflang and per-language canonical URLs | **Done** | `index.html` seeds `en`/`sw`/`x-default` alternates; `usePageMeta` rewrites the canonical, `og:url`, `og:locale` and alternates per language and removes alternates on noindex routes. `Page.test.tsx` covers EN, SW and noindex; built `dist/index.html` was inspected. C10 writes the same reciprocal tags into all 24 prerendered pages. | None. |
+| Per-language sitemap entries | **Done** | `lib/seo.ts` builds both languages from `INDEXABLE_ROUTES` with reciprocal `hreflang` and `x-default`; `vite.config.ts` consumes it. Built `dist/sitemap.xml` contains EN and SW `<url>` entries for every indexable route. `seo.test.ts` proves coverage. C10 prerenders the 12 static routes from the same manifest. | None. |
+| Sitemap/robots cannot drift from the router | **Done** | `SITE_ROUTES` is the single source for `App.tsx` (via `ROUTE_COMPONENTS`), `buildSitemap()` and `buildRobots()`. `seo.test.ts` fails if a manifest route has no component, a private route enters the sitemap, or a private path is missing from `robots.txt`. | None. |
+| Unique title/description/OG per page | **Done** | `Page.tsx:6-42`; `usePageMeta` on every page; brand injection and JSON-LD in `vite.config.ts:1-49`. C10's `prerenderMeta.ts` builds per-route bilingual metadata and `scripts/prerender.mjs` asserts every title, description, canonical, OG title/URL, H1 and JSON-LD `@id` is unique. | None. |
+| Prerendered marketing pages | **Done** | `frontend/scripts/prerender.mjs` runs after `vite build` and renders the real `App` for the 12 static indexable routes in EN and `/sw` (24 pages). `src/lib/prerenderMeta.ts` supplies unique bilingual title, description, canonical, hreflang, OG/Twitter, H1 and `WebPage` JSON-LD; `src/lib/ssrRouteComponents.tsx` supplies a non-lazy map for SSR. Static copy is the API-unreachable fallback and CMS data loads after hydration. `prerenderMeta.test.ts` covers metadata, and the build validates H1s, head tags, hydration script and uniqueness. Built artifacts and `dist/prerender-report.json` were inspected. | None. Keep `/blog/:slug` client-rendered by design; verify host serves the prerendered file before the SPA fallback. |
+| Blog index and post pages | **Done** | `/blog` and `/blog/:slug` are in the manifest and both language trees. `BlogIndexPage`/`BlogPostPage` use the existing `usePosts`/`usePost` CMS hooks with EN/SW fields, English fallback, draft badges and localized dates. `BlogPages.test.tsx` covers EN, SW, fallback and links; footer links to the journal. | Hotel must publish and review real posts; `scripts/refresh_blog_routes.py` refreshes slugs for the sitemap. |
+| Dashboard and manage-booking stay out of search | **Done** | Both pages call `usePageMeta(..., true)` (`noindex,nofollow`, no hreflang alternates); `buildRobots()` emits `Disallow` for `/dashboard`, `/booking/manage` and their `/sw` variants. `Page.test.tsx` and `seo.test.ts` cover both layers. | This is not access control; staff APIs still enforce roles. |
 | Privacy policy and Terms pages, CMS-editable EN/SW, seeded placeholders | **Done** | New `PolicyPage` model (`content/models.py`), Django admin, public `GET /api/v1/content/policies/<slug>/` (`content/views.py`, `urls.py`); seed creates `/privacy` and `/terms` drafts in EN/SW and sets `privacy_notice_version = 2026-11-draft` (`seed_hotel.py`). Frontend `PolicyPage.tsx` renders CMS text by language, shows a draft badge, and is routed at `/privacy` and `/terms`; footer and the booking consent label link to both. `PolicyPage.test.tsx` covers EN, SW and API failure. Wording is still a draft pending hotel/legal review. | Hotel/legal must approve the wording and clear `needs_confirmation`. |
 | Consent records (what, when, text version) | **Done** | New immutable `ConsentRecord` (`common/models.py`, migration `0005_consentrecord`) stores scope, subject, reference, language, `policy_version`, `policy_url`, optional `text_hash` and `created_at`; read-only in Django admin. `common/consent.py` snapshots the live `HotelSetting` version. Room bookings write `booking_privacy` plus `newsletter` when marketing consent is ticked; newsletter subscribe writes `newsletter`; the frontend newsletter form now calls the API instead of faking success. `test_consent.py` (3 tests) proves the records and the no-consent rejection. | Consent wording/version must be finalised before launch; `text_hash` stays empty until the full policy text is passed to the helper. |
-| Localized dates, numbers and KES | **Done** | `i18n.ts:1370-1390` (`Intl.DateTimeFormat` switches `sw-KE`/`en-GB`, `Intl.NumberFormat('en-KE')`); `formatClock` in `DashboardPage.tsx:75`; tests cover both languages. | Number locale is fixed to `en-KE`; acceptable because Kenyan digit grouping is identical, but review with marketing. |
+| Localized dates, numbers and KES | **Done** | `i18n.ts` (`Intl.DateTimeFormat` switches `sw-KE`/`en-GB`; `Intl.NumberFormat` switches `sw-KE`/`en-KE` for numbers, while pages keep the literal `KES ` prefix); `formatClock` in `DashboardPage.tsx:75`. `i18n.formatting.test.ts` covers both locales. | None. |
 | Analytics is opt-in and does not double count | **Done** | `frontend/src/lib/analytics.ts` (loads only with `VITE_ANALYTICS_DOMAIN`, manual pageviews queued); `analytics.test.ts`; `RouteAnalytics` in `Page.tsx:54-59`. | None. |
-| Production CSP | **Missing** | No `Content-Security-Policy` in settings, proxy config or `vercel.json`; no CSP package in requirements. | Define API/analytics/fonts/maps policy; ship report-only, test, document enforcement (Step 2.6). |
+| Production CSP | **Done** (report-only) | `frontend/vercel.json` sends `Content-Security-Policy-Report-Only` on all routes; `apps/common/middleware.py` adds `settings.CSP_REPORT_ONLY_POLICY` to API/admin responses. Tests assert policy contents and absence of the enforcing header; CI [45782053634](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45782053634). | Review real violation reports before switching to enforcement. |
 
 ### 2.5 Quality, security and operations
 
 | Requirement | Status | Evidence | Action |
 | --- | --- | --- | --- |
-| Accessibility (WCAG AA) | **Partial** | Semantic landmarks/skip target (`App.tsx:43`), labelled fields, focus-visible styles (`main.css`), `aria-live` status regions; no axe dependency/config despite `axe-core` being installed; no keyboard-only run recorded. Home/Rooms/Facilities/Offers/Contact have no component tests. | Add axe tests in EN/SW for the named pages and a keyboard booking walkthrough; fix findings (Step 2.7). |
-| Motion: transform/opacity only, 150–350 ms ease-out | **Partial** | Most transitions are transform/opacity, but image zooms use `duration-500/700` (`HomePage.tsx:309,403`, `RoomsPage.tsx:142`, `FacilitiesPage.tsx:125`, `OffersPage.tsx:268`); `transition-all` in `BookingPage.tsx:705`. | Normalize to 150–350 ms ease-out and remove layout-affecting transitions. |
-| Complete `prefers-reduced-motion` fallback | **Partial** | Global override at `main.css:43-56` (0.01 ms, single iteration); no automated test. | Add a reduced-motion test (Step 2.8). |
-| Lighthouse mobile ≥ 85 on Home, Rooms, Booking | **Unverified** | Not run in this environment; no Lighthouse config/report in the repo. | Build, serve `dist`, run Lighthouse mobile, record scores, fix (Step 2.9). |
+| Accessibility (WCAG AA) | **Done** | Semantic landmarks/skip target, labelled fields, focus-visible styles and `aria-live` regions; `app.a11y.test.tsx` runs axe on six public pages in EN and SW, `e2e/accessibility.spec.ts` runs real-browser axe plus skip-link/keyboard checks, and Lighthouse accessibility is 100 on Home/Rooms/Booking. jsdom skips colour contrast and `iframes`; both are covered by the real-browser checks. | Native-speaker and screen-reader spot checks remain manual launch items. |
+| Motion: transform/opacity only, 150–350 ms ease-out | **Done** | Interaction durations normalized to 150–350 ms ease-out with transform/opacity only; `scripts/check_motion.mjs` enforces the budget, and CI [45211085265](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45211085265) is green. Indeterminate spinners may repeat but stop under reduced motion. | None. |
+| Complete `prefers-reduced-motion` fallback | **Done** | `main.css` overrides every animation/transition to 0.01 ms, one iteration; Playwright emulates `reduce` and asserts ≤1 ms for a nav transition and an entrance animation. | None. |
+| Lighthouse mobile ≥ 85 on Home, Rooms, Booking | **Done** | Final mobile scores: Home 88/93, Rooms 88, Booking 90 performance; 100 accessibility, best practices and SEO on the stable runs. LCP ≤3.8 s, TBT ≤320 ms, CLS 0; no target-size or contrast failure. Reports are described in §1.9. | Re-run after the final production content/brand values are applied. |
 | Role permissions | **Done** | `accounts/permissions.py` capability classes; `test_auth.py::test_role_capabilities`; `test_role_boundaries.py` proves marketing cannot read the booking list, front desk queue/activity/actions, reports or guest exports, ICT admin cannot read bookings/queue/reports, director keeps access, and marketing can still manage content; `test_frontdesk_api.py::test_queue_requires_manage_bookings_permission`; `test_reports.py::test_other_roles_cannot_export_guest_data`. | None. |
 | Throttles and honeypots | **Done** | Scoped throttles are configured in `config/settings/base.py` with env overrides: `browse` 1200/hour (availability, quote, rooms, meal plans, menu, restaurant slots, conference/gym availability), `booking` 20/hour, `hold` 40/hour, `enquiry` 10/hour (contact, table booking, conference enquiry, gym pass), `newsletter` 10/hour, `lookup` 30/hour, `payment` 30/hour, `login` 10/min. `NUM_PROXIES` makes throttle keys use the forwarded client IP; `docs/DEPLOYMENT.md` "Choosing `NUM_PROXIES`" explains the count and failure modes, and `scripts/staging_smoke.py` proves on staging that the bucket follows the real client (same client 429, other client 401, spoofed left-hand XFF ignored). Hidden `website` honeypot plus `form_started_at` minimum time (`FORM_MIN_SUBMIT_SECONDS`, default 2 s, configurable) guard newsletter, contact, table booking, conference enquiry, gym pass, room booking, booking lookup and payment initiation. Newsletter and contact answer any block with a generic 201 and no write; the other forms keep the honeypot as a bot-only generic response but answer a too-fast submit with a retryable `400 too_fast` so autofilled bookings are not silently lost. Future timestamps are treated as clock skew; a missing timestamp is allowed. Every block is logged without personal data and counted in `FormGuardEvent`, visible in read-only admin and at `GET /api/v1/staff/common/form-guard/summary/`. Honeypot inputs carry password-manager ignore attributes. Tests: `apps/common/tests/test_anti_spam.py` (33 tests, including autofill-at-3s, bot, clock skew and staff counts), `test_throttles.py`, plus guard-payload assertions in the frontend form tests. Policies, values and key semantics are documented in `docs/SECURITY.md` §5. | None. |
 | Demo users cannot exist in production | **Done** | `ALLOW_DEMO_USERS` defaults to false (`base.py`), is forced false in `prod.py`, and `seed_hotel --demo-users` raises `CommandError` unless explicitly enabled. `test_seed_users.py` proves a plain seed creates zero users, the flag is refused by default, and five demo users appear only under `override_settings(ALLOW_DEMO_USERS=True)`. | None. |
 | Production guards: DEBUG off, ALLOWED_HOSTS, real email backend | **Done** (code) | `config/settings/prod.py:9-17,35-52`; `test_production_settings.py`. | Exercise `manage.py check --deploy` with the production env in staging. |
-| CI runs backend, frontend and Postgres concurrency tests | **Done** | `.github/workflows/ci.yml` runs a backend job against a `postgres:16-alpine` service (system checks, migration drift, full `pytest`) and a frontend job (`npm ci`, typecheck, lint, unit tests, brand check, production build). The local Postgres run of the same suite is **88 passed** (no skips). Playwright specs are tracked in the next row. | None. |
-| Playwright E2E specs | **Missing** | `@playwright/test` is a devDependency, but there is no `playwright.config.*`, `frontend/e2e/` or spec. | Add the seven specs and run in CI. |
-| Production-like staging (app, Postgres, qcluster, proxy) | **Missing** | No `docker-compose*.yml`, Dockerfile or proxy config in the repo. | Build staging stack and smoke script (Step 3). |
-| Backup/restore tested | **Missing** | Documented as a launch checklist item (`docs/LAUNCH-CHECKLIST.md:108`), no script or drill. | Add backup/restore procedure and execute a restore (Step 3). |
-| Error monitoring and structured safe logs | **Missing** | No Sentry hook; standard Django logging only. | Add Sentry-compatible hooks (off by default) and structured logs without guest/card data (Step 3). |
-| Data retention and guest export/delete procedure | **Partial** | `HotelSetting.data_retention_months` default 24 (`common/models.py:119`); procedure not documented or automated. | Document and test export/delete routine (Step 3). |
-| Staff "Content needing confirmation" page | **Missing** | `needs_confirmation` flags exist on CMS/facility models; no staff page aggregates them. | Add the staff page (Step 3). |
-| Documentation | **Partial** | `README.md`, `docs/LAUNCH-CHECKLIST.md`, `docs/DEPLOYMENT.md`, `docs/SECURITY.md` exist; this acceptance report is new. No UAT script or changelog yet. | Add `docs/UAT-SCRIPT.md` and `CHANGELOG` in Steps 4–5. |
-| Release candidate PR + tag | **Pending** | Branch `feat/finish-frontend` is 12 commits ahead of `main`; no PR/tag yet. | Step 5, only after the gaps above are closed. |
+| CI runs backend, frontend and Postgres concurrency tests | **Done** | `.github/workflows/ci.yml` runs a backend job against a `postgres:16-alpine` service (system checks, migration drift, full `pytest`) and a frontend job (`npm ci`, typecheck, lint, unit tests, brand check, production build). The Postgres concurrency test passes in CI; latest backend result is 171 passed, 1 skipped locally. Green runs are listed in §1.1. | None. |
+| Playwright E2E specs | **Done** | `frontend/playwright.config.ts` + eight specs (a–h) run against `vite preview` with deterministic API mocks; Phase 8 adds 360 px EN/SW rooms, booking room step and dashboard room panel checks with no horizontal scroll or axe A/AA violations. **19 tests passed locally**; CI runs all eight specs on every push (last recorded green run before Phase 8: [45795777125](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45795777125)). | Phase 8 CI result is pending this branch push; hotel sign-off is still required before launch. |
+| Production-like staging (app, Postgres, qcluster, proxy) | **Done** | `docker-compose.staging.yml`, `ops/backend.Dockerfile`, `ops/nginx-staging.conf`, `config.settings.staging`; one nginx proxy; `NUM_PROXIES=1`; prerendered-file-first fallback. `scripts/check_staging_stack.py` and CI Compose validation pass ([45785986169](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45785986169)). | Live staging smoke remains a UAT/ops task (Docker unavailable locally). |
+| Backup/restore tested | **Done** | `scripts/postgres_backup_restore.py` backup/restore commands plus scratch-DB drill; Postgres 16 CI proof on [45790178207](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45790178207). Application DB untouched. | Run the documented drill on the real staging backup before launch. |
+| Error monitoring and structured safe logs | **Done** | Opt-in `SENTRY_DSN` (off by default), `LOG_FORMAT=json` with `SafeJSONFormatter` and redacted structured extras. Tests cover redaction and the opt-in hook. | Choose the host/Sentry project and verify alerts in staging. |
+| Data retention and guest export/delete procedure | **Done** | `HotelSetting.data_retention_months` default 24; `manage.py apply_retention` is dry-run by default and `--apply` deletes `FormGuardEvent` rows and anonymises `AuditLog`/`NotificationLog` rows. CI dry run passed. | Hotel must approve the period before the first `--apply` run. |
+| Staff "Content needing confirmation" page | **Done** | Read-only `GET /api/v1/staff/common/content-confirmation/` (`CanManageContent`) and private `/content-review` page linked from the dashboard; 4 backend + 2 frontend tests. Green CI [45790520902](https://github.com/Pkorirdarius/Kalya_Hotel_mangement_App/actions/runs/45790520902). | None; hotel uses it to clear flags after sign-off. |
+| Documentation | **Done** | `README.md`, `docs/SECURITY.md`, `docs/DEPLOYMENT.md`, `docs/LAUNCH-CHECKLIST.md`, `docs/UAT-SCRIPT.md`, `CHANGELOG.md` and this report. | Complete UAT sign-off and hotel decisions. |
+| Release candidate PR + tag | **Pending** | Branch `feat/finish-frontend` has no PR/tag; no merge and no production deploy. | Step 5, only after UAT and hotel sign-off. |
 
 ### 2.12 Frontend form and mutation audit (pre-C7 item 3)
 
@@ -139,8 +479,8 @@ may not claim a persisted outcome without a successful API call.
 | --- | --- | --- |
 | `NewsletterForm` | `POST /marketing/newsletter/` | Calls the API; guard fields added; API failure shows the server message. |
 | `ContactPage` message | `POST /marketing/contact/` | **Fixed:** previously waited 800 ms and faked success. Now calls the API, shows the returned `CM-…` reference, and shows an error without clearing the form on failure. `ContactPage.test.tsx` covers both paths. |
-| `DiningPage` table request | `POST /facilities/restaurant/bookings/` | Calls the API, shows the returned `TB-…` reference; coffee shop has no form. |
-| `ConferencePage` enquiry | `POST /facilities/conference/enquiries/` | Calls the API; shows the returned reference and API field errors. |
+| `DiningPage` table request | `POST /facilities/restaurant/bookings/` | Calls the API, shows the returned `TB-…` reference; coffee shop has no form. `DiningPage.test.tsx` asserts the active UI `language` (`en`/`sw`) is sent. |
+| `ConferencePage` enquiry | `POST /facilities/conference/enquiries/` | Calls the API; shows the returned reference and API field errors. `ConferencePage.test.tsx` asserts the active UI `language` (`en`/`sw`) is sent. |
 | `GymPage` day pass | `POST /facilities/gym/day-passes/` | Calls the API; shows the returned reference and API field errors. |
 | `BookingPage` room booking | `POST /bookings/`, `/bookings/quote/`, `/payments/…` | Calls the API for quote, booking and payment. The “simulate payment” control calls the sandbox completion endpoint and is rendered only in sandbox mode; production flags force it off. |
 | `BookingManagePage` lookup | `GET /bookings/<ref>/?email|phone` | Calls the API; guard fields added to the query. Shows not-found generically. |
@@ -157,21 +497,21 @@ guard fields.
 
 ## 3. Verdict
 
-**Not ready for `v0.1.0-rc1`.** The core booking, payment, front-desk and reporting logic is implemented and covered by the existing suites, but the release definition of done is blocked by:
+**Engineering for `v0.1.0-rc1` is complete and CI-green; the release is still NOT ready to merge or deploy.** The core booking, payment, front-desk and reporting logic is covered by the suites; C7–C10 closed guest language, URL language, SEO manifest and prerender gaps; D1–D5 closed motion, accessibility automation, Lighthouse, E2E and report-only CSP; E1–E5 added the staging stack, backup/restore drill, opt-in monitoring and safe logs, retention command, staff content-confirmation page and UAT kit. Release remains blocked by:
 
-1. No `/sw/` routing, hreflang, per-language canonicals or sitemap.
-2. No prerendering, no blog index.
-3. No CSP, axe tests, reduced-motion test or Lighthouse evidence.
-4. No Playwright, staging stack, backup/restore, monitoring or content-confirmation page.
-5. Missing table/conference guest language fields.
-6. No UAT script, changelog, PR or tag.
+1. Hotel decisions in section 4: location/contact, facility names, prices, claims, conference mapping and native Swahili review.
+2. Live payment, SMTP, SMS and DNS/TLS credentials, plus a real low-value payment test.
+3. UAT execution and sign-off in `docs/UAT-SCRIPT.md`, including a live staging smoke run and CSP violation review.
+4. The release PR and `v0.1.0-rc1` tag, which are deliberately not created here.
+
+No merge to `main` and no production deployment were performed.
 
 ## 4. Hotel decisions that remain unresolved (not decided by engineering)
 
 | Flag | Current state | Do not change without the hotel |
 | --- | --- | --- |
 | Location/contact | Kapenguria placeholders in `config/hotel.ts`; source material also says Westlands/Nairobi | Address, town, county, map pin, phone, WhatsApp, email |
-| Facility names | Tulia Restaurant, Jacaranda Café, Kilele Hall, Westside Fitness | Names and spellings |
+| Facility names | Confirmed: Tamarind Restaurant, C&K café, Kopoch Hall / The Attelo Hall / Executive Board Room. Unconfirmed: Westside Fitness (gym) | Gym name and Swahili copy |
 | Prices and claims | `claims_verified=False`; prices marked "pending" | Every room/menu/offer/conference/gym price |
 | Conference half/full day | 8,000 / 15,000 look swapped | Correct mapping |
 | Swahili | `sw` strings are machine-translated | Native speaker review |
@@ -179,4 +519,4 @@ guard fields.
 
 ## 5. Next steps (after approval)
 
-Proceed in this order: Step 2.1–2.11 (privacy/terms + consent, gym price, language fields + `/sw/`, route manifest/sitemap, prerender, CSP, accessibility/motion/Lighthouse, Postgres/Playwright/CI, security tests), then Step 3 staging/operations, Step 4 UAT kit, Step 5 PR + `v0.1.0-rc1` tag. No merge and no production deployment.
+C7–C10, D1–D5 and E1–E5 are complete and CI-green. Proceed with hotel sign-off, live credentials, a real staging smoke run and the UAT script. Only after those pass should a release PR and `v0.1.0-rc1` tag be created and a production deployment scheduled. No merge and no production deployment are part of this work.

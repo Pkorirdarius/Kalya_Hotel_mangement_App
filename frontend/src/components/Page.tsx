@@ -2,6 +2,28 @@ import { useEffect, type ReactNode } from 'react';
 import { useLocation } from 'react-router-dom';
 
 import { trackPageview } from '../lib/analytics';
+import { languageFromPath, localizedPath, stripLanguagePrefix } from '../lib/routes';
+
+type AlternateLanguage = 'en' | 'sw' | 'x-default';
+
+function setAlternate(hreflang: AlternateLanguage, href: string) {
+  let link = document.head.querySelector<HTMLLinkElement>(
+    `link[rel="alternate"][hreflang="${hreflang}"]`,
+  );
+  if (!link) {
+    link = document.createElement('link');
+    link.rel = 'alternate';
+    link.hreflang = hreflang;
+    document.head.appendChild(link);
+  }
+  link.href = href;
+}
+
+function removeAlternates() {
+  document.head
+    .querySelectorAll<HTMLLinkElement>('link[rel="alternate"][hreflang]')
+    .forEach((link) => link.remove());
+}
 
 export function usePageMeta(title: string, description?: string, noindex = false) {
   const { pathname } = useLocation();
@@ -29,9 +51,35 @@ export function usePageMeta(title: string, description?: string, noindex = false
     const twitterTitle = document.querySelector<HTMLMetaElement>('meta[name="twitter:title"]');
     if (twitterTitle) twitterTitle.content = title;
 
+    const language = languageFromPath(pathname);
+    const barePath = stripLanguagePrefix(pathname);
+    const enPath = localizedPath(barePath, 'en');
+    const swPath = localizedPath(barePath, 'sw');
+    const canonicalPath = language === 'sw' ? swPath : enPath;
+
     const canonical = document.querySelector<HTMLLinkElement>('link[rel="canonical"]');
+    const origin = canonical?.dataset.origin ?? '';
     if (canonical) {
-      canonical.href = `${canonical.dataset.origin ?? ''}${pathname === '/' ? '/' : pathname}`;
+      canonical.href = `${origin}${canonicalPath}`;
+    }
+
+    const ogUrl = document.querySelector<HTMLMetaElement>('meta[property="og:url"]');
+    if (ogUrl) ogUrl.content = `${origin}${canonicalPath}`;
+
+    const ogLocale = document.querySelector<HTMLMetaElement>('meta[property="og:locale"]');
+    if (ogLocale) ogLocale.content = language === 'sw' ? 'sw_KE' : 'en_KE';
+
+    const ogLocaleAlternate = document.querySelector<HTMLMetaElement>(
+      'meta[property="og:locale:alternate"]',
+    );
+    if (ogLocaleAlternate) ogLocaleAlternate.content = language === 'sw' ? 'en_KE' : 'sw_KE';
+
+    if (noindex) {
+      removeAlternates();
+    } else {
+      setAlternate('en', `${origin}${enPath}`);
+      setAlternate('sw', `${origin}${swPath}`);
+      setAlternate('x-default', `${origin}${enPath}`);
     }
 
     const robots = document.querySelector<HTMLMetaElement>('meta[name="robots"]');

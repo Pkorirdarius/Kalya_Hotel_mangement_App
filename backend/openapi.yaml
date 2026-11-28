@@ -1007,6 +1007,36 @@ paths:
               schema:
                 $ref: '#/components/schemas/StaffBooking'
           description: ''
+  /api/v1/staff/common/content-confirmation/:
+    get:
+      operationId: v1_staff_common_content_confirmation_retrieve
+      description: Read-only list of CMS rows still flagged for hotel confirmation.
+      tags:
+      - staff
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContentConfirmationSummary'
+          description: ''
+  /api/v1/staff/common/form-guard/summary/:
+    get:
+      operationId: v1_staff_common_form_guard_summary_retrieve
+      description: Blocked-submission counts so staff can spot guard false positives.
+      tags:
+      - staff
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FormGuardSummary'
+          description: ''
   /api/v1/staff/common/settings/:
     get:
       operationId: v1_staff_common_settings_retrieve
@@ -1719,6 +1749,18 @@ paths:
         schema:
           type: string
           format: date
+      - in: query
+        name: hall
+        schema:
+          type: string
+          enum:
+          - attelo
+          - boardroom
+          - kopoch
+        description: |-
+          * `kopoch` - Kopoch Hall
+          * `attelo` - The Attelo Hall
+          * `boardroom` - Executive Board Room
       - name: ordering
         required: false
         in: query
@@ -3450,6 +3492,97 @@ paths:
                 type: string
                 format: binary
           description: ''
+  /api/v1/staff/rooms/:
+    get:
+      operationId: v1_staff_rooms_list
+      description: Numbered rooms and the front desk's free/occupied view of them.
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - in: query
+        name: room_type
+        schema:
+          type: integer
+      - in: query
+        name: status
+        schema:
+          type: string
+          enum:
+          - free
+          - occupied
+        description: |-
+          * `free` - Free
+          * `occupied` - Occupied
+      tags:
+      - staff rooms
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RoomStaff'
+          description: ''
+  /api/v1/staff/rooms/{id}/:
+    get:
+      operationId: v1_staff_rooms_retrieve
+      description: Numbered rooms and the front desk's free/occupied view of them.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - staff rooms
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoomStaff'
+          description: ''
+  /api/v1/staff/rooms/{id}/status/:
+    patch:
+      operationId: v1_staff_rooms_status_partial_update
+      description: Numbered rooms and the front desk's free/occupied view of them.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - staff rooms
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedRoomStatusRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedRoomStatusRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedRoomStatusRequest'
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoomStaff'
+          description: ''
   /api/v1/staff/rooms/room-blocks/:
     get:
       operationId: v1_staff_rooms_room_blocks_list
@@ -4044,7 +4177,7 @@ components:
           maxLength: 1000
         language:
           allOf:
-          - $ref: '#/components/schemas/LanguageEnum'
+          - $ref: '#/components/schemas/LanguageF0bEnum'
           default: en
         consent_privacy:
           type: boolean
@@ -4319,6 +4452,10 @@ components:
           $ref: '#/components/schemas/SessionEnum'
         session_display:
           type: string
+        hall:
+          $ref: '#/components/schemas/HallEnum'
+        hall_display:
+          type: string
         people:
           type: integer
           maximum: 9223372036854775807
@@ -4347,6 +4484,8 @@ components:
         phone:
           type: string
           maxLength: 32
+        language:
+          $ref: '#/components/schemas/LanguageCb0Enum'
         notes:
           type: string
         status:
@@ -4363,6 +4502,8 @@ components:
       - email
       - first_name
       - guest_name
+      - hall
+      - hall_display
       - last_name
       - layout
       - layout_display
@@ -4393,6 +4534,8 @@ components:
           format: date
         session:
           $ref: '#/components/schemas/SessionEnum'
+        hall:
+          $ref: '#/components/schemas/HallEnum'
         people:
           type: integer
           maximum: 120
@@ -4424,6 +4567,10 @@ components:
           type: string
           minLength: 1
           maxLength: 32
+        language:
+          allOf:
+          - $ref: '#/components/schemas/LanguageCb0Enum'
+          default: en
         notes:
           type: string
           maxLength: 2000
@@ -4431,6 +4578,7 @@ components:
       - date
       - email
       - first_name
+      - hall
       - last_name
       - layout
       - people
@@ -4455,6 +4603,10 @@ components:
         session:
           $ref: '#/components/schemas/SessionEnum'
         session_display:
+          type: string
+        hall:
+          $ref: '#/components/schemas/HallEnum'
+        hall_display:
           type: string
         people:
           type: integer
@@ -4484,6 +4636,8 @@ components:
         phone:
           type: string
           maxLength: 32
+        language:
+          $ref: '#/components/schemas/LanguageCb0Enum'
         notes:
           type: string
         status:
@@ -4504,6 +4658,8 @@ components:
       - email
       - first_name
       - guest_name
+      - hall
+      - hall_display
       - last_name
       - layout
       - layout_display
@@ -4582,7 +4738,7 @@ components:
           maxLength: 3000
         language:
           allOf:
-          - $ref: '#/components/schemas/LanguageEnum'
+          - $ref: '#/components/schemas/LanguageF0bEnum'
           default: en
       required:
       - email
@@ -4635,6 +4791,49 @@ components:
       - name
       - reference
       - status_display
+    ContentConfirmationItem:
+      type: object
+      properties:
+        kind:
+          type: string
+        model:
+          type: string
+        id:
+          type: string
+        label:
+          type: string
+        active:
+          type: boolean
+        needs_confirmation:
+          type: boolean
+        updated_at:
+          type: string
+          format: date-time
+      required:
+      - active
+      - id
+      - kind
+      - label
+      - model
+      - needs_confirmation
+      - updated_at
+    ContentConfirmationSummary:
+      type: object
+      properties:
+        total:
+          type: integer
+        counts:
+          type: object
+          additionalProperties:
+            type: integer
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ContentConfirmationItem'
+      required:
+      - counts
+      - items
+      - total
     CsrfResponse:
       type: object
       properties:
@@ -4740,6 +4939,38 @@ components:
           type: integer
       required:
       - escalated
+    FormGuardCount:
+      type: object
+      properties:
+        form:
+          type: string
+        reason:
+          type: string
+        count:
+          type: integer
+      required:
+      - count
+      - form
+      - reason
+    FormGuardSummary:
+      type: object
+      properties:
+        window_days:
+          type: integer
+        since:
+          type: string
+          format: date-time
+        total:
+          type: integer
+        counts:
+          type: array
+          items:
+            $ref: '#/components/schemas/FormGuardCount'
+      required:
+      - counts
+      - since
+      - total
+      - window_days
     GymAvailability:
       type: object
       properties:
@@ -5009,6 +5240,16 @@ components:
         * `new` - New
         * `contacted` - Contacted
         * `closed` - Closed
+    HallEnum:
+      enum:
+      - kopoch
+      - attelo
+      - boardroom
+      type: string
+      description: |-
+        * `kopoch` - Kopoch Hall
+        * `attelo` - The Attelo Hall
+        * `boardroom` - Executive Board Room
     Health:
       type: object
       properties:
@@ -5025,7 +5266,15 @@ components:
       - service
       - status
       - time
-    LanguageEnum:
+    LanguageCb0Enum:
+      enum:
+      - en
+      - sw
+      type: string
+      description: |-
+        * `en` - English
+        * `sw` - Kiswahili
+    LanguageF0bEnum:
       enum:
       - en
       - sw
@@ -5126,7 +5375,14 @@ components:
         description_sw:
           type: string
           maxLength: 255
-        supplement_per_person_per_night:
+        supplement_per_room_per_night:
+          type: number
+          format: double
+          maximum: 10000000000
+          minimum: -10000000000
+          exclusiveMaximum: true
+          exclusiveMinimum: true
+        extra_person_per_night:
           type: number
           format: double
           maximum: 10000000000
@@ -5142,9 +5398,10 @@ components:
           format: int64
       required:
       - code
+      - extra_person_per_night
       - id
       - name_en
-      - supplement_per_person_per_night
+      - supplement_per_room_per_night
     MealPlanRequest:
       type: object
       properties:
@@ -5166,7 +5423,14 @@ components:
         description_sw:
           type: string
           maxLength: 255
-        supplement_per_person_per_night:
+        supplement_per_room_per_night:
+          type: number
+          format: double
+          maximum: 10000000000
+          minimum: -10000000000
+          exclusiveMaximum: true
+          exclusiveMinimum: true
+        extra_person_per_night:
           type: number
           format: double
           maximum: 10000000000
@@ -5182,8 +5446,9 @@ components:
           format: int64
       required:
       - code
+      - extra_person_per_night
       - name_en
-      - supplement_per_person_per_night
+      - supplement_per_room_per_night
     MenuItem:
       type: object
       properties:
@@ -5375,7 +5640,7 @@ components:
           default: true
         language:
           allOf:
-          - $ref: '#/components/schemas/LanguageEnum'
+          - $ref: '#/components/schemas/LanguageF0bEnum'
           default: en
         source:
           type: string
@@ -6159,6 +6424,11 @@ components:
         session_display:
           type: string
           minLength: 1
+        hall:
+          $ref: '#/components/schemas/HallEnum'
+        hall_display:
+          type: string
+          minLength: 1
         people:
           type: integer
           maximum: 9223372036854775807
@@ -6193,6 +6463,8 @@ components:
           type: string
           minLength: 1
           maxLength: 32
+        language:
+          $ref: '#/components/schemas/LanguageCb0Enum'
         notes:
           type: string
         status:
@@ -6340,7 +6612,14 @@ components:
         description_sw:
           type: string
           maxLength: 255
-        supplement_per_person_per_night:
+        supplement_per_room_per_night:
+          type: number
+          format: double
+          maximum: 10000000000
+          minimum: -10000000000
+          exclusiveMaximum: true
+          exclusiveMinimum: true
+        extra_person_per_night:
           type: number
           format: double
           maximum: 10000000000
@@ -6559,6 +6838,11 @@ components:
         reason:
           type: string
           maxLength: 200
+    PatchedRoomStatusRequest:
+      type: object
+      properties:
+        status:
+          $ref: '#/components/schemas/StatusE1bEnum'
     PatchedRoomTypeStaffRequest:
       type: object
       properties:
@@ -6816,6 +7100,11 @@ components:
           type: string
           format: decimal
           pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        conference_prices_confirmed:
+          type: boolean
+          description: Only enable after the hotel confirms half-day and full-day
+            hall prices. While false, prices are omitted from the public API and guests
+            see 'Request a quotation'.
         bank_name:
           type: string
           maxLength: 120
@@ -6837,6 +7126,10 @@ components:
             are hidden.
         google_reviews_enabled:
           type: boolean
+        dinner_plan_enabled:
+          type: boolean
+          description: Legacy dinner, bed & breakfast rate. Keep disabled until the
+            hotel confirms it is still sold; it is hidden from guest booking.
         privacy_notice_url:
           type: string
           maxLength: 255
@@ -6893,6 +7186,8 @@ components:
             maxLength: 254
           - type: string
             maxLength: 0
+        language:
+          $ref: '#/components/schemas/LanguageCb0Enum'
         occasion:
           type: string
           maxLength: 40
@@ -7192,6 +7487,7 @@ components:
       - table_bookings
     PolicyPage:
       type: object
+      description: Public legal text; the pending-approval state stays staff-only.
       properties:
         slug:
           type: string
@@ -7214,9 +7510,6 @@ components:
           type: string
           format: date-time
           readOnly: true
-        needs_confirmation:
-          type: boolean
-          description: Legal wording still needs hotel/legal review.
       required:
       - slug
       - title_en
@@ -7332,6 +7625,11 @@ components:
         conference_hours:
           type: string
           maxLength: 80
+        conference_prices_confirmed:
+          type: boolean
+          description: Only enable after the hotel confirms half-day and full-day
+            hall prices. While false, prices are omitted from the public API and guests
+            see 'Request a quotation'.
         gym_capacity:
           type: integer
           maximum: 9223372036854775807
@@ -7393,6 +7691,10 @@ components:
             are hidden.
         google_reviews_enabled:
           type: boolean
+        dinner_plan_enabled:
+          type: boolean
+          description: Legacy dinner, bed & breakfast rate. Keep disabled until the
+            hotel confirms it is still sold; it is hidden from guest booking.
         privacy_notice_url:
           type: string
           maxLength: 255
@@ -7481,6 +7783,10 @@ components:
           type: integer
         undo_seconds:
           type: integer
+        new_booking_count:
+          type: integer
+        new_booking_window_minutes:
+          type: integer
         items:
           type: array
           items:
@@ -7489,6 +7795,8 @@ components:
       - escalate_minutes
       - generated_at
       - items
+      - new_booking_count
+      - new_booking_window_minutes
       - target_minutes
       - undo_seconds
     QuoteRequestRequest:
@@ -7890,6 +8198,34 @@ components:
       - end_date
       - room_type
       - start_date
+    RoomStaff:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        number:
+          type: string
+          readOnly: true
+          description: Physical room number, e.g. 201. Must be unique in the hotel.
+        room_type:
+          type: string
+          readOnly: true
+        room_type_name:
+          type: string
+          readOnly: true
+        status:
+          $ref: '#/components/schemas/StatusE1bEnum'
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - id
+      - number
+      - room_type
+      - room_type_name
+      - updated_at
     RoomTypeDetail:
       type: object
       properties:
@@ -8443,6 +8779,9 @@ components:
           type: string
           format: date-time
           nullable: true
+        room_number:
+          type: string
+          nullable: true
       required:
       - accommodation_total
       - can_cancel
@@ -8462,6 +8801,7 @@ components:
       - phone
       - rate_plan
       - reference
+      - room_number
       - room_type
       - room_type_image
       - room_type_name
@@ -8611,6 +8951,11 @@ components:
           type: string
           format: decimal
           pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        conference_prices_confirmed:
+          type: boolean
+          description: Only enable after the hotel confirms half-day and full-day
+            hall prices. While false, prices are omitted from the public API and guests
+            see 'Request a quotation'.
         bank_name:
           type: string
           maxLength: 120
@@ -8632,6 +8977,10 @@ components:
             are hidden.
         google_reviews_enabled:
           type: boolean
+        dinner_plan_enabled:
+          type: boolean
+          description: Legacy dinner, bed & breakfast rate. Keep disabled until the
+            hotel confirms it is still sold; it is hidden from guest booking.
         privacy_notice_url:
           type: string
           maxLength: 255
@@ -8679,6 +9028,14 @@ components:
         * `confirmed` - Confirmed
         * `declined` - Declined
         * `cancelled` - Cancelled
+    StatusE1bEnum:
+      enum:
+      - free
+      - occupied
+      type: string
+      description: |-
+        * `free` - Free
+        * `occupied` - Occupied
     StatusF4cEnum:
       enum:
       - held
@@ -8736,6 +9093,8 @@ components:
             maxLength: 254
           - type: string
             maxLength: 0
+        language:
+          $ref: '#/components/schemas/LanguageCb0Enum'
         occasion:
           type: string
           maxLength: 40
@@ -8810,6 +9169,10 @@ components:
             format: email
           - type: string
             maxLength: 0
+        language:
+          allOf:
+          - $ref: '#/components/schemas/LanguageCb0Enum'
+          default: en
         occasion:
           type: string
           maxLength: 40
@@ -8869,6 +9232,8 @@ components:
             maxLength: 254
           - type: string
             maxLength: 0
+        language:
+          $ref: '#/components/schemas/LanguageCb0Enum'
         occasion:
           type: string
           maxLength: 40

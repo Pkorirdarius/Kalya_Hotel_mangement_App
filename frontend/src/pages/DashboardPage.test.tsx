@@ -88,10 +88,15 @@ function actionBody(
 }
 
 function mockFetch(
-  options: { authenticated?: boolean; exportGuestData?: boolean } = {},
+  options: {
+    authenticated?: boolean;
+    exportGuestData?: boolean;
+    newBookingCount?: number;
+  } = {},
 ) {
   let authenticated = options.authenticated ?? false;
   const exportGuestData = options.exportGuestData ?? false;
+  const newBookingCount = options.newBookingCount ?? 0;
   let queue: Array<Record<string, unknown>> = [
     queueItem(),
     queueItem({
@@ -110,6 +115,24 @@ function mockFetch(
     }),
   ];
   const handled: Array<Record<string, unknown>> = [];
+  let rooms = [
+    {
+      id: 1,
+      number: '201',
+      room_type: 'superior',
+      room_type_name: 'Superior Room',
+      status: 'free',
+      updated_at: new Date().toISOString(),
+    },
+    {
+      id: 2,
+      number: 'TWIN-1',
+      room_type: 'twin',
+      room_type_name: 'Twin Room',
+      status: 'occupied',
+      updated_at: new Date().toISOString(),
+    },
+  ];
 
   return vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input);
@@ -136,12 +159,25 @@ function mockFetch(
       authenticated = false;
       return jsonResponse(204, null);
     }
+    if (url.includes('/staff/rooms/') && method === 'GET') {
+      return jsonResponse(200, rooms);
+    }
+    if (url.includes('/staff/rooms/') && method === 'PATCH') {
+      const body = JSON.parse(String(init?.body)) as { status: string };
+      const id = Number(url.match(/\/staff\/rooms\/(\d+)\/status\//)?.[1]);
+      rooms = rooms.map((room) =>
+        room.id === id ? { ...room, status: body.status } : room,
+      );
+      return jsonResponse(200, rooms.find((room) => room.id === id));
+    }
     if (url.includes('/staff/frontdesk/queue/') && method === 'GET') {
       return jsonResponse(200, {
         generated_at: new Date().toISOString(),
         target_minutes: 10,
         escalate_minutes: 8,
         undo_seconds: 10,
+        new_booking_count: newBookingCount,
+        new_booking_window_minutes: 10,
         items: queue,
       });
     }
@@ -337,6 +373,26 @@ describe('DashboardPage', () => {
     ).not.toBeInTheDocument();
   });
 
+  it('alerts the desk when a booking arrived within ten minutes', async () => {
+    vi.stubGlobal(
+      'fetch',
+      mockFetch({ authenticated: true, newBookingCount: 2 }),
+    );
+    renderDashboard();
+
+    expect(
+      await screen.findByText('New bookings · 2 received in the last 10 minutes.'),
+    ).toBeInTheDocument();
+  });
+
+  it('stays quiet when no booking arrived in the alert window', async () => {
+    vi.stubGlobal('fetch', mockFetch({ authenticated: true }));
+    renderDashboard();
+
+    expect(await screen.findByText('WP-2026-0041')).toBeInTheDocument();
+    expect(screen.queryByText(/New bookings ·/)).not.toBeInTheDocument();
+  });
+
   it('confirms an item and undoes the action inside the window', async () => {
     vi.stubGlobal('fetch', mockFetch({ authenticated: true }));
     const user = userEvent.setup();
@@ -415,5 +471,37 @@ describe('DashboardPage', () => {
     expect(href).toContain('format=csv');
     expect(href).toContain('start=');
     expect(href).toContain('end=');
+  });
+
+  it('lists numbered rooms and lets front desk mark one occupied', async () => {
+    const fetchMock = mockFetch({ authenticated: true });
+    vi.stubGlobal('fetch', fetchMock);
+    const user = userEvent.setup();
+    renderDashboard();
+
+    expect(
+      await screen.findByRole('heading', { name: 'Room status' }),
+    ).toBeInTheDocument();
+    expect(await screen.findByText('201')).toBeInTheDocument();
+    expect(screen.getByText('TWIN-1')).toBeInTheDocument();
+    expect(screen.getByText(/TWIN-1 is a placeholder/)).toBeInTheDocument();
+
+    await user.click(
+      screen.getByRole('button', { name: 'Mark occupied — room 201' }),
+    );
+
+    expect(
+      await screen.findByText('Room 201 marked occupied'),
+    ).toBeInTheDocument();
+    expect(
+      await screen.findByRole('button', { name: 'Mark free — room 201' }),
+    ).toBeInTheDocument();
+
+    const patchCall = fetchMock.mock.calls.find(
+      ([input, init]) =>
+        String(input).includes('/staff/rooms/1/status/') && init?.method === 'PATCH',
+    );
+    expect(patchCall).toBeTruthy();
+    expect(JSON.parse(String(patchCall?.[1]?.body))).toEqual({ status: 'occupied' });
   });
 });

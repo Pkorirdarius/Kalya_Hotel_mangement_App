@@ -15,10 +15,29 @@ from apps.rates.models import MealPlan
 
 from ..models import Booking, BookingStatus
 from ..state import transition_booking
-from .availability import available_rooms
+from .availability import _active_inventory_bookings, available_rooms
 from .pricing import Quote, QuoteError, calculate_quote
 
 HOLD_STATUSES = (BookingStatus.HELD, BookingStatus.PENDING_PAYMENT)
+
+
+def _pick_available_room(room_type, checkin, checkout, *, exclude_booking_id=None):
+    """Pick a numbered room that is not reserved or manually marked occupied."""
+
+    from apps.rooms.models import Room
+
+    reserved_ids = set(
+        _active_inventory_bookings(room_type, checkin, checkout)
+        .exclude(pk=exclude_booking_id)
+        .exclude(room__isnull=True)
+        .values_list("room_id", flat=True)
+    )
+    return (
+        Room.objects.filter(room_type=room_type, status=Room.Status.FREE)
+        .exclude(id__in=reserved_ids)
+        .order_by("number")
+        .first()
+    )
 
 
 class SoldOutError(ValueError):
@@ -96,11 +115,18 @@ def create_booking(
     if available < 1:
         raise SoldOutError("That room type has just sold out for these dates.")
 
+    assigned_room = _pick_available_room(
+        locked, checkin, checkout, exclude_booking_id=None
+    )
+    if assigned_room is None:
+        raise SoldOutError("That room type has just sold out for these dates.")
+
     now = timezone.now()
     booking = Booking.objects.create(
         reference=unique_reference(Booking, "WP"),
         client_request_id=client_request_id or None,
         room_type=locked,
+        room=assigned_room,
         rate_plan=quote.rate_plan,
         meal_plan=meal_plan,
         checkin=checkin,

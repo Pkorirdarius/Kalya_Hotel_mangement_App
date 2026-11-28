@@ -79,7 +79,8 @@ class RatePlanSerializer(serializers.ModelSerializer):
 
 
 class MealPlanSerializer(serializers.ModelSerializer):
-    supplement_per_person_per_night = KesField()
+    supplement_per_room_per_night = KesField()
+    extra_person_per_night = KesField()
 
     class Meta:
         model = MealPlan
@@ -90,7 +91,8 @@ class MealPlanSerializer(serializers.ModelSerializer):
             "name_sw",
             "description_en",
             "description_sw",
-            "supplement_per_person_per_night",
+            "supplement_per_room_per_night",
+            "extra_person_per_night",
             "active",
             "sort_order",
         )

@@ -28,6 +28,10 @@ env = environ.Env(
     THROTTLE_LOOKUP=(str, "30/hour"),
     THROTTLE_PAYMENT=(str, "30/hour"),
     THROTTLE_LOGIN=(str, "10/min"),
+    LOG_FORMAT=(str, "text"),
+    SENTRY_DSN=(str, ""),
+    SENTRY_RELEASE=(str, ""),
+    SENTRY_ENVIRONMENT=(str, ""),
 )
 
 for candidate in (REPO_ROOT / ".env", BASE_DIR / ".env"):
@@ -82,6 +86,17 @@ HOTEL = {
     ),
     "CLAIMS_VERIFIED": env.bool("HOTEL_CLAIMS_VERIFIED", default=False),
     "GOOGLE_REVIEWS_ENABLED": env.bool("HOTEL_GOOGLE_REVIEWS_ENABLED", default=False),
+}
+
+# Values that are public placeholders, not confirmed hotel facts. Production
+# refuses to start while any of these are still in use; see
+# apps/common/production.py and docs/LAUNCH-CHECKLIST.md.
+HOTEL_PLACEHOLDERS = {
+    "PHONE": "+254 20 765 4321",
+    "PHONE_HREF": "tel:+254207654321",
+    "EMAIL": "stay@westpremierhotel.co.ke",
+    "ADDRESS": "Kapenguria, West Pokot, Kenya",
+    "MAP_QUERY": "Westlands,Kapenguria,Kenya",
 }
 
 
@@ -144,6 +159,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "apps.common.middleware.RequestIDMiddleware",
     "apps.accounts.middleware.CurrentUserMiddleware",
+    "apps.common.middleware.CSPReportOnlyMiddleware",
 ]
 
 ROOT_URLCONF = "config.urls"
@@ -314,6 +330,22 @@ CSRF_COOKIE_SECURE = env("CSRF_COOKIE_SECURE")
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
 SECURE_CROSS_ORIGIN_OPENER_POLICY = "same-origin"
+
+# Step 2.6: collect CSP violations before switching to enforcement. Django admin
+# needs inline styles/scripts, and the API is JSON-only, so this policy is
+# intentionally permissive where the built-in admin still requires it.
+CSP_REPORT_ONLY_POLICY = (
+    "default-src 'self'; "
+    "base-uri 'self'; "
+    "object-src 'none'; "
+    "frame-ancestors 'none'; "
+    "form-action 'self'; "
+    "img-src 'self' data: https:; "
+    "font-src 'self' data:; "
+    "style-src 'self' 'unsafe-inline'; "
+    "script-src 'self' 'unsafe-inline'; "
+    "connect-src 'self'"
+)
 X_FRAME_OPTIONS = "DENY"
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
@@ -400,12 +432,24 @@ Q_CLUSTER = {
     "label": "Hotel jobs",
 }
 
+# Data retention is opt-in. Even `apply_retention --apply` is a dry run until
+# this is enabled, and no recurring schedule installs the command.
+RETENTION_APPLY_ENABLED = env.bool("RETENTION_APPLY_ENABLED", default=False)
+
 # Request ID is returned to clients and attached to log records.
 REQUEST_ID_HEADER = "X-Request-ID"
 
 # ---------------------------------------------------------------------------
-# Logging
+# Logging and opt-in error reporting
 # ---------------------------------------------------------------------------
+LOG_FORMAT = env("LOG_FORMAT").lower()
+LOG_HANDLER = "json_console" if LOG_FORMAT == "json" else "console"
+
+# Empty by default: no remote reporting, no SDK dependency and no network calls.
+SENTRY_DSN = env("SENTRY_DSN")
+SENTRY_RELEASE = env("SENTRY_RELEASE")
+SENTRY_ENVIRONMENT = env("SENTRY_ENVIRONMENT")
+
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
@@ -417,6 +461,7 @@ LOGGING = {
             "format": "{levelname} {asctime} {name} [{request_id}] {message}",
             "style": "{",
         },
+        "json": {"()": "apps.common.logging.SafeJSONFormatter"},
     },
     "handlers": {
         "console": {
@@ -424,14 +469,27 @@ LOGGING = {
             "formatter": "verbose",
             "filters": ["request_id"],
         },
+        "json_console": {
+            "class": "logging.StreamHandler",
+            "formatter": "json",
+            "filters": ["request_id"],
+        },
     },
-    "root": {"handlers": ["console"], "level": "INFO"},
+    "root": {"handlers": [LOG_HANDLER], "level": "INFO"},
     "loggers": {
-        "apps": {"handlers": ["console"], "level": "INFO", "propagate": False},
+        "apps": {"handlers": [LOG_HANDLER], "level": "INFO", "propagate": False},
         "django.request": {
-            "handlers": ["console"],
+            "handlers": [LOG_HANDLER],
             "level": "WARNING",
             "propagate": False,
         },
     },
 }
+
+from apps.common.monitoring import configure_monitoring  # noqa: E402
+
+configure_monitoring(
+    dsn=SENTRY_DSN,
+    release=SENTRY_RELEASE,
+    environment=SENTRY_ENVIRONMENT,
+)

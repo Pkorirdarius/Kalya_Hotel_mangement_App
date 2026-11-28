@@ -108,6 +108,7 @@ class TableBookingCreateView(APIView):
                 last_name=data["last_name"],
                 phone=data["phone"],
                 email=data.get("email", ""),
+                language=data.get("language", "en"),
                 occasion=data.get("occasion", ""),
                 notes=data.get("notes", ""),
                 venue=data.get("venue", TableBooking.Venue.RESTAURANT),
@@ -210,6 +211,7 @@ class ConferenceEnquiryCreateView(APIView):
             enquiry = create_conference_enquiry(
                 date_value=data["date"],
                 session=data["session"],
+                hall=data["hall"],
                 people=data["people"],
                 layout=data["layout"],
                 catering=data.get("catering", []),
@@ -218,6 +220,7 @@ class ConferenceEnquiryCreateView(APIView):
                 company=data.get("company", ""),
                 email=data["email"],
                 phone=data["phone"],
+                language=data.get("language", "en"),
                 notes=data.get("notes", ""),
             )
         except FacilityError as exc:

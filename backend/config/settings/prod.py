@@ -2,6 +2,7 @@
 
 from django.core.exceptions import ImproperlyConfigured
 
+from apps.common.production import enforce_production_hotel_settings
 from apps.payments.production import enforce_production_payment_settings
 
 from .base import *  # noqa: F401,F403
@@ -19,6 +20,12 @@ if SECRET_KEY == "insecure-dev-key-not-for-production":
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS")  # noqa: F405
 if not ALLOWED_HOSTS:
     raise ImproperlyConfigured("Set ALLOWED_HOSTS in production.")
+
+# Placeholder contact details must never reach a live guest-facing deploy.
+enforce_production_hotel_settings(
+    values=HOTEL,  # noqa: F405
+    placeholders=HOTEL_PLACEHOLDERS,  # noqa: F405
+)
 
 # Refuse to start if anything could complete a payment without a gateway, or if
 # callbacks cannot be authenticated. See docs/DEPLOYMENT.md.

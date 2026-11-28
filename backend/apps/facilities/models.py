@@ -31,6 +31,9 @@ class MenuItem(TimeStampedModel):
         return f"{self.name_en} ({self.get_venue_display()})"
 
 
+GUEST_LANGUAGE_CHOICES = (("en", "English"), ("sw", "Kiswahili"))
+
+
 class TableBooking(TimeStampedModel):
     class Status(models.TextChoices):
         PENDING = "pending", "Pending"
@@ -58,6 +61,11 @@ class TableBooking(TimeStampedModel):
     last_name = models.CharField(max_length=80)
     phone = models.CharField(max_length=32)
     email = models.EmailField(blank=True)
+    # Language of the form when the guest booked. Guest messages use it and
+    # fall back to English for old or unexpected values.
+    language = models.CharField(
+        max_length=2, choices=GUEST_LANGUAGE_CHOICES, default="en", db_index=True
+    )
     occasion = models.CharField(max_length=40, blank=True)
     notes = models.TextField(blank=True)
     status = models.CharField(
@@ -96,6 +104,11 @@ class ConferenceEnquiry(TimeStampedModel):
         USHAPE = "ushape", "U-shape"
         THEATRE = "theatre", "Theatre"
 
+    class Hall(models.TextChoices):
+        KOPOCH = "kopoch", "Kopoch Hall"
+        ATELLO = "attelo", "The Attelo Hall"
+        BOARDROOM = "boardroom", "Executive Board Room"
+
     class Status(models.TextChoices):
         PENDING = "pending", "Pending"
         CONFIRMED = "confirmed", "Confirmed"
@@ -105,6 +118,7 @@ class ConferenceEnquiry(TimeStampedModel):
     reference = models.CharField(max_length=20, unique=True, db_index=True)
     date = models.DateField()
     session = models.CharField(max_length=20, choices=Session.choices)
+    hall = models.CharField(max_length=20, choices=Hall.choices, db_index=True)
     people = models.PositiveSmallIntegerField()
     layout = models.CharField(max_length=20, choices=Layout.choices)
     catering = models.JSONField(default=list, blank=True)
@@ -113,6 +127,9 @@ class ConferenceEnquiry(TimeStampedModel):
     company = models.CharField(max_length=120, blank=True)
     email = models.EmailField()
     phone = models.CharField(max_length=32)
+    language = models.CharField(
+        max_length=2, choices=GUEST_LANGUAGE_CHOICES, default="en", db_index=True
+    )
     notes = models.TextField(blank=True)
     status = models.CharField(
         max_length=20, choices=Status.choices, default=Status.PENDING, db_index=True

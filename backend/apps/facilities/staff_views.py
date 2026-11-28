@@ -49,7 +49,7 @@ class ConferenceEnquiryViewSet(viewsets.ModelViewSet):
     serializer_class = ConferenceEnquiryStaffSerializer
     queryset = ConferenceEnquiry.objects.all()
     http_method_names = ["get", "patch", "head", "options"]
-    filterset_fields = ("status", "date", "session")
+    filterset_fields = ("status", "date", "session", "hall")
     search_fields = ("reference", "first_name", "last_name", "company", "email", "phone")
 
 

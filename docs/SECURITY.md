@@ -32,6 +32,13 @@ must stay true. It is not a substitute for a penetration test before launch.
 - `seed_hotel --demo-users` is refused unless `ALLOW_DEMO_USERS=true`, and
   production forces that setting back to false. Never create demo accounts on a
   deployed environment; create named staff accounts instead.
+- Provision named accounts with `manage.py create_staff_from_csv --csv staff.csv`.
+  The CSV columns are `username,email,role` plus optional
+  `first_name,last_name,phone`; `role` must be one of the values in
+  `UserRole`. No passwords go in the file: each new account gets an unusable
+  password and the operator must run `manage.py changepassword <username>`
+  before handing it over. Existing usernames are skipped, and `--dry-run`
+  validates without writing.
 
 ## 2. Guest data and privacy
 

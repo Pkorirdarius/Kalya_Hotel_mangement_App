@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link } from '../components/LocalizedLink';
 import { usePageMeta } from '../components/Page';
 import { whatsappHref } from '../config/hotel';
 import { GYM_DAY_PASS_PRICE } from '../config/prices';
@@ -10,7 +10,7 @@ const FACILITIES = [
     image: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&w=1400&q=85',
     alt: 'home.facilities.restaurantAlt',
     pillClass: 'bg-cream/95 text-forest',
-    pillIcon: 'dot',
+    pillIcon: 'circle',
     pillKey: 'common.openNow',
     eyebrow: 'facilities.dining.eyebrow',
     name: 'facility.restaurant.name',
@@ -25,7 +25,7 @@ const FACILITIES = [
     image: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=1400&q=85',
     alt: 'home.facilities.coffeeAlt',
     pillClass: 'bg-cream/95 text-forest',
-    pillIcon: 'dot',
+    pillIcon: 'circle',
     pillKey: 'common.openNow',
     eyebrow: 'facilities.coffee.eyebrow',
     name: 'facility.coffee.name',
@@ -71,7 +71,6 @@ const EXTRAS = [
   { icon: 'bolt', title: 'facilities.generator', text: 'facilities.generator.text' },
   { icon: 'local_parking', title: 'facilities.parking', text: 'facilities.parking.text' },
   { icon: 'accessible', title: 'facilities.accessible', text: 'facilities.accessible.text' },
-  { icon: 'airport_shuttle', title: 'facilities.transfers', text: 'facilities.transfers.text' },
 ];
 
 export function FacilitiesPage() {
@@ -123,7 +122,7 @@ export function FacilitiesPage() {
                   <img
                     src={facility.image}
                     alt={t(facility.alt)}
-                    className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
+                    className="h-full w-full object-cover transition-[transform,opacity] duration-300 ease-out group-hover:scale-105"
                     loading="lazy"
                   />
                   <span className={`pill absolute left-4 top-4 ${facility.pillClass}`}>

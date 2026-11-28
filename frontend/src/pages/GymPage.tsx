@@ -1,5 +1,5 @@
 import { useRef, useState, type FormEvent } from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from '../components/LocalizedLink';
 import { HoneypotField } from '../components/HoneypotField';
 import { usePageMeta } from '../components/Page';
 import { useToast } from '../components/ToastProvider';

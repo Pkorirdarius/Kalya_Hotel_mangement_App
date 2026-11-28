@@ -51,7 +51,8 @@ class PolicyPageDetailView(generics.RetrieveAPIView):
     lookup_field = "slug"
 
     def get_queryset(self):
-        return PolicyPage.objects.filter(active=True)
+        # Legal drafts stay hidden from guests until hotel/legal approval.
+        return PolicyPage.objects.filter(active=True, needs_confirmation=False)
 
 
 @extend_schema(tags=["content"])

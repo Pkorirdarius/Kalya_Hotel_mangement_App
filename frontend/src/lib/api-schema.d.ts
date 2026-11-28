@@ -702,6 +702,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/staff/common/content-confirmation/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Read-only list of CMS rows still flagged for hotel confirmation. */
+        get: operations["v1_staff_common_content_confirmation_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/staff/common/form-guard/summary/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Blocked-submission counts so staff can spot guard false positives. */
+        get: operations["v1_staff_common_form_guard_summary_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/staff/common/settings/": {
         parameters: {
             query?: never;
@@ -1326,6 +1360,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/staff/rooms/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Numbered rooms and the front desk's free/occupied view of them. */
+        get: operations["v1_staff_rooms_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/staff/rooms/{id}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Numbered rooms and the front desk's free/occupied view of them. */
+        get: operations["v1_staff_rooms_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/staff/rooms/{id}/status/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** @description Numbered rooms and the front desk's free/occupied view of them. */
+        patch: operations["v1_staff_rooms_status_partial_update"];
+        trace?: never;
+    };
     "/api/v1/staff/rooms/room-blocks/": {
         parameters: {
             query?: never;
@@ -1507,7 +1592,7 @@ export interface components {
             country?: string;
             notes?: string;
             /** @default en */
-            language: components["schemas"]["LanguageEnum"];
+            language: components["schemas"]["LanguageF0bEnum"];
             consent_privacy: boolean;
             /** @default false */
             marketing_consent: boolean;
@@ -1607,6 +1692,8 @@ export interface components {
             date: string;
             session: components["schemas"]["SessionEnum"];
             session_display: string;
+            hall: components["schemas"]["HallEnum"];
+            hall_display: string;
             /** Format: int64 */
             people: number;
             layout: components["schemas"]["LayoutEnum"];
@@ -1619,6 +1706,7 @@ export interface components {
             /** Format: email */
             email: string;
             phone: string;
+            language?: components["schemas"]["LanguageCb0Enum"];
             notes?: string;
             status?: components["schemas"]["StatusC66Enum"];
             status_display: string;
@@ -1638,6 +1726,7 @@ export interface components {
             /** Format: date */
             date: string;
             session: components["schemas"]["SessionEnum"];
+            hall: components["schemas"]["HallEnum"];
             people: number;
             layout: components["schemas"]["LayoutEnum"];
             catering?: string[];
@@ -1647,6 +1736,8 @@ export interface components {
             /** Format: email */
             email: string;
             phone: string;
+            /** @default en */
+            language: components["schemas"]["LanguageCb0Enum"];
             notes?: string;
         };
         ConferenceEnquiryCreateResponse: {
@@ -1658,6 +1749,8 @@ export interface components {
             date: string;
             session: components["schemas"]["SessionEnum"];
             session_display: string;
+            hall: components["schemas"]["HallEnum"];
+            hall_display: string;
             /** Format: int64 */
             people: number;
             layout: components["schemas"]["LayoutEnum"];
@@ -1670,6 +1763,7 @@ export interface components {
             /** Format: email */
             email: string;
             phone: string;
+            language?: components["schemas"]["LanguageCb0Enum"];
             notes?: string;
             status?: components["schemas"]["StatusC66Enum"];
             status_display: string;
@@ -1707,7 +1801,7 @@ export interface components {
             topic?: string;
             message: string;
             /** @default en */
-            language: components["schemas"]["LanguageEnum"];
+            language: components["schemas"]["LanguageF0bEnum"];
         };
         ContactMessageEnvelope: {
             message: components["schemas"]["ContactMessage"];
@@ -1725,6 +1819,23 @@ export interface components {
             readonly status_display: string;
             /** Format: date-time */
             readonly created_at: string;
+        };
+        ContentConfirmationItem: {
+            kind: string;
+            model: string;
+            id: string;
+            label: string;
+            active: boolean;
+            needs_confirmation: boolean;
+            /** Format: date-time */
+            updated_at: string;
+        };
+        ContentConfirmationSummary: {
+            total: number;
+            counts: {
+                [key: string]: number;
+            };
+            items: components["schemas"]["ContentConfirmationItem"][];
         };
         CsrfResponse: {
             csrfToken: string;
@@ -1774,6 +1885,18 @@ export interface components {
         EntityTypeEnum: "booking" | "table_booking" | "conference_enquiry" | "gym_pass";
         EscalateResponse: {
             escalated: number;
+        };
+        FormGuardCount: {
+            form: string;
+            reason: string;
+            count: number;
+        };
+        FormGuardSummary: {
+            window_days: number;
+            /** Format: date-time */
+            since: string;
+            total: number;
+            counts: components["schemas"]["FormGuardCount"][];
         };
         GymAvailability: {
             /** Format: date */
@@ -1871,6 +1994,13 @@ export interface components {
          * @enum {string}
          */
         GymMembershipEnquiryStatusEnum: "new" | "contacted" | "closed";
+        /**
+         * @description * `kopoch` - Kopoch Hall
+         *     * `attelo` - The Attelo Hall
+         *     * `boardroom` - Executive Board Room
+         * @enum {string}
+         */
+        HallEnum: "kopoch" | "attelo" | "boardroom";
         Health: {
             status: string;
             service: string;
@@ -1878,11 +2008,17 @@ export interface components {
             time: string;
         };
         /**
+         * @description * `en` - English
+         *     * `sw` - Kiswahili
+         * @enum {string}
+         */
+        LanguageCb0Enum: "en" | "sw";
+        /**
          * @description * `en` - en
          *     * `sw` - sw
          * @enum {string}
          */
-        LanguageEnum: "en" | "sw";
+        LanguageF0bEnum: "en" | "sw";
         /**
          * @description * `classroom` - Classroom
          *     * `boardroom` - Boardroom
@@ -1921,7 +2057,9 @@ export interface components {
             description_en?: string;
             description_sw?: string;
             /** Format: double */
-            supplement_per_person_per_night: number;
+            supplement_per_room_per_night: number;
+            /** Format: double */
+            extra_person_per_night: number;
             active?: boolean;
             /** Format: int64 */
             sort_order?: number;
@@ -1933,7 +2071,9 @@ export interface components {
             description_en?: string;
             description_sw?: string;
             /** Format: double */
-            supplement_per_person_per_night: number;
+            supplement_per_room_per_night: number;
+            /** Format: double */
+            extra_person_per_night: number;
             active?: boolean;
             /** Format: int64 */
             sort_order?: number;
@@ -2013,7 +2153,7 @@ export interface components {
             /** @default true */
             consent: boolean;
             /** @default en */
-            language: components["schemas"]["LanguageEnum"];
+            language: components["schemas"]["LanguageF0bEnum"];
             source?: string;
         };
         NewsletterSubscribeResponse: {
@@ -2424,6 +2564,8 @@ export interface components {
             date?: string;
             session?: components["schemas"]["SessionEnum"];
             session_display?: string;
+            hall?: components["schemas"]["HallEnum"];
+            hall_display?: string;
             /** Format: int64 */
             people?: number;
             layout?: components["schemas"]["LayoutEnum"];
@@ -2436,6 +2578,7 @@ export interface components {
             /** Format: email */
             email?: string;
             phone?: string;
+            language?: components["schemas"]["LanguageCb0Enum"];
             notes?: string;
             status?: components["schemas"]["StatusC66Enum"];
             status_display?: string;
@@ -2493,7 +2636,9 @@ export interface components {
             description_en?: string;
             description_sw?: string;
             /** Format: double */
-            supplement_per_person_per_night?: number;
+            supplement_per_room_per_night?: number;
+            /** Format: double */
+            extra_person_per_night?: number;
             active?: boolean;
             /** Format: int64 */
             sort_order?: number;
@@ -2580,6 +2725,9 @@ export interface components {
             /** Format: int64 */
             quantity?: number;
             reason?: string;
+        };
+        PatchedRoomStatusRequest: {
+            status?: components["schemas"]["StatusE1bEnum"];
         };
         PatchedRoomTypeStaffRequest: {
             slug?: string;
@@ -2690,6 +2838,8 @@ export interface components {
             conference_half_day_price?: string;
             /** Format: decimal */
             conference_full_day_price?: string;
+            /** @description Only enable after the hotel confirms half-day and full-day hall prices. While false, prices are omitted from the public API and guests see 'Request a quotation'. */
+            conference_prices_confirmed?: boolean;
             bank_name?: string;
             bank_account_name?: string;
             bank_account_number?: string;
@@ -2698,6 +2848,8 @@ export interface components {
             /** @description When false, unverified claims (best-rate, airport ride, etc.) are hidden. */
             claims_verified?: boolean;
             google_reviews_enabled?: boolean;
+            /** @description Legacy dinner, bed & breakfast rate. Keep disabled until the hotel confirms it is still sold; it is hidden from guest booking. */
+            dinner_plan_enabled?: boolean;
             privacy_notice_url?: string;
             privacy_notice_version?: string;
             /** Format: int64 */
@@ -2718,6 +2870,7 @@ export interface components {
             last_name?: string;
             phone?: string;
             email?: string;
+            language?: components["schemas"]["LanguageCb0Enum"];
             occasion?: string;
             notes?: string;
             status?: components["schemas"]["StatusC66Enum"];
@@ -2835,6 +2988,7 @@ export interface components {
             conference_enquiries: number;
             gym_day_passes: number;
         };
+        /** @description Public legal text; the pending-approval state stays staff-only. */
         PolicyPage: {
             slug: string;
             title_en: string;
@@ -2844,8 +2998,6 @@ export interface components {
             version?: string;
             /** Format: date-time */
             readonly updated_at: string;
-            /** @description Legal wording still needs hotel/legal review. */
-            needs_confirmation?: boolean;
         };
         /**
          * @description * `mpesa` - M-Pesa
@@ -2893,6 +3045,8 @@ export interface components {
             /** Format: int64 */
             conference_capacity?: number;
             conference_hours?: string;
+            /** @description Only enable after the hotel confirms half-day and full-day hall prices. While false, prices are omitted from the public API and guests see 'Request a quotation'. */
+            conference_prices_confirmed?: boolean;
             /** Format: int64 */
             gym_capacity?: number;
             gym_hours?: string;
@@ -2912,6 +3066,8 @@ export interface components {
             /** @description When false, unverified claims (best-rate, airport ride, etc.) are hidden. */
             claims_verified?: boolean;
             google_reviews_enabled?: boolean;
+            /** @description Legacy dinner, bed & breakfast rate. Keep disabled until the hotel confirms it is still sold; it is hidden from guest booking. */
+            dinner_plan_enabled?: boolean;
             privacy_notice_url?: string;
             privacy_notice_version?: string;
             /** Format: int64 */
@@ -2947,6 +3103,8 @@ export interface components {
             target_minutes: number;
             escalate_minutes: number;
             undo_seconds: number;
+            new_booking_count: number;
+            new_booking_window_minutes: number;
             items: components["schemas"]["QueueItem"][];
         };
         QuoteRequestRequest: {
@@ -3105,6 +3263,16 @@ export interface components {
             /** Format: int64 */
             quantity?: number;
             reason?: string;
+        };
+        RoomStaff: {
+            readonly id: number;
+            /** @description Physical room number, e.g. 201. Must be unique in the hotel. */
+            readonly number: string;
+            readonly room_type: string;
+            readonly room_type_name: string;
+            status?: components["schemas"]["StatusE1bEnum"];
+            /** Format: date-time */
+            readonly updated_at: string;
         };
         RoomTypeDetail: {
             slug: string;
@@ -3334,6 +3502,7 @@ export interface components {
             source: string;
             /** Format: date-time */
             escalated_at?: string | null;
+            room_number: string | null;
         };
         StaffHotelSetting: {
             name?: string;
@@ -3392,6 +3561,8 @@ export interface components {
             conference_half_day_price?: string;
             /** Format: decimal */
             conference_full_day_price?: string;
+            /** @description Only enable after the hotel confirms half-day and full-day hall prices. While false, prices are omitted from the public API and guests see 'Request a quotation'. */
+            conference_prices_confirmed?: boolean;
             bank_name?: string;
             bank_account_name?: string;
             bank_account_number?: string;
@@ -3400,6 +3571,8 @@ export interface components {
             /** @description When false, unverified claims (best-rate, airport ride, etc.) are hidden. */
             claims_verified?: boolean;
             google_reviews_enabled?: boolean;
+            /** @description Legacy dinner, bed & breakfast rate. Keep disabled until the hotel confirms it is still sold; it is hidden from guest booking. */
+            dinner_plan_enabled?: boolean;
             privacy_notice_url?: string;
             privacy_notice_version?: string;
             /** Format: int64 */
@@ -3430,6 +3603,12 @@ export interface components {
          */
         StatusC66Enum: "pending" | "confirmed" | "declined" | "cancelled";
         /**
+         * @description * `free` - Free
+         *     * `occupied` - Occupied
+         * @enum {string}
+         */
+        StatusE1bEnum: "free" | "occupied";
+        /**
          * @description * `held` - Held
          *     * `pending_payment` - Pending payment
          *     * `pending_confirmation` - Pending confirmation
@@ -3455,6 +3634,7 @@ export interface components {
             last_name: string;
             phone: string;
             email?: string;
+            language?: components["schemas"]["LanguageCb0Enum"];
             occasion?: string;
             notes?: string;
             status?: components["schemas"]["StatusC66Enum"];
@@ -3482,6 +3662,8 @@ export interface components {
             last_name: string;
             phone: string;
             email?: string;
+            /** @default en */
+            language: components["schemas"]["LanguageCb0Enum"];
             occasion?: string;
             notes?: string;
         };
@@ -3503,6 +3685,7 @@ export interface components {
             last_name: string;
             phone: string;
             email?: string;
+            language?: components["schemas"]["LanguageCb0Enum"];
             occasion?: string;
             notes?: string;
             status?: components["schemas"]["StatusC66Enum"];
@@ -4543,6 +4726,44 @@ export interface operations {
             };
         };
     };
+    v1_staff_common_content_confirmation_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContentConfirmationSummary"];
+                };
+            };
+        };
+    };
+    v1_staff_common_form_guard_summary_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FormGuardSummary"];
+                };
+            };
+        };
+    };
     v1_staff_common_settings_retrieve: {
         parameters: {
             query?: never;
@@ -5196,6 +5417,12 @@ export interface operations {
         parameters: {
             query?: {
                 date?: string;
+                /**
+                 * @description * `kopoch` - Kopoch Hall
+                 *     * `attelo` - The Attelo Hall
+                 *     * `boardroom` - Executive Board Room
+                 */
+                hall?: "attelo" | "boardroom" | "kopoch";
                 /** @description Which field to use when ordering the results. */
                 ordering?: string;
                 /** @description A page number within the paginated result set. */
@@ -6732,6 +6959,82 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["PaymentReportResponse"];
                     "text/csv": string;
+                };
+            };
+        };
+    };
+    v1_staff_rooms_list: {
+        parameters: {
+            query?: {
+                /** @description Which field to use when ordering the results. */
+                ordering?: string;
+                room_type?: number;
+                /**
+                 * @description * `free` - Free
+                 *     * `occupied` - Occupied
+                 */
+                status?: "free" | "occupied";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RoomStaff"][];
+                };
+            };
+        };
+    };
+    v1_staff_rooms_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RoomStaff"];
+                };
+            };
+        };
+    };
+    v1_staff_rooms_status_partial_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PatchedRoomStatusRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["PatchedRoomStatusRequest"];
+                "multipart/form-data": components["schemas"]["PatchedRoomStatusRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RoomStaff"];
                 };
             };
         };

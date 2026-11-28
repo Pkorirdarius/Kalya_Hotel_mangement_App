@@ -6,7 +6,7 @@ from django.db.models import Q
 from django.utils import timezone
 
 from apps.bookings.models import Booking, BookingStatus, INVENTORY_STATUSES
-from apps.rooms.models import RoomBlock, RoomType
+from apps.rooms.models import Room, RoomBlock, RoomType
 
 
 def iter_nights(checkin: date, checkout: date):
@@ -47,13 +47,24 @@ def available_rooms(
     if checkout <= checkin:
         return 0
 
-    inventory = room_type.online_inventory
+    physical_rooms = list(
+        Room.objects.filter(room_type=room_type).values_list("id", flat=True)
+    )
+    inventory = min(room_type.online_inventory, len(physical_rooms))
     if inventory <= 0:
         return 0
 
+    # Front-desk occupancy reserves the numbered room even without a booking.
+    manually_occupied = {
+        f"room-{room_id}"
+        for room_id in Room.objects.filter(
+            room_type=room_type, status=Room.Status.OCCUPIED
+        ).values_list("id", flat=True)
+    }
+
     bookings = list(
         _active_inventory_bookings(room_type, checkin, checkout).only(
-            "checkin", "checkout"
+            "checkin", "checkout", "room_id"
         )
     )
     if exclude_booking_id:
@@ -67,15 +78,20 @@ def available_rooms(
 
     minimum = inventory
     for night in iter_nights(checkin, checkout):
-        booked = sum(
-            1 for booking in bookings if booking.checkin <= night < booking.checkout
+        # A physical room is only counted once even when several records refer
+        # to it: assigned bookings use room_id, legacy rows fall back to their id.
+        occupied = set(manually_occupied)
+        occupied.update(
+            f"room-{booking.room_id}" if booking.room_id else f"legacy-{booking.pk}"
+            for booking in bookings
+            if booking.checkin <= night < booking.checkout
         )
         blocked = sum(
             block.quantity
             for block in blocks
             if block.start_date <= night < block.end_date
         )
-        minimum = min(minimum, inventory - booked - blocked)
+        minimum = min(minimum, inventory - len(occupied) - blocked)
     return max(0, minimum)
 
 

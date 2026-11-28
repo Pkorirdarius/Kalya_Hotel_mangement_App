@@ -11,6 +11,8 @@ export type Operations = operations;
 
 export type Room = Schemas['RoomTypePublic'];
 export type RoomDetail = Schemas['RoomTypeDetail'];
+export type StaffRoom = Schemas['RoomStaff'];
+export type StaffRoomStatusRequest = Schemas['PatchedRoomStatusRequest'];
 export type MealPlan = Schemas['MealPlan'];
 export type HotelSettings = Schemas['PublicHotelSetting'];
 export type AvailabilityRow = Schemas['AvailabilityRow'];
@@ -58,6 +60,8 @@ export type OccupancyResponse = Schemas['OccupancyResponse'];
 export type PaymentReportRow = Schemas['PaymentReportRow'];
 export type PaymentReportResponse = Schemas['PaymentReportResponse'];
 export type User = Schemas['User'];
+export type ContentConfirmationSummary = Schemas['ContentConfirmationSummary'];
+export type ContentConfirmationItem = Schemas['ContentConfirmationItem'];
 
 export type StaffBooking = Schemas['StaffBooking'];
 export type ConferenceEnquiryStaff = Schemas['ConferenceEnquiryStaff'];

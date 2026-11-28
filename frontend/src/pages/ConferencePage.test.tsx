@@ -5,6 +5,7 @@ import { MemoryRouter } from 'react-router-dom';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { ToastProvider } from '../components/ToastProvider';
+import { setLanguage, t } from '../i18n';
 import { I18nProvider } from '../i18n-context';
 import { createQueryClient } from '../lib/query/queryClient';
 import { addDaysISO, todayISO } from '../utils';
@@ -32,6 +33,8 @@ function enquiryBody(request: Record<string, unknown>) {
     date: request.date,
     session: request.session,
     session_display: 'Half day',
+    hall: request.hall,
+    hall_display: request.hall === 'attelo' ? 'The Attelo Hall' : 'Kopoch Hall',
     people: request.people,
     layout: request.layout,
     layout_display: 'Boardroom',
@@ -80,6 +83,9 @@ function mockFetch(options: {
     const method = init?.method ?? 'GET';
 
     if (url.includes('/auth/csrf/')) return jsonResponse(200, {});
+    if (url.includes('/common/hotel/')) {
+      return jsonResponse(200, { conference_prices_confirmed: false });
+    }
     if (url.includes('/facilities/conference/availability/') && method === 'GET') {
       return jsonResponse(
         200,
@@ -101,17 +107,32 @@ function mockFetch(options: {
   });
 }
 
-async function fillValidForm(user: ReturnType<typeof userEvent.setup>) {
+async function fillValidForm(
+  user: ReturnType<typeof userEvent.setup>,
+  hall: string | null = 'kopoch',
+) {
   await user.type(screen.getByLabelText('Contact name'), 'Amina Otieno');
   await user.type(screen.getByLabelText('Email'), 'amina@example.com');
   await user.type(screen.getByLabelText('Phone'), '0712 345 678');
+  if (hall) await user.selectOptions(screen.getByLabelText(t('conference.hall')), hall);
 }
 
 afterEach(() => {
   vi.unstubAllGlobals();
+  setLanguage('en', false);
 });
 
 describe('ConferencePage', () => {
+  it('requests a quotation instead of showing unconfirmed hall prices', async () => {
+    vi.stubGlobal('fetch', mockFetch());
+    renderConferencePage();
+
+    expect((await screen.findAllByText('Request a quotation')).length).toBeGreaterThan(0);
+    expect(screen.queryByText(/KES 8,000/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/KES 15,000/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/KES 650/)).not.toBeInTheDocument();
+  });
+
   it('shows live availability and submits the enquiry with the chosen details', async () => {
     const fetchMock = mockFetch();
     vi.stubGlobal('fetch', fetchMock);
@@ -121,14 +142,17 @@ describe('ConferencePage', () => {
     renderConferencePage();
 
     expect(
-      await screen.findByRole('button', {
-        name: `${label.weekday} ${label.day} — Available`,
-      }),
+      await screen.findByRole(
+        'button',
+        { name: `${label.weekday} ${label.day} — Available` },
+        { timeout: 5_000 },
+      ),
     ).toBeEnabled();
 
     await fillValidForm(user);
     await user.clear(screen.getByLabelText('Guests'));
     await user.type(screen.getByLabelText('Guests'), '24');
+    await user.selectOptions(screen.getByLabelText('Conference hall'), 'attelo');
     await user.selectOptions(screen.getByLabelText('Session'), 'half_day');
     await user.selectOptions(screen.getByLabelText('Room layout'), 'boardroom');
     await user.click(screen.getByRole('checkbox', { name: 'Tea & coffee break' }));
@@ -137,6 +161,7 @@ describe('ConferencePage', () => {
 
     expect(await screen.findByText('Your request is in.')).toBeInTheDocument();
     expect(screen.getByText('CE-7788')).toBeInTheDocument();
+    expect(screen.getAllByText(/The Attelo Hall/).length).toBeGreaterThan(0);
     expect(screen.getByText(/24 guests/)).toBeInTheDocument();
 
     const createCall = fetchMock.mock.calls.find(
@@ -149,6 +174,7 @@ describe('ConferencePage', () => {
     expect(createBody).toMatchObject({
       date: tomorrow,
       session: 'half_day',
+      hall: 'attelo',
       layout: 'boardroom',
       people: 24,
       catering: ['tea', 'lunch'],
@@ -156,9 +182,51 @@ describe('ConferencePage', () => {
       last_name: 'Otieno',
       email: 'amina@example.com',
       phone: '254712345678',
+      language: 'en',
       website: '',
     });
     expect(typeof createBody.form_started_at).toBe('number');
+  });
+
+  it('requires a hall before submitting', async () => {
+    const fetchMock = mockFetch();
+    vi.stubGlobal('fetch', fetchMock);
+    const user = userEvent.setup();
+    renderConferencePage();
+
+    await fillValidForm(user, null);
+    await user.click(screen.getByRole('button', { name: 'Request the hall' }));
+
+    expect(await screen.findByText('Choose a conference hall.')).toBeInTheDocument();
+    expect(
+      fetchMock.mock.calls.some(
+        ([input, init]) =>
+          String(input).includes('/facilities/conference/enquiries/') &&
+          init?.method === 'POST',
+      ),
+    ).toBe(false);
+  });
+
+  it('sends the active UI language with the enquiry', async () => {
+    setLanguage('sw', false);
+    const fetchMock = mockFetch();
+    vi.stubGlobal('fetch', fetchMock);
+    const user = userEvent.setup();
+    renderConferencePage();
+
+    await user.type(screen.getByLabelText('Jina la mhusika'), 'Amina Otieno');
+    await user.type(screen.getByLabelText('Barua pepe'), 'amina@example.com');
+    await user.type(screen.getByLabelText('Simu'), '0712 345 678');
+    await user.selectOptions(screen.getByLabelText(t('conference.hall')), 'attelo');
+    await user.click(screen.getByRole('button', { name: 'Omba ukumbi' }));
+
+    const createCall = fetchMock.mock.calls.find(
+      ([input, init]) =>
+        String(input).includes('/facilities/conference/enquiries/') &&
+        init?.method === 'POST',
+    );
+    const createBody = JSON.parse(String(createCall?.[1]?.body)) as Record<string, unknown>;
+    expect(createBody.language).toBe('sw');
   });
 
   it('blocks a fully booked date and disables the submit button', async () => {
@@ -171,9 +239,11 @@ describe('ConferencePage', () => {
     renderConferencePage();
 
     expect(
-      await screen.findByRole('button', {
-        name: `${label.weekday} ${label.day} — Full`,
-      }),
+      await screen.findByRole(
+        'button',
+        { name: `${label.weekday} ${label.day} — Full` },
+        { timeout: 5_000 },
+      ),
     ).toBeDisabled();
     expect(
       screen.getByText('This session is unavailable. Choose another date or session.'),

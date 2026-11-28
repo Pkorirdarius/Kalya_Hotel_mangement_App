@@ -82,6 +82,7 @@ def _conference_payload(**overrides):
     payload = {
         "date": (hotel_today() + timedelta(days=4)).isoformat(),
         "session": "full_day",
+        "hall": "kopoch",
         "people": 20,
         "layout": "theatre",
         "first_name": "Grace",

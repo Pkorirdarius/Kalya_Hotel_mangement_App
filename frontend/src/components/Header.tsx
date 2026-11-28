@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
+import { Link } from './LocalizedLink';
 import { HOTEL } from '../config/hotel';
 import { useI18n } from '../i18n-context';
+import { stripLanguagePrefix } from '../lib/routes';
 import type { PageId } from '../types';
 import { LanguageSwitch } from './LanguageSwitch';
 import { Logo } from './Logo';
@@ -53,7 +55,7 @@ function isActive(current: PageId, item: PageId): boolean {
 export function Header() {
   const { t } = useI18n();
   const { pathname } = useLocation();
-  const current = pageFromPath(pathname);
+  const current = pageFromPath(stripLanguagePrefix(pathname));
   const [open, setOpen] = useState(false);
   const closeRef = useRef<HTMLButtonElement>(null);
 
@@ -164,6 +166,7 @@ export function Header() {
           open ? 'translate-x-0' : 'translate-x-full'
         }`}
         aria-hidden={!open}
+        inert={!open}
         aria-label="Mobile navigation"
       >
         <div className="flex items-center justify-between border-b border-line px-5 py-4">

@@ -43,6 +43,8 @@ class OfferSerializer(serializers.ModelSerializer):
 
 
 class PolicyPageSerializer(serializers.ModelSerializer):
+    """Public legal text; the pending-approval state stays staff-only."""
+
     class Meta:
         model = PolicyPage
         fields = (
@@ -53,7 +55,6 @@ class PolicyPageSerializer(serializers.ModelSerializer):
             "body_sw",
             "version",
             "updated_at",
-            "needs_confirmation",
         )
 
 

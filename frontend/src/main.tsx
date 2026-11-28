@@ -1,5 +1,5 @@
 import { StrictMode } from 'react';
-import { createRoot } from 'react-dom/client';
+import { createRoot, hydrateRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import { App } from './App';
 import { QueryProvider } from './components/QueryProvider';
@@ -16,7 +16,7 @@ if (!container) {
 
 initAnalytics();
 
-createRoot(container).render(
+const app = (
   <StrictMode>
     <BrowserRouter>
       <QueryProvider>
@@ -27,5 +27,14 @@ createRoot(container).render(
         </I18nProvider>
       </QueryProvider>
     </BrowserRouter>
-  </StrictMode>,
+  </StrictMode>
 );
+
+// Prerendered pages already contain the full markup. Hydrating preserves the
+// hero image and headings as LCP candidates instead of destroying and repainting
+// them once the bundle arrives.
+if (container.dataset.prerenderRoute) {
+  hydrateRoot(container, app);
+} else {
+  createRoot(container).render(app);
+}

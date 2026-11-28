@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import RoomBlock, RoomType
+from .models import Room, RoomBlock, RoomType
 
 
 class RoomBlockInline(admin.TabularInline):
@@ -23,6 +23,15 @@ class RoomTypeAdmin(admin.ModelAdmin):
     search_fields = ("name_en", "slug")
     prepopulated_fields = {"slug": ("name_en",)}
     inlines = [RoomBlockInline]
+
+
+@admin.register(Room)
+class RoomAdmin(admin.ModelAdmin):
+    list_display = ("number", "room_type", "status", "updated_at")
+    list_filter = ("status", "room_type")
+    search_fields = ("number",)
+    list_editable = ("status",)
+    list_select_related = ("room_type",)
 
 
 @admin.register(RoomBlock)

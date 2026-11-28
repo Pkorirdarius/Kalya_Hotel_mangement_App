@@ -2,7 +2,7 @@ from rest_framework import serializers
 
 from apps.common.serializers import KesField
 
-from .models import RoomBlock, RoomType
+from .models import Room, RoomBlock, RoomType
 
 
 class RoomTypePublicSerializer(serializers.ModelSerializer):
@@ -77,6 +77,29 @@ class RoomTypeStaffSerializer(serializers.ModelSerializer):
             "updated_at",
         )
         read_only_fields = ("id", "from_price", "created_at", "updated_at")
+
+
+class RoomStaffSerializer(serializers.ModelSerializer):
+    room_type = serializers.SlugRelatedField(slug_field="slug", read_only=True)
+    room_type_name = serializers.CharField(source="room_type.name_en", read_only=True)
+
+    class Meta:
+        model = Room
+        fields = (
+            "id",
+            "number",
+            "room_type",
+            "room_type_name",
+            "status",
+            "updated_at",
+        )
+        read_only_fields = ("id", "number", "room_type", "room_type_name", "updated_at")
+
+
+class RoomStatusSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Room
+        fields = ("status",)
 
 
 class RoomBlockSerializer(serializers.ModelSerializer):

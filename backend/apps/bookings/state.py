@@ -75,12 +75,15 @@ def transition_booking(
     elif target == BookingStatus.DECLINED:
         booking.declined_at = now
         booking.hold_expires_at = None
+        booking.room = None
     elif target == BookingStatus.CANCELLED:
         booking.cancelled_at = now
         booking.hold_expires_at = None
+        booking.room = None
     elif target == BookingStatus.EXPIRED:
         booking.expired_at = now
         booking.hold_expires_at = None
+        booking.room = None
     elif target == BookingStatus.PENDING_CONFIRMATION:
         # A paid booking keeps its inventory but no longer expires while the
         # front desk reviews it.
@@ -146,8 +149,28 @@ def restore_booking_status(
     if previous == BookingStatus.PENDING_CONFIRMATION:
         booking.confirmed_at = None
         booking.hold_expires_at = None
+    if (
+        previous
+        in (
+            BookingStatus.HELD,
+            BookingStatus.PENDING_PAYMENT,
+            BookingStatus.PENDING_CONFIRMATION,
+            BookingStatus.CONFIRMED,
+        )
+        and booking.room_id is None
+    ):
+        from .services.bookings import _pick_available_room
+
+        booking.room = _pick_available_room(
+            booking.room_type,
+            booking.checkin,
+            booking.checkout,
+            exclude_booking_id=booking.pk,
+        )
     booking.save(
-        update_fields=("status", "confirmed_at", "hold_expires_at", "updated_at")
+        update_fields=(
+            "status", "room", "confirmed_at", "hold_expires_at", "updated_at"
+        )
     )
     BookingStatusEvent.objects.create(
         booking=booking,

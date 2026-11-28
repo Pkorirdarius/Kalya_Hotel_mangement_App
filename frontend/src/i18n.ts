@@ -1,4 +1,5 @@
 import { brandTemplateVars } from './config/hotel';
+import { languageFromPath } from './lib/routes';
 import type { Language, LanguageChangeDetail } from './types';
 
 const STORAGE_KEY = 'hotel.language';
@@ -55,7 +56,7 @@ const entries: Record<string, Entry> = {
   'nav.offers': { en: 'Offers & Journal', sw: 'Ofa na Jarida' },
   'nav.contact': { en: 'Contact', sw: 'Mawasiliano' },
   'nav.dining': { en: 'Restaurant & café', sw: 'Mgahawa na mkahawa' },
-  'nav.conference': { en: 'Conference hall', sw: 'Ukumbi wa mikutano' },
+  'nav.conference': { en: 'Conference halls', sw: 'Vikumbi vya mikutano' },
   'nav.gym': { en: 'Gym', sw: 'Mazoezi' },
   'nav.dashboard': { en: 'Front desk dashboard', sw: 'Dashibodi ya mapokezi' },
   'nav.manageBooking': { en: 'Manage booking', sw: 'Simamia nafasi' },
@@ -81,6 +82,7 @@ const entries: Record<string, Entry> = {
   'footer.rights': { en: 'All rights reserved.', sw: 'Haki zote zimehifadhiwa.' },
   'footer.privacy': { en: 'Privacy', sw: 'Faragha' },
   'footer.terms': { en: 'Terms', sw: 'Masharti' },
+  'footer.cancellation': { en: 'Cancellation', sw: 'Kughairi' },
   'footer.legal': { en: 'Legal', sw: 'Kisheria' },
   'footer.staff': { en: 'Staff login', sw: 'Kuingia kwa wafanyakazi' },
   'footer.newsletter': { en: 'Join our monthly note', sw: 'Jiunge na barua yetu ya mwezi' },
@@ -152,35 +154,61 @@ const entries: Record<string, Entry> = {
     sw: 'Wageni wa moja kwa moja hupata kinywaji cha kukaribisha bure na punguzo la 10% kwenye chakula.',
   },
 
-  'home.rooms.eyebrow': { en: 'Rooms & suites', sw: 'Vyumba na suites' },
+  'home.rooms.eyebrow': { en: 'Rooms', sw: 'Vyumba' },
   'home.rooms.title': { en: 'A room that works as hard as you do.', sw: 'Chumba kinachofanya kazi kwa bidii kama wewe.' },
   'home.rooms.text': {
-    en: 'Fast fibre Wi-Fi, a proper desk and blackout curtains in every room. Choose the space that fits your stay.',
-    sw: 'Wi-Fi ya fibre ya haraka, dawati la kufaa na mapazia ya giza kwenye kila chumba. Chagua nafasi inayofaa kukaa kwako.',
+    en: 'Strong WiFi, a Smart TV and an orthopedic mattress in every room. Choose the space that fits your stay.',
+    sw: 'WiFi imara, TV janja na godoro la mifupa katika kila chumba. Chagua nafasi inayofaa kukaa kwako.',
   },
   'home.rooms.link': { en: 'View all rooms', sw: 'Tazama vyumba vyote' },
-  'room.standard.name': { en: 'Standard Executive', sw: 'Standard Executive' },
-  'room.standard.tagline': { en: 'For focused solo stays', sw: 'Kwa kukaa peke yako kwa umakini' },
-  'room.standard.description': {
-    en: 'A compact, quiet room with a generous work desk, rain shower and reliable 100 Mbps fibre.',
-    sw: 'Chumba kidogo chenye utulivu, dawati kubwa la kazi, oga ya mvua na fibre ya 100 Mbps inayotegemewa.',
+  'room.superior.name': { en: 'Superior Room', sw: 'Chumba cha Superior' },
+  'room.superior.tagline': { en: 'Extra comfort', sw: 'Faraja zaidi' },
+  'room.superior.description': {
+    en: 'A king bed with an orthopedic mattress in a spacious room and bathroom. Strong WiFi, Smart TV, Safe Box, ironing box, room service and smart card doors. Best for couples and solo travellers wanting extra comfort.',
+    sw: 'Kitanda cha king chenye godoro la mifupa katika chumba na bafu kubwa. WiFi imara, TV janja, sanduku la usalama, sanduku la pasi, huduma ya chumbani na milango ya kadi janja. Bora kwa wanandoa na wasafiri peke yao wanaotaka faraja zaidi.',
   },
-  'room.standard.bed': { en: 'Queen bed', sw: 'Kitanda cha Queen' },
-  'room.deluxe.name': { en: 'Deluxe Garden Suite', sw: 'Deluxe Garden Suite' },
-  'room.deluxe.tagline': { en: 'For slower mornings', sw: 'Kwa asubuhi za polepole' },
+  'room.superior.bed': { en: 'King Bed', sw: 'Kitanda cha King' },
+  'room.superior.bestFor': {
+    en: 'Best for couples and solo travellers wanting extra comfort',
+    sw: 'Bora kwa wanandoa na wasafiri peke yao wanaotaka faraja zaidi',
+  },
+  'room.deluxe.name': { en: 'Deluxe Room', sw: 'Chumba cha Deluxe' },
+  'room.deluxe.tagline': { en: 'Room to settle in', sw: 'Nafasi ya kukaa vizuri' },
   'room.deluxe.description': {
-    en: 'A calm suite opening onto our courtyard garden, with a king bed and a corner for reading.',
-    sw: 'Suite tulivu inayoelekea bustani yetu ya ua, na kitanda cha king na kona ya kusoma.',
+    en: 'A queen bed with an orthopedic mattress, a spacious room and bathroom, fridge and balcony. Strong WiFi, Smart TV, Safe Box, ironing box, room service and smart card doors. Best for families, business travellers and long stays.',
+    sw: 'Kitanda cha queen chenye godoro la mifupa, chumba na bafu kubwa, friji na balkoni. WiFi imara, TV janja, sanduku la usalama, sanduku la pasi, huduma ya chumbani na milango ya kadi janja. Bora kwa familia, wasafiri wa biashara na kukaa kwa muda mrefu.',
   },
-  'room.deluxe.bed': { en: 'King bed', sw: 'Kitanda cha King' },
-  'room.mara.name': { en: 'Mara Residence', sw: 'Mara Residence' },
-  'room.mara.tagline': { en: 'For longer missions', sw: 'Kwa misheni ndefu' },
-  'room.mara.description': {
-    en: 'A one-bedroom residence with a living area, kitchenette and a four-seat meeting table.',
-    sw: 'Makao ya chumba kimoja na sebule, jikoni ndogo na meza ya mkutano ya watu wanne.',
+  'room.deluxe.bed': { en: 'Queen Bed', sw: 'Kitanda cha Queen' },
+  'room.deluxe.bestFor': {
+    en: 'Best for families, business travellers and long stays',
+    sw: 'Bora kwa familia, wasafiri wa biashara na kukaa kwa muda mrefu',
   },
-  'room.mara.bed': { en: 'King bed + sofa bed', sw: 'Kitanda cha King + kitanda cha sofa' },
+  'room.twin.name': { en: 'Twin Room', sw: 'Chumba cha vitanda viwili' },
+  'room.twin.tagline': { en: 'Made for sharing', sw: 'Kilichotengenezwa kwa kushiriki' },
+  'room.twin.description': {
+    en: 'Single beds with orthopedic mattresses in a spacious room and bathroom, with a fridge. Strong WiFi, Smart TV, Safe Box, ironing box, room service and smart card doors. Best for friends, colleagues and family.',
+    sw: 'Vitanda vya mtu mmoja vyenye magodoro ya mifupa katika chumba na bafu kubwa, pamoja na friji. WiFi imara, TV janja, sanduku la usalama, sanduku la pasi, huduma ya chumbani na milango ya kadi janja. Bora kwa marafiki, wafanyakazi wenzako na familia.',
+  },
+  'room.twin.bed': { en: 'Single Beds', sw: 'Vitanda vya mtu mmoja' },
+  'room.twin.bestFor': {
+    en: 'Best for friends, colleagues and family',
+    sw: 'Bora kwa marafiki, wafanyakazi wenzako na familia',
+  },
+  'room.ensuite.name': { en: 'En-suite Room', sw: 'Chumba chenye bafu ya ndani' },
+  'room.ensuite.tagline': { en: 'Private lounge', sw: 'Sebule ya faragha' },
+  'room.ensuite.description': {
+    en: 'A king bed with an orthopedic mattress, a spacious room and bathroom, fridge, microwave, mini kitchenette, IP phone and a spacious lounge area with seating for four. Strong WiFi, Smart TV, Safe Box, ironing stand and iron box, room service and smart card doors. Best for VIP guests, families and special occasions.',
+    sw: 'Kitanda cha king chenye godoro la mifupa, chumba na bafu kubwa, friji, microwave, jikoni ndogo, simu ya IP na sebule kubwa yenye viti vinne. WiFi imara, TV janja, sanduku la usalama, stendi ya pasi na sanduku la pasi, huduma ya chumbani na milango ya kadi janja. Bora kwa wageni wa VIP, familia na hafla maalum.',
+  },
+  'room.ensuite.bed': { en: 'King Bed + Private Lounge', sw: 'Kitanda cha King + Sebule ya Faragha' },
+  'room.ensuite.bestFor': {
+    en: 'Best for VIP guests, families and special occasions',
+    sw: 'Bora kwa wageni wa VIP, familia na hafla maalum',
+  },
   'room.popular': { en: 'Most popular', sw: 'Maarufu zaidi' },
+  'room.spacious': { en: 'Spacious', sw: 'Wasaa' },
+  'room.shared': { en: 'Great for sharing', sw: 'Bora kwa kushiriki' },
+  'room.vip': { en: 'VIP favourite', sw: 'Chaguo la VIP' },
   'room.garden': { en: 'Garden access', sw: 'Njia ya bustani' },
   'room.longStay': { en: 'Long-stay favourite', sw: 'Chaguo la kukaa kwa muda mrefu' },
   'room.sleeps2': { en: 'Sleeps 2', sw: 'Hulala 2' },
@@ -193,16 +221,16 @@ const entries: Record<string, Entry> = {
     en: 'A restaurant, coffee shop, conference hall and gym — all a short walk from your room in Kapenguria.',
     sw: 'Mgahawa, mkahawa, ukumbi wa mikutano na chumba cha mazoezi — vyote umbali mfupi kutoka chumba chako huko Kapenguria.',
   },
-  'facility.restaurant.name': { en: 'Tulia Restaurant', sw: 'Mgahawa wa Tulia' },
+  'facility.restaurant.name': { en: '{restaurantName}', sw: '{restaurantName}' },
   'facility.restaurant.description': { en: 'Kenyan classics and wood-fired favourites, open all day.', sw: 'Vyakula vya jadi vya Kenya na vipendwa vya moto, wazi siku nzima.' },
   'facility.restaurant.hours': { en: '6:30am – 10:00pm daily', sw: '6:30am – 10:00pm kila siku' },
   'facility.restaurant.capacity': { en: 'Seats 80 · Open to non-guests', sw: 'Nafasi 80 · Wazi kwa wasio wageni' },
-  'facility.coffee.name': { en: 'Jacaranda Café', sw: 'Jacaranda Café' },
+  'facility.coffee.name': { en: '{cafeName}', sw: '{cafeName}' },
   'facility.coffee.description': { en: 'Single-origin Kenyan coffee and a quiet corner to work.', sw: 'Kahawa ya Kenya ya asili moja na kona tulivu ya kufanyia kazi.' },
   'facility.coffee.hours': { en: '6:00am – 9:00pm daily', sw: '6:00am – 9:00pm kila siku' },
   'facility.coffee.capacity': { en: 'Seats 100 · Open to non-guests', sw: 'Nafasi 100 · Wazi kwa wasio wageni' },
-  'facility.conference.name': { en: 'Kilele Hall', sw: 'Ukumbi wa Kilele' },
-  'facility.conference.description': { en: 'A flexible hall for workshops, board meetings and small conferences.', sw: 'Ukumbi unaobadilika kwa warsha, mikutano ya bodi na makongamano madogo.' },
+  'facility.conference.name': { en: '{hallList}', sw: '{hallList}' },
+  'facility.conference.description': { en: 'Three flexible halls for workshops, board meetings and small conferences.', sw: 'Vikumbi vitatu vinavyobadilika kwa warsha, mikutano ya bodi na makongamano madogo.' },
   'facility.conference.hours': { en: '6:00am – 9:00pm daily', sw: '6:00am – 9:00pm kila siku' },
   'facility.conference.capacity': { en: 'Up to 100 guests · Open to non-guests by booking', sw: 'Hadi wageni 100 · Wazi kwa wasio wageni kwa kuweka nafasi' },
   'facility.gym.name': { en: '{gymName}', sw: '{gymName}' },
@@ -224,7 +252,7 @@ const entries: Record<string, Entry> = {
   'conference.heroAlt': { en: '{hallName} set for a conference at {name}', sw: '{hallName} imeandaliwa kwa kongamano kwenye {name}' },
   'gym.heroAlt': { en: '{gymName} gym with cardio equipment and free weights', sw: 'Chumba cha mazoezi cha {gymName} na vifaa vya moyo na uzito' },
   'contact.heroAlt': { en: 'The warm lobby lounge at {name}', sw: 'Sebule ya ukarimu kwenye {name}' },
-  'offers.featuredAlt': { en: 'A calm Standard Executive room at {name}', sw: 'Chumba tulivu cha Standard Executive kwenye {name}' },
+  'offers.featuredAlt': { en: 'A calm Superior Room at {name}', sw: 'Chumba tulivu cha Superior kwenye {name}' },
   'facility.explore': { en: 'Explore', sw: 'Chunguza' },
 
   'home.offers.eyebrow': { en: 'Current offers', sw: 'Ofa za sasa' },
@@ -240,17 +268,17 @@ const entries: Record<string, Entry> = {
   'offer.longStay.cta': { en: 'Book this offer', sw: 'Weka ofa hii' },
   'offer.ngo.tag': { en: 'NGO rate', sw: 'Bei ya NGO' },
   'offer.ngo.title': { en: '15% off for NGO field teams', sw: 'Punguzo la 15% kwa timu za NGO' },
-  'offer.ngo.description': { en: 'Show your NGO ID at check-in and save on our Standard Executive rooms.', sw: 'Onyesha kitambulisho cha NGO wakati wa kuingia na uokoe kwenye vyumba vya Standard Executive.' },
+  'offer.ngo.description': { en: 'Show your NGO ID at check-in and save on our Superior Rooms.', sw: 'Onyesha kitambulisho cha NGO wakati wa kuingia na uokoe kwenye vyumba vya Superior.' },
   'offer.ngo.price': { en: 'From KES 7,225 per night', sw: 'Kuanzia KES 7,225 kwa usiku' },
   'offer.ngo.cta': { en: 'Book this offer', sw: 'Weka ofa hii' },
   'offer.brunch.tag': { en: 'Dining', sw: 'Chakula' },
-  'offer.brunch.title': { en: 'Sunday brunch at Tulia', sw: 'Brunch ya Jumapili huko Tulia' },
+  'offer.brunch.title': { en: 'Sunday brunch at {restaurantName}', sw: 'Brunch ya Jumapili huko {restaurantName}' },
   'offer.brunch.description': { en: 'A generous buffet, live omelette station and bottomless Kenyan coffee.', sw: 'Buffet ya kutosha, kituo cha omelette papo hapo na kahawa ya Kenya bila kikomo.' },
   'offer.brunch.price': { en: 'KES 2,500 per person', sw: 'KES 2,500 kwa mtu' },
   'offer.brunch.cta': { en: 'Reserve a table', sw: 'Weka meza' },
   'offer.meetings.tag': { en: 'Meetings', sw: 'Mikutano' },
   'offer.meetings.title': { en: 'Meet, sleep, repeat', sw: 'Kutana, lala, rudia' },
-  'offer.meetings.description': { en: 'Book five rooms and receive 10% off Kilele Hall hire for your workshop.', sw: 'Weka vyumba vitano na upate punguzo la 10% kwenye ukumbi wa Kilele kwa warsha yako.' },
+  'offer.meetings.description': { en: 'Book five rooms and receive 10% off conference hall hire for your workshop.', sw: 'Weka vyumba vitano na upate punguzo la 10% kwenye kodi ya ukumbi wa mikutano kwa warsha yako.' },
   'offer.meetings.price': { en: 'Custom quote', sw: 'Bei maalum' },
   'offer.meetings.cta': { en: 'Request a quote', sw: 'Omba bei' },
   'offers.prev': { en: 'Previous offer', sw: 'Ofa iliyotangulia' },
@@ -270,7 +298,7 @@ const entries: Record<string, Entry> = {
   'review.daniel.quote': { en: 'Quiet, central and secure. I walked to my meetings in Kapenguria and came back to a genuinely good dinner.', sw: 'Tulivu, katikati na salama. Nilitembea hadi mikutano yangu Kapenguria na nikarudi kwa chakula cha jioni kizuri kweli.' },
   'review.daniel.name': { en: 'Daniel K.', sw: 'Daniel K.' },
   'review.daniel.role': { en: 'Business traveller, Kapenguria', sw: 'Msafiri wa biashara, Kapenguria' },
-  'review.amina.quote': { en: 'We booked Kilele Hall for a community workshop. The catering was generous and the staff handled every small request.', sw: 'Tulibook ukumbi wa Kilele kwa warsha ya jamii. Chakula kilikuwa kingi na wafanyakazi walishughulikia kila ombi dogo.' },
+  'review.amina.quote': { en: 'We booked {hallName} for a community workshop. The catering was generous and the staff handled every small request.', sw: 'Tulibook {hallName} kwa warsha ya jamii. Chakula kilikuwa kingi na wafanyakazi walishughulikia kila ombi dogo.' },
   'review.amina.name': { en: 'Amina H.', sw: 'Amina H.' },
   'review.amina.role': { en: 'Local resident & community organiser', sw: 'Mkazi wa eneo na mratibu wa jamii' },
 
@@ -289,15 +317,15 @@ const entries: Record<string, Entry> = {
 
   'rooms.eyebrow': { en: 'Rooms & suites', sw: 'Vyumba na suites' },
   'rooms.title': { en: 'Choose your kind of calm.', sw: 'Chagua aina yako ya utulivu.' },
-  'rooms.list.eyebrow': { en: 'Three ways to stay', sw: 'Njia tatu za kukaa' },
+  'rooms.list.eyebrow': { en: 'Four ways to stay', sw: 'Njia nne za kukaa' },
   'rooms.list.title': { en: 'Rest, work, repeat.', sw: 'Pumzika, fanya kazi, rudia.' },
   'rooms.text': {
-    en: 'Three room types, one standard: fast Wi-Fi, blackout curtains and a team that answers the phone.',
-    sw: 'Aina tatu za vyumba, kiwango kimoja: Wi-Fi ya haraka, mapazia ya giza na timu inayopokea simu.',
+    en: 'Four room types, one standard: Strong WiFi, a Smart TV and a team that answers the phone.',
+    sw: 'Aina nne za vyumba, kiwango kimoja: WiFi imara, TV janja na timu inayopokea simu.',
   },
   'rooms.note': {
-    en: 'All rates include VAT and service charge. Breakfast is available from KES 1,200 per person.',
-    sw: 'Bei zote zinajumuisha VAT na ada ya huduma. Kifungua kinywa kinapatikana kuanzia KES 1,200 kwa mtu.',
+    en: 'Board rates include one guest and VAT. Each additional guest adds KES 1,500 per night.',
+    sw: 'Bei za bweni ni kwa mgeni mmoja na zinajumuisha VAT. Kila mgeni wa ziada analipa KES 1,500 kwa usiku.',
   },
   'rooms.amenities': { en: 'In the room', sw: 'Ndani ya chumba' },
   'rooms.gallery': { en: 'View gallery', sw: 'Tazama picha' },
@@ -315,28 +343,23 @@ const entries: Record<string, Entry> = {
   'rooms.wifi.text': { en: '100 Mbps in every room and public space.', sw: '100 Mbps katika kila chumba na eneo la umma.' },
   'rooms.support.title': { en: '24/7 front desk', sw: 'Mapokezi 24/7' },
   'rooms.support.text': { en: 'A real person answers the phone, day or night.', sw: 'Mtu halisi anapokea simu, mchana au usiku.' },
-  'amenities.wifi': { en: 'Fibre Wi-Fi', sw: 'Wi-Fi ya fibre' },
-  'amenities.desk': { en: 'Work desk', sw: 'Dawati la kazi' },
-  'amenities.shower': { en: 'Rain shower', sw: 'Oga ya mvua' },
+  'amenities.wifi': { en: 'Strong WiFi', sw: 'WiFi imara' },
   'amenities.tv': { en: 'Smart TV', sw: 'TV janja' },
-  'amenities.safe': { en: 'In-room safe', sw: 'Sanduku la usalama' },
-  'amenities.generator': { en: 'Generator backup', sw: 'Jenereta ya akiba' },
-  'amenities.tea': { en: 'Tea & coffee', sw: 'Chai na kahawa' },
-  'amenities.housekeeping': { en: 'Daily housekeeping', sw: 'Usafi wa kila siku' },
-  'amenities.garden': { en: 'Garden patio', sw: 'Ua wa bustani' },
-  'amenities.king': { en: 'King bed', sw: 'Kitanda cha King' },
-  'amenities.minibar': { en: 'Minibar', sw: 'Minibar' },
-  'amenities.robes': { en: 'Robes & slippers', sw: 'Gauni na viatu vya ndani' },
-  'amenities.ac': { en: 'Air conditioning', sw: 'Kiyoyozi' },
-  'amenities.coffee': { en: 'Coffee bar', sw: 'Kituo cha kahawa' },
-  'amenities.lounge': { en: 'Lounge chair', sw: 'Kiti cha kupumzika' },
-  'amenities.living': { en: 'Separate living room', sw: 'Sebule tofauti' },
-  'amenities.kitchenette': { en: 'Kitchenette', sw: 'Jikoni ndogo' },
-  'amenities.meeting': { en: '4-seat meeting table', sw: 'Meza ya mkutano ya watu 4' },
-  'amenities.laundry': { en: 'Laundry service', sw: 'Huduma ya kufulia' },
-  'amenities.loungeAccess': { en: 'Lounge access', sw: 'Ufikiaji wa lounge' },
-  'amenities.sofa': { en: 'Sofa bed', sw: 'Kitanda cha sofa' },
-  'amenities.entrance': { en: 'Private entrance', sw: 'Kiingilio cha faragha' },
+  'amenities.safe': { en: 'Safe Box', sw: 'Sanduku la usalama' },
+  'amenities.roomService': { en: 'Room Service', sw: 'Huduma ya chumbani' },
+  'amenities.ironing': { en: 'Ironing Facilities', sw: 'Vifaa vya kupasia' },
+  'amenities.ironingBox': { en: 'Ironing box', sw: 'Sanduku la pasi' },
+  'amenities.ironingStandBox': { en: 'Ironing stand and iron box', sw: 'Stendi ya pasi na sanduku la pasi' },
+  'amenities.smartCardDoors': { en: 'Smart Card Doors', sw: 'Milango ya kadi janja' },
+  'amenities.orthopedic': { en: 'Orthopedic mattress', sw: 'Godoro la mifupa' },
+  'amenities.spacious': { en: 'Spacious room and bathroom', sw: 'Chumba na bafu kubwa' },
+  'amenities.singleBeds': { en: 'Single-size beds', sw: 'Vitanda vya mtu mmoja' },
+  'amenities.fridge': { en: 'Fridge', sw: 'Friji' },
+  'amenities.balcony': { en: 'Balcony', sw: 'Balkoni' },
+  'amenities.microwave': { en: 'Microwave', sw: 'Maikrowevu' },
+  'amenities.miniKitchenette': { en: 'Mini kitchenette', sw: 'Jikoni ndogo' },
+  'amenities.ipPhone': { en: 'IP phone', sw: 'Simu ya IP' },
+  'amenities.loungeFour': { en: 'Spacious lounge area with seating for four', sw: 'Sebule kubwa yenye viti vinne' },
 
   'booking.eyebrow': { en: 'Book direct', sw: 'Weka nafasi moja kwa moja' },
   'booking.title': { en: 'Your stay, step by step.', sw: 'Kukaa kwako, hatua kwa hatua.' },
@@ -353,13 +376,12 @@ const entries: Record<string, Entry> = {
   'booking.step1.text': { en: 'Choose your dates and how many people are coming. You can change them later, subject to availability.', sw: 'Chagua tarehe zako na idadi ya watu wanaokuja. Unaweza kubadilisha baadaye, kulingana na nafasi.' },
   'booking.step1.continue': { en: 'Choose a room', sw: 'Chagua chumba' },
   'booking.step2.title': { en: 'Pick your room and meal plan.', sw: 'Chagua chumba chako na mpango wa chakula.' },
-  'booking.step2.text': { en: 'All rooms include fibre Wi-Fi, a work desk and daily housekeeping. Meal supplements are per guest, per night.', sw: 'Vyumba vyote vinajumuisha Wi-Fi ya fibre, dawati la kazi na usafi wa kila siku. Ada za chakula ni kwa mgeni, kwa usiku.' },
+  'booking.step2.text': { en: 'All rooms include fibre Wi-Fi, a work desk and daily housekeeping. Board rates cover one guest; each additional guest adds KES 1,500 per night.', sw: 'Vyumba vyote vinajumuisha Wi-Fi ya fibre, dawati la kazi na usafi wa kila siku. Bei za bweni ni kwa mgeni mmoja; kila mgeni wa ziada anaongeza KES 1,500 kwa usiku.' },
   'booking.step2.continue': { en: 'Add guest details', sw: 'Ongeza taarifa za mgeni' },
   'booking.checkingAvailability': { en: 'Checking availability for your dates…', sw: 'Tunaangalia nafasi kwa tarehe zako…' },
   'booking.availabilityError': { en: 'We could not check availability. Please try again.', sw: 'Hatukuweza kuangalia nafasi. Tafadhali jaribu tena.' },
-  'booking.roomUnavailable': { en: 'That room is no longer available for these dates. Choose another room.', sw: 'Chumba hicho hakipatikani kwa tarehe hizi. Chagua chumba kingine.' },
   'booking.tooManyGuests': { en: 'This room sleeps fewer guests. Choose another room or reduce the party size.', sw: 'Chumba hiki kinachukua wageni wachache. Chagua chumba kingine au punguza idadi ya wageni.' },
-  'booking.soldOut': { en: 'Sold out for these dates', sw: 'Hakuna nafasi kwa tarehe hizi' },
+  'booking.soldOut': { en: 'Room not available — choose another room', sw: 'Chumba hakipatikani — chagua chumba kingine' },
   'booking.roomsLeft': { en: 'rooms left', sw: 'vyumba vimebaki' },
   'booking.retry': { en: 'Try again', sw: 'Jaribu tena' },
   'booking.quoteError': { en: 'We could not price this stay. Check your dates and try again.', sw: 'Hatukuweza kukokotoa bei ya kukaa huku. Angalia tarehe zako na jaribu tena.' },
@@ -367,14 +389,15 @@ const entries: Record<string, Entry> = {
   'meal.roomOnly': { en: 'Room only', sw: 'Chumba tu' },
   'meal.roomOnlyNote': { en: 'No meals included', sw: 'Hakuna chakula kilichojumuishwa' },
   'meal.breakfast': { en: 'Breakfast included', sw: 'Kifungua kinywa kimejumuishwa' },
-  'meal.breakfastNote': { en: 'Breakfast for each guest', sw: 'Kifungua kinywa kwa kila mgeni' },
+  'meal.breakfastNote': { en: 'Breakfast for one guest', sw: 'Kifungua kinywa kwa mgeni mmoja' },
   'meal.dinner': { en: 'Dinner, bed & breakfast', sw: 'Chakula cha jioni, chumba na kifungua kinywa' },
-  'meal.dinnerNote': { en: 'Dinner and breakfast each day', sw: 'Chakula cha jioni na kifungua kinywa kila siku' },
+  'meal.dinnerNote': { en: 'Dinner and breakfast for one guest', sw: 'Chakula cha jioni na kifungua kinywa kwa mgeni mmoja' },
   'meal.halfBoard': { en: 'Half board', sw: 'Nusu bweni' },
-  'meal.halfBoardNote': { en: 'Breakfast and dinner', sw: 'Kifungua kinywa na chakula cha jioni' },
+  'meal.halfBoardNote': { en: 'Breakfast and dinner for one guest', sw: 'Kifungua kinywa na chakula cha jioni kwa mgeni mmoja' },
   'meal.fullBoard': { en: 'Full board', sw: 'Bweni kamili' },
-  'meal.fullBoardNote': { en: 'Breakfast, lunch and dinner', sw: 'Kifungua kinywa, chakula cha mchana na jioni' },
-  'meal.perGuestNight': { en: 'per guest / night', sw: 'kwa mgeni / usiku' },
+  'meal.fullBoardNote': { en: 'Breakfast, lunch and dinner for one guest', sw: 'Kifungua kinywa, chakula cha mchana na jioni kwa mgeni mmoja' },
+  'meal.perRoomNight': { en: 'per room / night', sw: 'kwa chumba / usiku' },
+  'meal.extraGuest': { en: '+ KES {amount} per extra guest / night', sw: '+ KES {amount} kwa kila mgeni wa ziada / usiku' },
   'meal.included': { en: 'Included', sw: 'Imejumuishwa' },
   'booking.step3.title': { en: 'Who is staying with us?', sw: 'Nani anakaa nasi?' },
   'booking.step3.text': { en: 'We will use these details for your confirmation and to prepare your room.', sw: 'Tutatumia taarifa hizi kwa uthibitisho wako na kuandaa chumba chako.' },
@@ -695,8 +718,8 @@ const entries: Record<string, Entry> = {
   'dining.coffeeEyebrow': { en: 'Coffee shop', sw: 'Duka la kahawa' },
   'dining.coffeeTitle': { en: 'No booking needed.', sw: 'Hakuna haja ya kuweka nafasi.' },
   'dining.coffeeText': {
-    en: 'Jacaranda Café is walk-in only. Come in, find a seat and order at the counter.',
-    sw: 'Jacaranda Café inapokea wageni bila miadi. Ingia, tafuta kiti na uagize kaunta.',
+    en: '{cafeName} is walk-in only. Come in, find a seat and order at the counter.',
+    sw: '{cafeName} inapokea wageni bila miadi. Ingia, tafuta kiti na uagize kaunta.',
   },
   'dining.coffeeWalkIn': { en: 'Walk-ins only, all day', sw: 'Bila miadi, siku nzima' },
   'dining.coffeeNote': {
@@ -734,8 +757,22 @@ const entries: Record<string, Entry> = {
   'conference.bookingType': { en: 'Booking type', sw: 'Aina ya kuweka nafasi' },
   'conference.title': { en: 'A room that adapts to your agenda.', sw: 'Chumba kinachobadilika kulingana na ajenda yako.' },
   'conference.text': {
-    en: 'Kilele Hall is a flexible, light-filled space for 8 to 100 guests — five minutes from Kapenguria town centre, with everything you need under one roof.',
-    sw: 'Ukumbi wa Kilele ni nafasi inayobadilika, iliyojaa mwanga kwa wageni 8 hadi 100 — dakika tano kutoka katikati ya mji wa Kapenguria, na kila kitu unachohitaji chini ya paa moja.',
+    en: 'Choose from {hallList} — flexible spaces for workshops, board meetings and small conferences, five minutes from Kapenguria town centre, with everything you need under one roof.',
+    sw: 'Chagua kati ya {hallList} — nafasi zinazobadilika kwa warsha, mikutano ya bodi na makongamano madogo, dakika tano kutoka katikati ya mji wa Kapenguria, na kila kitu unachohitaji chini ya paa moja.',
+  },
+  'conference.halls.eyebrow': { en: 'Choose your hall', sw: 'Chagua ukumbi' },
+  'conference.halls.title': { en: 'Three halls, one events team.', sw: 'Vikumbi vitatu, timu moja ya hafla.' },
+  'conference.halls.text': {
+    en: 'Tell us which hall you need and the events team will confirm the layout, capacity and catering for your date.',
+    sw: 'Tuambie ni ukumbi upi unahitaji na timu ya hafla itathibitisha mpangilio, uwezo na chakula kwa tarehe yako.',
+  },
+  'conference.halls.cardText': {
+    en: 'Ask the events team about layouts, capacity and availability.',
+    sw: 'Uliza timu ya hafla kuhusu mpangilio, uwezo na upatikanaji.',
+  },
+  'conference.requestQuotation': {
+    en: 'Request a quotation',
+    sw: 'Omba bei',
   },
   'conference.cta': { en: 'Check availability', sw: 'Angalia nafasi' },
   'conference.statGuests': { en: 'Theatre guests', sw: 'Wageni wa theatre' },
@@ -776,7 +813,7 @@ const entries: Record<string, Entry> = {
   'conference.equipment.hostNote': { en: 'A staff member on call all day.', sw: 'Mfanyakazi anayepatikana siku nzima.' },
   'conference.catering.eyebrow': { en: 'Catering', sw: 'Chakula' },
   'conference.catering.title': { en: 'Fuel the room.', sw: 'Weka nishati chumbani.' },
-  'conference.catering.text': { en: 'Simple, generous food from Tulia Restaurant — served on time and cleared quietly.', sw: 'Chakula rahisi na kingi kutoka Mgahawa wa Tulia — kinatumwa kwa wakati na kusafishwa kwa utulivu.' },
+  'conference.catering.text': { en: 'Simple, generous food from {restaurantName} — served on time and cleared quietly.', sw: 'Chakula rahisi na kingi kutoka {restaurantName} — kinatumwa kwa wakati na kusafishwa kwa utulivu.' },
   'catering.tea': { en: 'Tea & coffee break', sw: 'Pumziko la chai na kahawa' },
   'catering.teaDesc': { en: 'Two teas, coffee, mandazi and fruit.', sw: 'Chai mbili, kahawa, mandazi na matunda.' },
   'catering.lunch': { en: 'Working lunch', sw: 'Chakula cha mchana cha kazi' },
@@ -810,6 +847,8 @@ const entries: Record<string, Entry> = {
     en: 'This session is unavailable. Choose another date or session.',
     sw: 'Kipindi hiki hakipatikani. Chagua tarehe au kipindi kingine.',
   },
+  'conference.hall': { en: 'Conference hall', sw: 'Ukumbi wa mkutano' },
+  'conference.selectHall': { en: 'Select a hall', sw: 'Chagua ukumbi' },
   'conference.session': { en: 'Session', sw: 'Kipindi' },
   'conference.layout': { en: 'Room layout', sw: 'Mpangilio wa chumba' },
   'conference.guests': { en: 'Guests', sw: 'Wageni' },
@@ -975,6 +1014,10 @@ const entries: Record<string, Entry> = {
   },
   'dash.stats.oldest': { en: 'Oldest wait', sw: 'Muda mrefu zaidi' },
   'dash.stats.oldestNote': { en: 'Longest wait in the queue', sw: 'Muda mrefu zaidi kwenye foleni' },
+  'dash.newBooking.alert': {
+    en: 'New bookings · {count} received in the last {minutes} minutes.',
+    sw: 'Nafasi mpya · {count} zimepokelewa katika dakika {minutes} zilizopita.',
+  },
   'dash.queue.eyebrow': { en: 'Live queue', sw: 'Foleni ya moja kwa moja' },
   'dash.queue.title': { en: 'Needs a decision', sw: 'Inahitaji uamuzi' },
   'dash.queue.text': {
@@ -1048,6 +1091,53 @@ const entries: Record<string, Entry> = {
   'dash.activity.undo': { en: 'undid', sw: 'alitengua' },
   'dash.activity.undone': { en: 'Undone', sw: 'Imetenguliwa' },
   'dash.updated': { en: 'Updated {time}', sw: 'Imesasishwa {time}' },
+  'dash.rooms.eyebrow': { en: 'Room inventory', sw: 'Hifadhi ya vyumba' },
+  'dash.rooms.title': { en: 'Room status', sw: 'Hali ya vyumba' },
+  'dash.rooms.text': {
+    en: 'Numbered rooms for front desk occupancy tracking. Website availability stays by room type.',
+    sw: 'Vyumba vyenye namba kwa ufuatiliaji wa mapokezi. Upatikanaji wa tovuti unabaki kwa aina ya chumba.',
+  },
+  'dash.rooms.free': { en: 'Free', sw: 'Huru' },
+  'dash.rooms.occupied': { en: 'Occupied', sw: 'Wanaokaliwa' },
+  'dash.rooms.column.room': { en: 'Room', sw: 'Chumba' },
+  'dash.rooms.column.type': { en: 'Type', sw: 'Aina' },
+  'dash.rooms.column.status': { en: 'Status', sw: 'Hali' },
+  'dash.rooms.column.action': { en: 'Action', sw: 'Hatua' },
+  'dash.rooms.status.free': { en: 'Free', sw: 'Huru' },
+  'dash.rooms.status.occupied': { en: 'Occupied', sw: 'Wanaokaliwa' },
+  'dash.rooms.markOccupied': { en: 'Mark occupied', sw: 'Weka wanaokaliwa' },
+  'dash.rooms.markFree': { en: 'Mark free', sw: 'Weka huru' },
+  'dash.rooms.markOccupied.aria': {
+    en: 'Mark occupied — room {number}',
+    sw: 'Weka wanaokaliwa — chumba {number}',
+  },
+  'dash.rooms.markFree.aria': {
+    en: 'Mark free — room {number}',
+    sw: 'Weka huru — chumba {number}',
+  },
+  'dash.rooms.markedOccupied': {
+    en: 'Room {number} marked occupied',
+    sw: 'Chumba {number} kimewekwa wanaokaliwa',
+  },
+  'dash.rooms.markedFree': {
+    en: 'Room {number} marked free',
+    sw: 'Chumba {number} kimewekwa huru',
+  },
+  'dash.rooms.provisional': {
+    en: 'TWIN-1 is a placeholder until the hotel confirms the Twin room number.',
+    sw: 'TWIN-1 ni alama ya muda hadi hoteli itakapothibitisha namba ya chumba cha Twin.',
+  },
+  'dash.rooms.loading': { en: 'Loading room status…', sw: 'Inapakia hali ya vyumba…' },
+  'dash.rooms.error': {
+    en: 'We could not load the room list.',
+    sw: 'Hatukuweza kupakia orodha ya vyumba.',
+  },
+  'dash.rooms.retry': { en: 'Try again', sw: 'Jaribu tena' },
+  'dash.rooms.empty': { en: 'No numbered rooms yet.', sw: 'Hakuna vyumba vyenye namba bado.' },
+  'dash.rooms.toggleError': {
+    en: 'Could not update the room status.',
+    sw: 'Haikuweza kusasisha hali ya chumba.',
+  },
   'dash.reports.eyebrow': { en: 'Reports & exports', sw: 'Ripoti na upakuaji' },
   'dash.reports.title': { en: 'Today at a glance', sw: 'Leo kwa muhtasari' },
   'dash.reports.text': {
@@ -1117,7 +1207,7 @@ const entries: Record<string, Entry> = {
   'journal.westlands.excerpt': { en: 'Where to walk, eat and buy good coffee when you have a free afternoon.', sw: 'Mahali pa kutembea, kula na kununua kahawa nzuri ukiwa na mchana huru.' },
   'journal.coffee.tag': { en: 'People', sw: 'Watu' },
   'journal.coffee.title': { en: 'The people behind your cup', sw: 'Watu walio nyuma ya kikombe chako' },
-  'journal.coffee.excerpt': { en: 'A morning with the co-operative that grows our Jacaranda Café beans.', sw: 'Asubuhi na ushirika unaolima kahawa ya Jacaranda Café.' },
+  'journal.coffee.excerpt': { en: 'A morning with the co-operative that grows our {cafeName} beans.', sw: 'Asubuhi na ushirika unaolima kahawa ya {cafeName}.' },
   'journal.green.tag': { en: 'Sustainability', sw: 'Uendelevu' },
   'journal.green.title': { en: 'A lighter footprint, slowly', sw: 'Nyayo nyepesi, polepole' },
   'journal.green.excerpt': { en: 'The small changes we have made this year — and the ones still to come.', sw: 'Mabadiliko madogo tuliyofanya mwaka huu — na yajayo.' },
@@ -1126,20 +1216,20 @@ const entries: Record<string, Entry> = {
     sw: 'Jipange kwa mzunguko wa kazi. Kaa usiku nne na wa nne ni zawadi yetu ukiweka nafasi moja kwa moja — chumba kilekile, dawati lilelile, timu ileile ya mapokezi.\n\nOfa inajumuisha Wi-Fi ya fibre, usafi wa kila siku na kughairi bila malipo hadi saa 48 kabla ya kuwasili. Kifungua kinywa kinaweza kuongezwa kwa KES 1,200 kwa mtu, kwa usiku.\n\nTumia msimbo LONGSTAY unapoweka nafasi, au chagua usiku nne kwenye ukurasa wa kuweka nafasi na bei itabadilika yenyewe.',
   },
   'article.ngo.body': {
-    en: 'Field teams need a reliable base: secure parking, a generator that keeps the Wi-Fi on, and a front desk that answers at 5am.\n\nNGO staff receive 15% off our Standard Executive rooms all year. Show your NGO ID at check-in. We can issue a single invoice for a group and hold rooms with a purchase order.\n\nFor teams of five or more, ask about our meeting-room bundle with Kilele Hall and working lunch.',
-    sw: 'Timu za shambani zinahitaji kituo cha kuaminika: maegesho salama, jenereta inayoweka Wi-Fi hewani, na mapokezi yanayojibu saa 11 alfajiri.\n\nWafanyakazi wa NGO wanapata punguzo la 15% kwenye vyumba vya Standard Executive mwaka mzima. Onyesha kitambulisho cha NGO wakati wa kuingia. Tunaweza kutoa ankara moja kwa kikundi na kuhifadhi vyumba kwa order ya ununuzi.\n\nKwa timu za watano au zaidi, uliza kuhusu kifurushi chetu cha ukumbi wa Kilele na chakula cha mchana cha kazi.',
+    en: 'Field teams need a reliable base: secure parking, a generator that keeps the WiFi on, and a front desk that answers at 5am.\n\nNGO staff receive 15% off our Superior Rooms all year. Show your NGO ID at check-in. We can issue a single invoice for a group and hold rooms with a purchase order.\n\nFor teams of five or more, ask about our meeting-room bundle with {hallName} and working lunch.',
+    sw: 'Timu za shambani zinahitaji kituo cha kuaminika: maegesho salama, jenereta inayoweka WiFi hewani, na mapokezi yanayojibu saa 11 alfajiri.\n\nWafanyakazi wa NGO wanapata punguzo la 15% kwenye vyumba vya Superior mwaka mzima. Onyesha kitambulisho cha NGO wakati wa kuingia. Tunaweza kutoa ankara moja kwa kikundi na kuhifadhi vyumba kwa order ya ununuzi.\n\nKwa timu za watano au zaidi, uliza kuhusu kifurushi chetu cha {hallName} na chakula cha mchana cha kazi.',
   },
   'article.brunch.body': {
-    en: 'Sunday moves slowly at Tulia. From 11:30am to 3pm, the buffet is generous: a live omelette station, nyama choma, salads, fresh chapati and a table of small sweets.\n\nBottomless Kenyan coffee is included. Children under 6 eat free, and there is a quiet corner for anyone who needs it.\n\nKES 2,500 per person. Book a table online or call the front desk — walk-ins are welcome, subject to space.',
-    sw: 'Jumapili huenda polepole huko Tulia. Kuanzia 11:30am hadi 3pm, buffet ni kingi: kituo cha omelette papo hapo, nyama choma, saladi, chapati mbichi na meza ya vitafunio vitamu.\n\nKahawa ya Kenya bila kikomo imejumuishwa. Watoto chini ya miaka 6 wanakula bure, na kuna kona tulivu kwa anayehitaji.\n\nKES 2,500 kwa mtu. Weka meza mtandaoni au piga mapokezi — karibu bila miadi, kulingana na nafasi.',
+    en: 'Sunday moves slowly at {restaurantName}. From 11:30am to 3pm, the buffet is generous: a live omelette station, nyama choma, salads, fresh chapati and a table of small sweets.\n\nBottomless Kenyan coffee is included. Children under 6 eat free, and there is a quiet corner for anyone who needs it.\n\nKES 2,500 per person. Book a table online or call the front desk — walk-ins are welcome, subject to space.',
+    sw: 'Jumapili huenda polepole huko {restaurantName}. Kuanzia 11:30am hadi 3pm, buffet ni kingi: kituo cha omelette papo hapo, nyama choma, saladi, chapati mbichi na meza ya vitafunio vitamu.\n\nKahawa ya Kenya bila kikomo imejumuishwa. Watoto chini ya miaka 6 wanakula bure, na kuna kona tulivu kwa anayehitaji.\n\nKES 2,500 kwa mtu. Weka meza mtandaoni au piga mapokezi — karibu bila miadi, kulingana na nafasi.',
   },
   'article.meetings.body': {
-    en: 'Bring the team together without moving between venues. When you book five or more bedrooms, we take 10% off Kilele Hall hire for your workshop or offsite.\n\nThe room seats up to 100 theatre-style or 24 boardroom-style. Projector, sound, flipchart and fibre Wi-Fi are included, and Tulia can cater tea breaks and lunch.\n\nTell us the dates and format and we will send a written quote within one working day.',
-    sw: 'Kuleta timu pamoja bila kuhama kati ya maeneo. Unapoweka vyumba vitano au zaidi, tunapunguza 10% kwenye ukumbi wa Kilele kwa warsha au offsite yako.\n\nChumba kinachukua hadi 100 kwa mtindo wa theatre au 24 kwa mtindo wa bodi. Projekta, sauti, flipchart na Wi-Fi ya fibre vimejumuishwa, na Tulia inaweza kutoa chai na chakula cha mchana.\n\nTuambie tarehe na muundo na tutatuma bei ya maandishi ndani ya siku moja ya kazi.',
+    en: 'Bring the team together without moving between venues. When you book five or more bedrooms, we take 10% off conference hall hire for your workshop or offsite.\n\nThe room seats up to 100 theatre-style or 24 boardroom-style. Projector, sound, flipchart and fibre Wi-Fi are included, and {restaurantName} can cater tea breaks and lunch.\n\nTell us the dates and format and we will send a written quote within one working day.',
+    sw: 'Kuleta timu pamoja bila kuhama kati ya maeneo. Unapoweka vyumba vitano au zaidi, tunapunguza 10% kwenye kodi ya ukumbi wa mikutano kwa warsha au offsite yako.\n\nChumba kinachukua hadi 100 kwa mtindo wa theatre au 24 kwa mtindo wa bodi. Projekta, sauti, flipchart na Wi-Fi ya fibre vimejumuishwa, na {restaurantName} inaweza kutoa chai na chakula cha mchana.\n\nTuambie tarehe na muundo na tutatuma bei ya maandishi ndani ya siku moja ya kazi.',
   },
   'article.westlands.body': {
-    en: 'Start with coffee. Jacaranda Café opens at 6am and the corner table gets the morning light. From there, walk into Kapenguria town centre and browse the small shops along the main street.\n\nFor lunch, Tulia does a proper nyama choma platter. In the afternoon, the Kapenguria Museum is a short ride away, or stay close and use the hotel gym.\n\nFinish with a slow dinner and an early night. Kapenguria is lively in the best way — but our rooms face the garden.',
-    sw: 'Anza na kahawa. Jacaranda Café hufungua 6am na meza ya kona hupata mwanga wa asubuhi. Kutoka hapo, tembea katikati ya mji wa Kapenguria na uangalie maduka madogo kando ya barabara kuu.\n\nKwa chakula cha mchana, Tulia ina sahani nzuri ya nyama choma. Mchana, Jumba la Makumbusho la Kapenguria liko mbali kidogo, au baki karibu na utumie mazoezi ya hoteli.\n\nMaliza na chakula cha jioni cha polepole na kulala mapema. Kapenguria ina shughuli nzuri — lakini vyumba vyetu vinaelekea bustani.',
+    en: 'Start with coffee. {cafeName} opens at 6am and the corner table gets the morning light. From there, walk into Kapenguria town centre and browse the small shops along the main street.\n\nFor lunch, {restaurantName} does a proper nyama choma platter. In the afternoon, the Kapenguria Museum is a short ride away, or stay close and use the hotel gym.\n\nFinish with a slow dinner and an early night. Kapenguria is lively in the best way — but our rooms face the garden.',
+    sw: 'Anza na kahawa. {cafeName} hufungua 6am na meza ya kona hupata mwanga wa asubuhi. Kutoka hapo, tembea katikati ya mji wa Kapenguria na uangalie maduka madogo kando ya barabara kuu.\n\nKwa chakula cha mchana, {restaurantName} ina sahani nzuri ya nyama choma. Mchana, Jumba la Makumbusho la Kapenguria liko mbali kidogo, au baki karibu na utumie mazoezi ya hoteli.\n\nMaliza na chakula cha jioni cha polepole na kulala mapema. Kapenguria ina shughuli nzuri — lakini vyumba vyetu vinaelekea bustani.',
   },
   'article.coffee.body': {
     en: 'Our beans come from a small co-operative in Nyeri, where the same families have been growing SL28 and Ruiru 11 for three generations.\n\nWe buy through a Kenyan roaster who pays above the auction price and shares the roast profiles with us. Every Monday, the café team cups the new batch before it goes on the menu.\n\nNext time you order a pour-over, ask for the name of the farm. We keep it on the board behind the bar.',
@@ -1180,12 +1270,11 @@ const entries: Record<string, Entry> = {
   'contact.getting.title': { en: 'Getting here', sw: 'Kufika hapa' },
   'contact.getting.text': { en: 'Five minutes from Kapenguria town centre, just off the Kitale–Lodwar road. Secure parking on site.', sw: 'Dakika tano kutoka katikati ya mji wa Kapenguria, kando ya barabara ya Kitale–Lodwar. Maegesho salama yapo.' },
   'contact.parking': { en: 'Secure parking', sw: 'Maegesho salama' },
-  'contact.transfer': { en: 'Airport transfers', sw: 'Usafiri wa uwanja wa ndege' },
   'contact.mapTitle': { en: 'Map of {name} in {town}, {county}', sw: 'Ramani ya {name} {town}, {county}' },
   'topic.general': { en: 'General enquiry', sw: 'Swali la jumla' },
   'topic.booking': { en: 'A booking', sw: 'Nafasi ya kukaa' },
   'topic.dining': { en: 'Restaurant or café', sw: 'Mgahawa au mkahawa' },
-  'topic.conference': { en: 'Conference hall', sw: 'Ukumbi wa mikutano' },
+  'topic.conference': { en: 'Conference halls', sw: 'Vikumbi vya mikutano' },
   'topic.gym': { en: 'Gym & membership', sw: 'Mazoezi na uanachama' },
   'topic.group': { en: 'Group stay', sw: 'Kukaa kwa kikundi' },
 
@@ -1197,10 +1286,10 @@ const entries: Record<string, Entry> = {
     en: '{name} is a warm, independent hotel in {town}, {county} for NGO teams, business travellers and local residents. Book direct for the best rate, free cancellation and M-Pesa payment.',
     sw: '{name} ni hoteli huru yenye ukarimu huko {town}, {county} kwa timu za NGO, wasafiri wa biashara na wakazi wa eneo. Weka nafasi moja kwa moja kwa bei bora, kughairi bure na malipo ya M-Pesa.',
   },
-  'meta.rooms.title': { en: 'Rooms & Suites — {name}, {town}', sw: 'Vyumba na Suites — {name}, {town}' },
+  'meta.rooms.title': { en: 'Rooms — {name}, {town}', sw: 'Vyumba — {name}, {town}' },
   'meta.rooms.description': {
-    en: 'Three room types at {name} in {town}: Standard Executive, Deluxe Garden Suite and Mara Residence. Fast fibre Wi-Fi, free cancellation and direct-booking rates.',
-    sw: 'Aina tatu za vyumba kwenye {name} huko {town}: Standard Executive, Deluxe Garden Suite na Mara Residence. Wi-Fi ya fibre ya haraka, kughairi bure na bei za moja kwa moja.',
+    en: 'Four room types at {name} in {town}: Superior Room, Deluxe Room, Twin Room and En-suite Room. Strong WiFi, free cancellation and direct-booking rates.',
+    sw: 'Aina nne za vyumba kwenye {name} huko {town}: Superior, Deluxe, Twin na En-suite. WiFi imara, kughairi bure na bei za moja kwa moja.',
   },
   'meta.booking.title': { en: 'Book Direct — {name}, {town}', sw: 'Weka Nafasi Moja kwa Moja — {name}, {town}' },
   'meta.booking.description': {
@@ -1224,10 +1313,10 @@ const entries: Record<string, Entry> = {
   },
   'meta.conference.title': { en: 'Conference & Events — {name}, {town}', sw: 'Mikutano na Hafla — {name}, {town}' },
   'meta.conference.description': {
-    en: 'Hire {hallName} at {name} in {town}. Flexible layouts for 8–120 guests, fibre Wi-Fi, projector, sound and catering. Check availability or request a quote.',
-    sw: 'Kodi {hallName} kwenye {name} huko {town}. Mpangilio unaobadilika kwa wageni 8–120, Wi-Fi ya fibre, projekta, sauti na huduma ya chakula. Angalia upatikanaji au ombi bei.',
+    en: 'Hire one of our conference halls — {hallList} — at {name} in {town}. Flexible layouts, fibre Wi-Fi, projector, sound and catering. Check availability or request a quote.',
+    sw: 'Kodi mojawapo ya vikumbi vyetu vya mikutano — {hallList} — kwenye {name} huko {town}. Mipangilio inayobadilika, Wi-Fi ya fibre, projekta, sauti na huduma ya chakula. Angalia upatikanaji au ombi bei.',
   },
-  'meta.gym.title': { en: '{gymName} — {name}, {town}', sw: '{gymName} — {name}, {town}' },
+  'meta.gym.title': { en: '{gymName} — {name}, {town}', sw: '{gymName} — Mazoezi, {name}, {town}' },
   'meta.gym.description': {
     en: '{gymName} in {town}. Day passes, monthly and annual memberships, cardio, weights and group classes. Open early and late for guests and residents.',
     sw: '{gymName} huko {town}. Pasi za siku, uanachama wa mwezi na mwaka, mazoezi ya moyo, uzito na madarasa ya kikundi. Wazi asubuhi na jioni kwa wageni na wakazi.',
@@ -1253,11 +1342,61 @@ const entries: Record<string, Entry> = {
     en: 'Booking, payment, cancellation and stay terms for {name}.',
     sw: 'Masharti ya kuweka nafasi, malipo, kughairi na kukaa kwa {name}.',
   },
+  'meta.cancellation.title': { en: 'Cancellation policy - {name}', sw: 'Sera ya kughairi - {name}' },
+  'meta.cancellation.description': {
+    en: 'Cancellation deadlines, charges and refunds for bookings at {name}.',
+    sw: 'Muda wa kughairi, ada na marejesho kwa nafasi zilizowekwa {name}.',
+  },
   'meta.dashboard.title': { en: 'Front Desk Dashboard — {name}', sw: 'Dashibodi ya Mapokezi — {name}' },
+  'meta.contentReview.title': {
+    en: 'Content needing confirmation — {name}',
+    sw: 'Maudhui yanayohitaji uthibitisho — {name}',
+  },
+  'contentReview.eyebrow': { en: 'Operations', sw: 'Uendeshaji' },
+  'contentReview.title': {
+    en: 'Content needing confirmation',
+    sw: 'Maudhui yanayohitaji uthibitisho',
+  },
+  'contentReview.text': {
+    en: 'CMS records still flagged for hotel review. Confirm or correct them in Django admin; this page is read-only.',
+    sw: 'Rekodi za CMS bado zilizoashiriwa kukaguliwa na hoteli. Thibitisha au urekebishe kwenye Django admin; ukurasa huu ni wa kusoma tu.',
+  },
+  'contentReview.total': {
+    en: '{count} items flagged',
+    sw: 'Vitu {count} vimeashiriwa',
+  },
+  'contentReview.loading': { en: 'Loading content review…', sw: 'Inapakia maudhui…' },
+  'contentReview.error': {
+    en: 'The review list could not be loaded.',
+    sw: 'Orodha ya ukaguzi haikuweza kupakiwa.',
+  },
+  'contentReview.retry': { en: 'Try again', sw: 'Jaribu tena' },
+  'contentReview.empty': {
+    en: 'Nothing is flagged right now.',
+    sw: 'Hakuna kilichoashiriwa kwa sasa.',
+  },
+  'contentReview.inactive': { en: 'Hidden', sw: 'Imefichwa' },
+  'contentReview.gate.title': { en: 'Staff sign-in required', sw: 'Inahitajika kuingia kwa wafanyakazi' },
+  'contentReview.gate.text': {
+    en: 'Sign in on the front desk dashboard, then return here.',
+    sw: 'Ingia kwenye dashibodi ya mapokezi, kisha urudi hapa.',
+  },
+  'contentReview.dashboard': { en: 'Open front desk dashboard', sw: 'Fungua dashibodi ya mapokezi' },
+  'dash.contentReview': { en: 'Content review', sw: 'Ukaguzi wa maudhui' },
+  'contentReview.column.kind': { en: 'Type', sw: 'Aina' },
+  'contentReview.column.item': { en: 'Item', sw: 'Kipengee' },
+  'contentReview.column.updated': { en: 'Updated / status', sw: 'Imeisasishwa / hali' },
+  'contentReview.column.id': { en: 'ID', sw: 'Kitambulisho' },
+  'contentReview.kind.blog-post': { en: 'Journal', sw: 'Jarida' },
+  'contentReview.kind.offer': { en: 'Offer', sw: 'Ofa' },
+  'contentReview.kind.policy-page': { en: 'Policy', sw: 'Sera' },
+  'contentReview.kind.review': { en: 'Review', sw: 'Maoni' },
+  'contentReview.kind.room-type': { en: 'Room type', sw: 'Aina ya chumba' },
+  'contentReview.kind.menu-item': { en: 'Menu item', sw: 'Kipengee cha menyu' },
 
-  'policy.draft': {
-    en: 'Draft wording — pending hotel and legal review before launch.',
-    sw: 'Maneno ya rasimu — yanasubiri kupitiwa na hoteli na sheria kabla ya kuzindua.',
+  'policy.analytics': {
+    en: 'Analytics: this site uses privacy-friendly, cookieless Plausible page analytics to understand which pages are visited. No advertising trackers are loaded.',
+    sw: 'Uchambuzi: tovuti hii hutumia Plausible ya kufuatilia kurasa bila vidakuzi ili kuelewa ni kurasa zipi zinazotembelewa. Hakuna waangalizi wa matangazo wanaopakiwa.',
   },
   'policy.unavailable': {
     en: 'This policy is temporarily unavailable. Please contact the hotel and we will send you the current wording.',
@@ -1282,12 +1421,45 @@ const entries: Record<string, Entry> = {
   'validation.time': { en: 'Please choose a time.', sw: 'Tafadhali chagua muda.' },
   'validation.partySize': { en: 'Party size must be between 1 and 20.', sw: 'Idadi ya watu lazima iwe kati ya 1 na 20.' },
   'validation.guests': { en: 'Enter a number between 4 and 120.', sw: 'Weka namba kati ya 4 na 120.' },
+  'validation.hall': { en: 'Choose a conference hall.', sw: 'Chagua ukumbi wa mkutano.' },
   'validation.message': { en: 'Please write a short message.', sw: 'Tafadhali andika ujumbe mfupi.' },
   'toast.hallBooked': { en: 'Hall request received. The events team will confirm shortly.', sw: 'Ombi la ukumbi limepokelewa. Timu ya hafla itathibitisha hivi karibuni.' },
   'toast.quoteSent': { en: 'Quote request sent. We will reply within one working day.', sw: 'Ombi la bei limetumwa. Tutajibu ndani ya siku moja ya kazi.' },
   'toast.dayPass': { en: 'Day pass reserved. Pay at the front desk when you arrive.', sw: 'Pasi ya siku imehifadhiwa. Lipa mapokezi utakapofika.' },
   'toast.requestConfirmed': { en: 'Request confirmed. The guest has been notified.', sw: 'Ombi limethibitishwa. Mgeni amejulishwa.' },
   'toast.requestDeclined': { en: 'Request declined. The guest has been notified.', sw: 'Ombi limekataliwa. Mgeni amejulishwa.' },
+
+  'meta.blog.title': { en: 'Journal — {name}, {town}', sw: 'Jarida — {name}, {town}' },
+  'meta.blog.description': {
+    en: 'Notes, offers and stories from {name} in {town}, written for guests and neighbours.',
+    sw: 'Maelezo, ofa na hadithi kutoka {name} huko {town}, kwa wageni na majirani.',
+  },
+  'meta.blogPost.title': { en: '{title} — {name}', sw: '{title} — {name}' },
+  'meta.blogPost.description': { en: '{excerpt}', sw: '{excerpt}' },
+  'blog.eyebrow': { en: 'From the hotel', sw: 'Kutoka hotelini' },
+  'blog.title': { en: 'The journal', sw: 'Jarida' },
+  'blog.text': {
+    en: 'Small notes from Kapenguria — seasonal menus, local tips and news from the hotel.',
+    sw: 'Maelezo mafupi kutoka Kapenguria — menyu za msimu, ushauri wa eneo na habari za hoteli.',
+  },
+  'blog.readPost': { en: 'Read story', sw: 'Soma hadithi' },
+  'blog.back': { en: 'Back to the journal', sw: 'Rudi kwenye jarida' },
+  'blog.empty': {
+    en: 'No stories have been published yet. Please check back soon.',
+    sw: 'Hakuna hadithi zilizochapishwa bado. Tafadhali angalia tena hivi karibuni.',
+  },
+  'blog.error': {
+    en: 'The journal is temporarily unavailable. Please contact the hotel for the latest stories.',
+    sw: 'Jarida halipatikani kwa sasa. Tafadhali wasiliana na hoteli kwa hadithi za hivi karibuni.',
+  },
+  'blog.notFound': {
+    en: 'That story is not available. Browse the journal instead.',
+    sw: 'Hadithi hiyo haipatikani. Angalia jarida badala yake.',
+  },
+  'blog.draft': {
+    en: 'Draft story — pending marketing review.',
+    sw: 'Hadithi ya rasimu — inasubiri kupitiwa na idara ya masoko.',
+  },
 };
 
 const translations = entries as Record<string, Entry>;
@@ -1305,9 +1477,13 @@ function readStoredLanguage(): Language | null {
   }
 }
 
+// The URL is the source of truth. A stored preference never triggers a
+// redirect, so crawlers and direct links get the language in the path.
 let currentLanguage: Language =
-  readStoredLanguage() ??
-  (typeof document !== 'undefined' && document.documentElement.lang === 'sw' ? 'sw' : 'en');
+  typeof window !== 'undefined' && typeof window.location !== 'undefined'
+    ? languageFromPath(window.location.pathname)
+    : readStoredLanguage() ??
+      (typeof document !== 'undefined' && document.documentElement.lang === 'sw' ? 'sw' : 'en');
 
 export function getCurrentLanguage(): Language {
   return currentLanguage;
@@ -1363,6 +1539,10 @@ function translateElement(element: HTMLElement, language: Language): void {
 
 export function applyLanguage(language: Language): void {
   currentLanguage = language;
+
+  // Prerendering calls this on the server; there is no DOM to translate there.
+  if (typeof document === 'undefined') return;
+
   document.documentElement.lang = language;
 
   document.querySelectorAll<HTMLElement>('[data-i18n]').forEach((element) => {
@@ -1390,15 +1570,17 @@ export function applyLanguage(language: Language): void {
 
 export function setLanguage(language: Language, notify = true): void {
   currentLanguage = language;
-  try {
-    window.localStorage.setItem(STORAGE_KEY, language);
-  } catch {
-    // Storage may be unavailable in private browsing.
+  if (typeof window !== 'undefined') {
+    try {
+      window.localStorage.setItem(STORAGE_KEY, language);
+    } catch {
+      // Storage may be unavailable in private browsing.
+    }
   }
 
   applyLanguage(language);
 
-  if (notify) {
+  if (notify && typeof document !== 'undefined') {
     const detail: LanguageChangeDetail = { language };
     document.dispatchEvent(new CustomEvent<LanguageChangeDetail>(LANGUAGE_CHANGE_EVENT, { detail }));
   }
@@ -1409,7 +1591,7 @@ export function initI18n(): void {
 }
 
 export function formatMoney(amount: number): string {
-  return new Intl.NumberFormat('en-KE', {
+  return new Intl.NumberFormat(currentLanguage === 'sw' ? 'sw-KE' : 'en-KE', {
     maximumFractionDigits: 0,
   }).format(amount);
 }

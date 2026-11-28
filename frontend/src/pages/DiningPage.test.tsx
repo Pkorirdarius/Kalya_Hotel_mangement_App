@@ -135,9 +135,31 @@ describe('DiningPage', () => {
       first_name: 'Amina',
       last_name: 'Otieno',
       phone: '254712345678',
+      language: 'en',
       website: '',
     });
     expect(typeof createBody.form_started_at).toBe('number');
+  });
+
+  it('sends the active UI language with a table booking', async () => {
+    setLanguage('sw', false);
+    const fetchMock = mockFetch();
+    vi.stubGlobal('fetch', fetchMock);
+    const user = userEvent.setup();
+    renderDiningPage();
+
+    await user.type(screen.getByLabelText('Jina kamili'), 'Amina Otieno');
+    await user.type(screen.getByLabelText('Namba ya simu'), '0712 345 678');
+    await user.click(screen.getByRole('radio', { name: /19:00/ }));
+    await user.click(screen.getByRole('button', { name: 'Omba meza' }));
+
+    const createCall = fetchMock.mock.calls.find(
+      ([input, init]) =>
+        String(input).includes('/facilities/restaurant/bookings/') &&
+        init?.method === 'POST',
+    );
+    const createBody = JSON.parse(String(createCall?.[1]?.body)) as Record<string, unknown>;
+    expect(createBody.language).toBe('sw');
   });
 
   it('renders menu items edited in the CMS and switches language', async () => {
@@ -213,7 +235,7 @@ describe('DiningPage', () => {
     renderDiningPage('/dining?venue=coffee');
 
     expect(await screen.findByText('No booking needed.')).toBeInTheDocument();
-    await user.click(screen.getByRole('tab', { name: 'Tulia Restaurant' }));
+    await user.click(screen.getByRole('tab', { name: 'Tamarind Restaurant' }));
 
     expect(await screen.findByRole('button', { name: 'Request table' })).toBeInTheDocument();
     expect(screen.queryByText('No booking needed.')).not.toBeInTheDocument();

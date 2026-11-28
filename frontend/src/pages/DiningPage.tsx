@@ -55,7 +55,7 @@ const VENUES: Record<
     labelKey: 'facility.restaurant.name',
     eyebrow: 'facilities.dining.eyebrow',
     image: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&w=1400&q=85',
-    alt: 'Tulia Restaurant set for dinner',
+    alt: 'The restaurant set for dinner',
     hours: 'facility.restaurant.hours',
     ext: 'ext. 2',
     note: 'dining.vegetarian',
@@ -65,7 +65,7 @@ const VENUES: Record<
     labelKey: 'facility.coffee.name',
     eyebrow: 'facilities.coffee.eyebrow',
     image: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=1400&q=85',
-    alt: 'Jacaranda Café with espresso bar and communal table',
+    alt: 'The café with espresso bar and communal table',
     hours: 'facility.coffee.hours',
     ext: 'ext. 3',
     note: 'dining.workFriendly',
@@ -220,6 +220,7 @@ export function DiningPage() {
         last_name: lastName,
         phone: normaliseKenyanPhone(phone),
         email: email.trim(),
+        language,
         occasion,
         notes: notes.trim(),
         ...guardPayload(),
@@ -283,7 +284,7 @@ export function DiningPage() {
           </div>
           <img
             src="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&w=1400&q=85"
-            alt="Tulia Restaurant dining room with warm lighting"
+            alt="Restaurant dining room with warm lighting"
             className="aspect-[5/4] w-full rounded-[28px] object-cover shadow-lift"
             fetchPriority="high"
           />

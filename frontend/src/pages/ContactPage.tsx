@@ -350,12 +350,6 @@ export function ContactPage() {
                   </span>
                   <span>{t('contact.parking')}</span>
                 </span>
-                <span className="pill bg-white/10 text-white ring-1 ring-white/15">
-                  <span className="material-symbols-outlined text-[14px] text-gold" aria-hidden="true">
-                    airport_shuttle
-                  </span>
-                  <span>{t('contact.transfer')}</span>
-                </span>
               </div>
             </div>
           </div>

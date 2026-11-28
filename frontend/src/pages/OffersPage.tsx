@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from '../components/LocalizedLink';
 import { usePageMeta } from '../components/Page';
 import { useI18n } from '../i18n-context';
 
@@ -64,7 +64,7 @@ const ARTICLES: Article[] = [
     tagKey: 'offer.meetings.tag',
     bodyKey: 'article.meetings.body',
     image: 'https://images.unsplash.com/photo-1505373877841-8d25f7d46678?auto=format&fit=crop&w=1200&q=85',
-    alt: 'Kilele Hall set for a workshop',
+    alt: 'A conference hall set for a workshop',
     date: '2026-10-20',
     metaKey: 'offer.meetings.price',
     excerptKey: 'offer.meetings.description',
@@ -265,7 +265,7 @@ export function OffersPage() {
                 <img
                   src={article.image}
                   alt={t(article.alt)}
-                  className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
+                  className="h-full w-full object-cover transition-[transform,opacity] duration-300 ease-out group-hover:scale-105"
                   loading="lazy"
                 />
                 <span

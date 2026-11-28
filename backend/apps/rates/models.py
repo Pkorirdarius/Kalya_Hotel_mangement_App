@@ -108,8 +108,13 @@ class MealPlan(TimeStampedModel):
     name_sw = models.CharField(max_length=120, blank=True)
     description_en = models.CharField(max_length=255, blank=True)
     description_sw = models.CharField(max_length=255, blank=True)
-    supplement_per_person_per_night = models.DecimalField(
-        max_digits=10, decimal_places=2, default=Decimal("0.00")
+    supplement_per_room_per_night = models.DecimalField(
+        max_digits=10, decimal_places=2, default=Decimal("0.00"),
+        help_text="Board supplement for the room, per night, for one guest.",
+    )
+    extra_person_per_night = models.DecimalField(
+        max_digits=10, decimal_places=2, default=Decimal("0.00"),
+        help_text="Added per night for each guest beyond the first.",
     )
     active = models.BooleanField(default=True)
     sort_order = models.PositiveSmallIntegerField(default=0)

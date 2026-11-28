@@ -226,6 +226,11 @@ class CancelBookingSerializer(serializers.Serializer):
 
 class StaffBookingSerializer(BookingPublicSerializer):
     source = serializers.CharField(source="get_source_display")
+    room_number = serializers.CharField(source="room.number", allow_null=True)
 
     class Meta(BookingPublicSerializer.Meta):
-        fields = BookingPublicSerializer.Meta.fields + ("source", "escalated_at")
+        fields = BookingPublicSerializer.Meta.fields + (
+            "source",
+            "escalated_at",
+            "room_number",
+        )

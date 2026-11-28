@@ -47,6 +47,7 @@ class HotelSettingAdmin(admin.ModelAdmin):
                 "coffee_hours",
                 "conference_capacity",
                 "conference_hours",
+                "conference_prices_confirmed",
                 "gym_capacity",
                 "gym_hours",
                 "gym_day_pass_price",
@@ -68,6 +69,7 @@ class HotelSettingAdmin(admin.ModelAdmin):
             "fields": (
                 "claims_verified",
                 "google_reviews_enabled",
+                "dinner_plan_enabled",
                 "privacy_notice_url",
                 "privacy_notice_version",
                 "data_retention_months",

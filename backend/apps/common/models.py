@@ -99,6 +99,14 @@ class HotelSetting(TimeStampedModel):
     conference_full_day_price = models.DecimalField(
         max_digits=10, decimal_places=2, default=Decimal("15000.00")
     )
+    conference_prices_confirmed = models.BooleanField(
+        default=False,
+        help_text=(
+            "Only enable after the hotel confirms half-day and full-day hall "
+            "prices. While false, prices are omitted from the public API and "
+            "guests see 'Request a quotation'."
+        ),
+    )
 
     # Bank transfer details shown to guests. Never store card data.
     bank_name = models.CharField(max_length=120, blank=True)
@@ -113,6 +121,13 @@ class HotelSetting(TimeStampedModel):
         help_text="When false, unverified claims (best-rate, airport ride, etc.) are hidden.",
     )
     google_reviews_enabled = models.BooleanField(default=False)
+    dinner_plan_enabled = models.BooleanField(
+        default=False,
+        help_text=(
+            "Legacy dinner, bed & breakfast rate. Keep disabled until the "
+            "hotel confirms it is still sold; it is hidden from guest booking."
+        ),
+    )
 
     privacy_notice_url = models.CharField(max_length=255, blank=True)
     privacy_notice_version = models.CharField(max_length=40, blank=True)

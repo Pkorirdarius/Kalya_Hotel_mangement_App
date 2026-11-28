@@ -6,6 +6,7 @@ import uuid
 from django.conf import settings
 
 from .context import reset_request_id, set_request_id
+from .monitoring import capture_exception
 
 _REQUEST_ID_RE = re.compile(r"^[A-Za-z0-9._-]{1,64}$")
 
@@ -24,4 +25,34 @@ class RequestIDMiddleware:
         finally:
             reset_request_id(token)
         response[getattr(settings, "REQUEST_ID_HEADER", "X-Request-ID")] = request_id
+        return response
+
+    def process_exception(self, request, exception):
+        """Send unexpected failures through the opt-in monitoring hook."""
+        capture_exception(
+            exception,
+            request_id=getattr(request, "request_id", "-"),
+            path=request.path,
+            method=request.method,
+        )
+        return None
+
+
+class CSPReportOnlyMiddleware:
+    """Add the audit-only CSP header to API and admin responses.
+
+    The policy is deliberately report-only: monitoring comes first, enforcement
+    is a later change once real traffic and Django admin usage have been reviewed.
+    """
+
+    HEADER = "Content-Security-Policy-Report-Only"
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        response = self.get_response(request)
+        policy = getattr(settings, "CSP_REPORT_ONLY_POLICY", "")
+        if policy and not response.has_header(self.HEADER):
+            response[self.HEADER] = policy
         return response
